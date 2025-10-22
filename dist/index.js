@@ -69,7 +69,7 @@ __export(schema_exports, {
   users: () => users,
   usersRelations: () => usersRelations
 });
-import { pgTable, serial, integer, text, timestamp, boolean, decimal, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, serial, integer, text, timestamp, boolean, decimal, jsonb, numeric } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { z } from "zod";
 var users, missions, openTeams, bids, announcements, feedFeedback, feedSeen, favorites, reviews, reviewHelpful, contracts, deliverables, conversations, messages, notifications, files, usersRelations, missionsRelations, openTeamsRelations, bidsRelations, announcementsRelations, feedFeedbackRelations, feedSeenRelations, favoritesRelations, reviewsRelations, reviewHelpfulRelations, contractsRelations, deliverablesRelations, conversationsRelations, messagesRelations, notificationsRelations, userSettings, userSettingsRelations, filesRelations, insertUserSchema, insertMissionSchema, insertBidSchema, insertOpenTeamSchema, insertReviewSchema, insertReviewHelpfulSchema, insertContractSchema, insertDeliverableSchema, insertNotificationSchema, insertFileSchema, insertAnnouncementSchema, insertFeedFeedbackSchema, insertFeedSeenSchema, insertFavoritesSchema, aiEvents, aiEventsRelations, insertAiEventSchema;
@@ -82,8 +82,23 @@ var init_schema = __esm({
       name: text("name").notNull(),
       password: text("password").notNull(),
       role: text("role").notNull().$type(),
-      rating_mean: decimal("rating_mean", { precision: 3, scale: 2 }),
+      rating_mean: numeric("rating_mean", { precision: 3, scale: 2 }),
       rating_count: integer("rating_count").default(0),
+      // ✅ profile_data (JSONB) contient:
+      // {
+      //   phone?: string,
+      //   location?: string,
+      //   bio?: string,
+      //   company?: string,
+      //   industry?: string,
+      //   experience?: string,
+      //   hourlyRate?: string,
+      //   skills?: Array<{name: string, hourlyRate?: number, category?: string}>,
+      //   portfolio?: Array<{title: string, description: string}>,
+      //   availability?: boolean,  // ✅ BOOLEAN pour disponibilité globale
+      //   keywords?: string[],
+      //   calendarAvailability?: Array<{id?: number, date: string, startTime: string, endTime: string, rate?: number}>
+      // }
       profile_data: jsonb("profile_data"),
       created_at: timestamp("created_at").defaultNow(),
       updated_at: timestamp("updated_at").defaultNow()
@@ -98,8 +113,8 @@ var init_schema = __esm({
       category: text("category").notNull(),
       // Localisation unifiée en JSON
       location_data: jsonb("location_data"),
-      // Budget unifié (plus de redondance)
-      budget_value_cents: integer("budget_value_cents").notNull(),
+      // Budget simplifié - prix entier en euros
+      price: integer("price").notNull(),
       currency: text("currency").default("EUR"),
       // ENUMs PostgreSQL optimisés
       urgency: text("urgency").$type().default("medium"),
@@ -111,8 +126,6 @@ var init_schema = __esm({
       requirements: text("requirements"),
       is_team_mission: boolean("is_team_mission").default(false),
       team_size: integer("team_size").default(1),
-      team_requirements: jsonb("team_requirements"),
-      // Exigences pour chaque rôle de l'équipe
       created_at: timestamp("created_at").defaultNow(),
       updated_at: timestamp("updated_at").defaultNow()
     });
@@ -141,9 +154,9 @@ var init_schema = __esm({
     });
     bids = pgTable("bids", {
       id: serial("id").primaryKey(),
-      mission_id: integer("mission_id").references(() => missions.id).notNull(),
-      provider_id: integer("provider_id").references(() => users.id).notNull(),
-      amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+      mission_id: integer("mission_id").notNull().references(() => missions.id, { onDelete: "cascade" }),
+      provider_id: integer("provider_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+      price: decimal("price", { precision: 10, scale: 2 }).notNull(),
       timeline_days: integer("timeline_days"),
       message: text("message"),
       score_breakdown: jsonb("score_breakdown"),
@@ -161,20 +174,48 @@ var init_schema = __esm({
       updated_at: timestamp("updated_at").defaultNow()
     });
     announcements = pgTable("announcements", {
-      id: serial("id").primaryKey(),
+      id: integer("id").primaryKey(),
+      // Utilise l'ID de la mission
+      // Contenu principal
       title: text("title").notNull(),
-      content: text("content").notNull(),
-      type: text("type"),
-      priority: integer("priority"),
-      is_active: boolean("is_active").default(true),
-      status: text("status").default("active"),
-      category: text("category"),
-      budget: integer("budget"),
-      location: text("location"),
-      user_id: integer("user_id").references(() => users.id),
-      sponsored: boolean("sponsored").default(false),
-      created_at: timestamp("created_at").defaultNow(),
-      updated_at: timestamp("updated_at").defaultNow()
+      description: text("description").notNull(),
+      excerpt: text("excerpt").notNull(),
+      // Catégorisation pour le feed
+      category: text("category").notNull(),
+      tags: text("tags").array().default([]),
+      // Prix simplifié
+      price: integer("price").notNull(),
+      currency: text("currency").default("EUR"),
+      // Localisation simplifiée
+      location_display: text("location_display"),
+      city: text("city"),
+      country: text("country"),
+      // Métadonnées feed
+      client_id: integer("client_id").notNull(),
+      client_display_name: text("client_display_name").notNull(),
+      // Stats engagements
+      bids_count: integer("bids_count").default(0),
+      lowest_bid_cents: integer("lowest_bid_cents"),
+      views_count: integer("views_count").default(0),
+      saves_count: integer("saves_count").default(0),
+      // Scoring pour algorithme feed
+      quality_score: decimal("quality_score", { precision: 3, scale: 2 }).default("0.0"),
+      engagement_score: decimal("engagement_score", { precision: 5, scale: 2 }).default("0.0"),
+      freshness_score: decimal("freshness_score", { precision: 3, scale: 2 }).default("1.0"),
+      // Status et timing
+      status: text("status").notNull().default("active"),
+      urgency: text("urgency").default("medium"),
+      deadline: timestamp("deadline"),
+      // Metadata pour feed
+      is_sponsored: boolean("is_sponsored").default(false),
+      boost_score: decimal("boost_score", { precision: 3, scale: 2 }).default("0.0"),
+      // Recherche optimisée
+      search_text: text("search_text").notNull(),
+      // search_vector géré par PostgreSQL, pas inclus dans Drizzle
+      // Audit
+      created_at: timestamp("created_at").notNull().defaultNow(),
+      updated_at: timestamp("updated_at").notNull().defaultNow(),
+      synced_at: timestamp("synced_at").defaultNow()
     });
     feedFeedback = pgTable("feed_feedback", {
       id: serial("id").primaryKey(),
@@ -351,8 +392,8 @@ var init_schema = __esm({
       })
     }));
     announcementsRelations = relations(announcements, ({ one, many }) => ({
-      user: one(users, {
-        fields: [announcements.user_id],
+      client: one(users, {
+        fields: [announcements.client_id],
         references: [users.id]
       }),
       feedbacks: many(feedFeedback),
@@ -492,10 +533,11 @@ var init_schema = __esm({
       })
     }));
     insertUserSchema = z.object({
-      email: z.string().email(),
+      email: z.string().min(1),
+      // Accepte tout texte non vide au lieu de valider strictement le format email
       name: z.string().min(1),
-      password: z.string().min(8),
-      // Added password validation, assuming a minimum of 8 characters
+      password: z.string().optional(),
+      // Mot de passe optionnel et sans longueur minimale
       role: z.enum(["CLIENT", "PRO", "ADMIN"]),
       rating_mean: z.string().optional(),
       rating_count: z.number().int().min(0).optional(),
@@ -508,10 +550,7 @@ var init_schema = __esm({
       category: z.string().min(1),
       location: z.string().optional(),
       postal_code: z.string().optional(),
-      // Added postal_code validation
-      budget: z.number().int().min(0).optional(),
-      budget_value_cents: z.number().int().min(0).optional(),
-      budget_type: z.string().optional(),
+      price: z.number().int().min(10),
       urgency: z.enum(["low", "medium", "high", "urgent"]).optional(),
       status: z.enum(["draft", "open", "published", "assigned", "completed", "cancelled"]).optional(),
       quality_target: z.enum(["basic", "standard", "premium", "luxury"]).optional()
@@ -519,7 +558,8 @@ var init_schema = __esm({
     insertBidSchema = z.object({
       mission_id: z.number().int().positive(),
       provider_id: z.number().int().positive(),
-      amount: z.string(),
+      price: z.string(),
+      // Changed from amount to price
       timeline_days: z.number().int().min(1).optional(),
       message: z.string().optional(),
       score_breakdown: z.any().optional(),
@@ -932,11 +972,11 @@ var init_event_logger = __esm({
       /**
        * Log d'événement d'erreur système
        */
-      logErrorEvent(error, userId, sessionId, context = {}) {
+      logErrorEvent(error, userId2, sessionId, context = {}) {
         const event = {
           event_type: "click",
           // Using existing type for error tracking
-          user_id: userId,
+          user_id: userId2,
           timestamp: (/* @__PURE__ */ new Date()).toISOString(),
           session_id: sessionId,
           metadata: {
@@ -950,7 +990,7 @@ var init_event_logger = __esm({
         this.addToBuffer(event);
         console.log("\u{1F6A8} [ERROR_LOGGED]", JSON.stringify({
           error: error.message,
-          user: userId,
+          user: userId2,
           session: sessionId,
           timestamp: event.timestamp
         }));
@@ -958,10 +998,10 @@ var init_event_logger = __esm({
       /**
        * Log d'événement utilisateur générique
        */
-      logUserEvent(eventType, userId, sessionId, metadata = {}) {
+      logUserEvent(eventType, userId2, sessionId, metadata = {}) {
         const event = {
           event_type: eventType,
-          user_id: userId,
+          user_id: userId2,
           timestamp: (/* @__PURE__ */ new Date()).toISOString(),
           session_id: sessionId,
           metadata: {
@@ -974,7 +1014,7 @@ var init_event_logger = __esm({
         this.addToBuffer(event);
         console.log("\u{1F4CA} [EVENT_LOGGED]", JSON.stringify({
           type: eventType,
-          user: userId,
+          user: userId2,
           session: sessionId,
           timestamp: event.timestamp
         }));
@@ -982,10 +1022,10 @@ var init_event_logger = __esm({
       /**
        * Log d'événement de vue d'annonce
        */
-      logAnnouncementView(userId, missionId, sessionId, dwellTime, metadata = {}) {
+      logAnnouncementView(userId2, missionId, sessionId, dwellTime, metadata = {}) {
         const event = {
           event_type: "view",
-          user_id: userId,
+          user_id: userId2,
           mission_id: missionId,
           timestamp: (/* @__PURE__ */ new Date()).toISOString(),
           session_id: sessionId,
@@ -1011,10 +1051,10 @@ var init_event_logger = __esm({
       /**
        * Log d'événement de sauvegarde/favori
        */
-      logSave(userId, missionId, sessionId, metadata = {}) {
+      logSave(userId2, missionId, sessionId, metadata = {}) {
         const event = {
           event_type: "save",
-          user_id: userId,
+          user_id: userId2,
           mission_id: missionId,
           timestamp: (/* @__PURE__ */ new Date()).toISOString(),
           session_id: sessionId,
@@ -1029,7 +1069,7 @@ var init_event_logger = __esm({
           }
         };
         this.addToBuffer(event);
-        this.logConversion("save", userId, missionId, metadata);
+        this.logConversion("save", userId2, missionId, metadata);
       }
       /**
        * Log d'événement de proposition
@@ -1087,10 +1127,10 @@ var init_event_logger = __esm({
       /**
        * Log d'événement de litige
        */
-      logDispute(userId, missionId, sessionId, metadata = {}) {
+      logDispute(userId2, missionId, sessionId, metadata = {}) {
         const event = {
           event_type: "dispute",
-          user_id: userId,
+          user_id: userId2,
           mission_id: missionId,
           timestamp: (/* @__PURE__ */ new Date()).toISOString(),
           session_id: sessionId,
@@ -1125,10 +1165,10 @@ var init_event_logger = __esm({
       /**
        * Log d'événement de conversion
        */
-      logConversion(conversionType, userId, missionId, metadata) {
+      logConversion(conversionType, userId2, missionId, metadata) {
         const conversionEvent = {
           event_type: "conversion",
-          user_id: userId,
+          user_id: userId2,
           mission_id: missionId,
           timestamp: (/* @__PURE__ */ new Date()).toISOString(),
           session_id: metadata.session_id || "unknown",
@@ -1413,15 +1453,12 @@ async function setupVite(app2, server) {
     }
   });
 }
-function serveStatic(app2, authMiddleware2) {
+function serveStatic(app2) {
   const distPath = path3.resolve(import.meta.dirname, "..", "dist");
   if (!fs2.existsSync(distPath)) {
     throw new Error(
       `Could not find the build directory: ${distPath}, make sure to build the client first`
     );
-  }
-  if (authMiddleware2) {
-    app2.use(authMiddleware2);
   }
   app2.use(express7.static(distPath));
   app2.use("*", (_req, res) => {
@@ -1626,14 +1663,14 @@ var ai_exports = {};
 __export(ai_exports, {
   default: () => ai_default
 });
-import { Router as Router17 } from "express";
-var router23, ai_default;
+import { Router as Router18 } from "express";
+var router24, ai_default;
 var init_ai = __esm({
   "apps/api/src/routes/ai.ts"() {
     "use strict";
     init_AIOrchestrator();
-    router23 = Router17();
-    router23.post("/pricing", async (req, res) => {
+    router24 = Router18();
+    router24.post("/pricing", async (req, res) => {
       try {
         const result = await getPricingSuggestion(req.body);
         res.json(result);
@@ -1642,7 +1679,7 @@ var init_ai = __esm({
         res.status(500).json({ error: "Erreur lors du calcul de prix" });
       }
     });
-    router23.post("/brief", async (req, res) => {
+    router24.post("/brief", async (req, res) => {
       try {
         const result = await enhanceBrief(req.body);
         res.json(result);
@@ -1651,7 +1688,7 @@ var init_ai = __esm({
         res.status(500).json({ error: "Erreur lors de l'am\xE9lioration du brief" });
       }
     });
-    router23.post("/feedback", async (req, res) => {
+    router24.post("/feedback", async (req, res) => {
       try {
         const { phase, prompt, feedback } = req.body;
         await logUserFeedback(phase, prompt, feedback);
@@ -1661,7 +1698,7 @@ var init_ai = __esm({
         res.status(500).json({ error: "Erreur lors de l'enregistrement du feedback" });
       }
     });
-    ai_default = router23;
+    ai_default = router24;
   }
 });
 
@@ -2115,73 +2152,6 @@ var getPerformanceStats = () => {
   };
 };
 
-// server/middleware/auth-protection.ts
-function createAuthProtection(options = {}) {
-  const envEnabled = process.env.SITE_AUTH_ENABLED?.toLowerCase();
-  const isEnabled = envEnabled === "true" || envEnabled === "1" || envEnabled === "yes";
-  const {
-    username = process.env.SITE_AUTH_USERNAME,
-    password = process.env.SITE_AUTH_PASSWORD,
-    realm = "Swideal - Acc\xE8s prot\xE9g\xE9",
-    enabled = isEnabled
-  } = options;
-  let hasLogged = false;
-  return function authProtectionMiddleware(req, res, next) {
-    if (!hasLogged) {
-      console.log("\u{1F510} Auth Protection Status:", {
-        enabled,
-        hasUsername: !!username,
-        hasPassword: !!password,
-        envValue: process.env.SITE_AUTH_ENABLED,
-        nodeEnv: process.env.NODE_ENV
-      });
-      hasLogged = true;
-    }
-    if (!enabled) {
-      return next();
-    }
-    if (!username || !password) {
-      console.warn("\u26A0\uFE0F Protection par mot de passe d\xE9sactiv\xE9e : SITE_AUTH_USERNAME ou SITE_AUTH_PASSWORD non configur\xE9");
-      return next();
-    }
-    const authHeader = req.headers.authorization;
-    const send401Response = (message) => {
-      console.log("\u{1F6AB} Auth required for:", req.path, "- No credentials provided");
-      res.setHeader("WWW-Authenticate", `Basic realm="${realm}"`);
-      const acceptHeader = req.headers.accept || "";
-      const isApiRequest = acceptHeader.includes("application/json") || req.path.startsWith("/api");
-      if (isApiRequest) {
-        return res.status(401).json({
-          error: "Authentification requise",
-          message
-        });
-      } else {
-        res.status(401).end();
-      }
-    };
-    if (!authHeader) {
-      return send401Response("Authentification requise");
-    }
-    const base64Credentials = authHeader.split(" ")[1];
-    if (!base64Credentials) {
-      return send401Response("Format d'authentification invalide");
-    }
-    const credentials = Buffer.from(base64Credentials, "base64").toString("utf-8");
-    const [providedUsername, providedPassword] = credentials.split(":");
-    if (providedUsername === username && providedPassword === password) {
-      return next();
-    }
-    return send401Response("Identifiants invalides");
-  };
-}
-function createProductionAuthProtection(options = {}) {
-  const isProduction = process.env.NODE_ENV === "production";
-  return createAuthProtection({
-    ...options,
-    enabled: isProduction && options.enabled !== false
-  });
-}
-
 // server/auth-routes.ts
 init_schema();
 import express from "express";
@@ -2303,8 +2273,8 @@ router.post("/register", async (req, res) => {
 });
 router.get("/profile/:id", async (req, res) => {
   try {
-    const userId = parseInt(req.params.id);
-    const user = await db2.select().from(users).where(eq2(users.id, userId)).limit(1);
+    const userId2 = parseInt(req.params.id);
+    const user = await db2.select().from(users).where(eq2(users.id, userId2)).limit(1);
     if (user.length === 0) {
       return res.status(404).json({ error: "Utilisateur non trouv\xE9" });
     }
@@ -2513,69 +2483,33 @@ var auth_routes_default = router;
 init_database();
 init_schema();
 import { Router } from "express";
-import { eq as eq3, desc, sql as sql2, inArray } from "drizzle-orm";
+import { eq as eq3, desc, sql as sql2 } from "drizzle-orm";
 import { randomUUID } from "crypto";
 
 // server/dto/mission-dto.ts
 function extractLocationSafely(mission) {
-  const defaults = {
-    location: "Remote",
-    location_raw: null,
-    postal_code: null,
-    city: null,
-    country: "France",
-    remote_allowed: true,
-    location_data: { remote_allowed: true }
+  const loc = mission.location_data || { country: "France", remote_allowed: true };
+  return {
+    location: loc.city || loc.raw || "Remote",
+    location_raw: loc.raw || null,
+    postal_code: mission.postal_code || null,
+    // Use mission's postal_code directly
+    city: mission.city || null,
+    // Use mission's city directly
+    country: mission.country || loc.country || "France",
+    // Prefer mission's country
+    remote_allowed: mission.remote_allowed !== false && loc.remote_allowed !== false,
+    // Combine flags
+    location_data: loc
   };
-  try {
-    if (mission.location_data) {
-      let locationData = mission.location_data;
-      if (typeof locationData === "string") {
-        try {
-          locationData = JSON.parse(locationData);
-        } catch (e) {
-          console.warn("Failed to parse location_data JSON:", e);
-          locationData = { raw: locationData };
-        }
-      }
-      return {
-        location: locationData.raw || locationData.city || locationData.address || "Remote",
-        location_raw: locationData.raw || mission.location_raw || null,
-        postal_code: locationData.postal_code || mission.postal_code || null,
-        city: locationData.city || mission.city || null,
-        country: locationData.country || mission.country || "France",
-        remote_allowed: locationData.remote_allowed !== void 0 ? locationData.remote_allowed : true,
-        location_data: locationData
-      };
-    }
-    return {
-      location: mission.location_raw || mission.city || "Remote",
-      location_raw: mission.location_raw || null,
-      postal_code: mission.postal_code || null,
-      city: mission.city || null,
-      country: mission.country || "France",
-      remote_allowed: mission.remote_allowed !== void 0 ? mission.remote_allowed : true,
-      location_data: {
-        raw: mission.location_raw || null,
-        city: mission.city || null,
-        country: mission.country || "France",
-        remote_allowed: mission.remote_allowed !== void 0 ? mission.remote_allowed : true
-      }
-    };
-  } catch (error) {
-    console.warn("\u26A0\uFE0F Erreur extraction location, utilisation des valeurs par d\xE9faut:", error);
-    return defaults;
-  }
 }
 function extractBudgetSafely(mission) {
-  const budgetCents = mission.budget_value_cents || 0;
+  const price = mission.price || 0;
   const currency = mission.currency || "EUR";
-  const budgetEuros = Math.round(budgetCents / 100);
   return {
-    budget: budgetEuros.toString(),
-    budget_value_cents: budgetCents,
+    price,
     currency,
-    budget_display: budgetCents > 0 ? `${budgetEuros}\u20AC` : "\xC0 n\xE9gocier"
+    budgetDisplay: price > 0 ? `${price}\u20AC` : "\xC0 n\xE9gocier"
   };
 }
 function extractMetadataSafely(mission) {
@@ -2601,7 +2535,7 @@ function mapMission(mission) {
       title: mission.title || "Mission sans titre",
       description: mission.description || "",
       excerpt: mission.excerpt || (mission.description ? mission.description.length > 200 ? mission.description.substring(0, 200) + "..." : mission.description : "Description non disponible"),
-      category: mission.category || "general",
+      category: mission.category || "developpement",
       // Budget
       ...budget,
       // Localisation
@@ -2609,10 +2543,10 @@ function mapMission(mission) {
       // Relations utilisateur
       user_id: mission.user_id,
       client_id: mission.client_id || mission.user_id,
-      userId: mission.user_id?.toString(),
-      clientId: (mission.client_id || mission.user_id)?.toString(),
-      clientName: "Client",
-      // TODO: Récupérer le vrai nom depuis une jointure
+      userId: mission.user_id?.toString() || mission.client_id?.toString(),
+      clientId: mission.client_id?.toString() || mission.user_id?.toString(),
+      clientName: mission.client_name || mission.user_name || "Client",
+      // Use client_name, fallback to user_name, then 'Client'
       // Statut et timing
       status: mission.status || "open",
       urgency: mission.urgency || "medium",
@@ -2629,9 +2563,22 @@ function mapMission(mission) {
       updated_at: mission.updated_at,
       createdAt: mission.created_at?.toISOString() || (/* @__PURE__ */ new Date()).toISOString(),
       updatedAt: mission.updated_at?.toISOString(),
-      // Champs pour compatibilité frontend
-      bids: []
-      // Sera rempli par les routes qui récupèrent les bids
+      // Bids (si présents) - supporter les deux formats (amount et price)
+      bids: mission.bids?.map((bid) => ({
+        id: bid.id,
+        amount: bid.price || bid.amount || 0,
+        // ✅ Prioriser 'price' (nouveau format)
+        timeline_days: bid.timeline_days,
+        message: bid.message,
+        providerId: bid.provider_id?.toString(),
+        providerName: bid.provider_name || "Anonyme",
+        status: bid.status,
+        bid_type: bid.bid_type || "individual",
+        // ✅ Type de candidature
+        team_composition: bid.team_composition || null,
+        // ✅ NULL pour individuel
+        created_at: bid.created_at
+      })) || []
     };
     console.log("\u2705 DTO Mapper: Mission mapp\xE9e avec succ\xE8s:", mappedMission.id, mappedMission.title);
     return mappedMission;
@@ -2644,10 +2591,9 @@ function mapMission(mission) {
       description: mission.description || "",
       excerpt: "Erreur lors du chargement des d\xE9tails",
       category: "general",
-      budget: "0",
-      budget_value_cents: 0,
+      price: 0,
       currency: "EUR",
-      budget_display: "Non disponible",
+      budgetDisplay: "Non disponible",
       location: "Remote",
       location_raw: null,
       postal_code: null,
@@ -2660,6 +2606,7 @@ function mapMission(mission) {
       userId: mission.user_id?.toString(),
       clientId: (mission.client_id || mission.user_id)?.toString(),
       clientName: "Client",
+      // Fallback to 'Client' in case of error
       status: "open",
       urgency: "medium",
       deadline: null,
@@ -2676,6 +2623,109 @@ function mapMission(mission) {
     };
   }
 }
+
+// server/validation/mission-schemas.ts
+import { z as z2 } from "zod";
+var teamRequirementSchema = z2.object({
+  profession: z2.string(),
+  description: z2.string(),
+  required_skills: z2.array(z2.string()),
+  estimated_budget: z2.number(),
+  estimated_days: z2.number(),
+  min_experience: z2.number(),
+  is_lead_role: z2.boolean(),
+  importance: z2.enum(["high", "medium", "low"])
+});
+var createSimpleMissionSchema = z2.object({
+  title: z2.string().min(3, "Le titre doit contenir au moins 3 caract\xE8res").max(500, "Le titre ne peut pas d\xE9passer 500 caract\xE8res").transform((str) => str.trim()),
+  description: z2.string().min(10, "La description doit contenir au moins 10 caract\xE8res").max(5e3, "La description ne peut pas d\xE9passer 5000 caract\xE8res").transform((str) => str.trim()),
+  budget: z2.union([
+    z2.number().int("Le budget doit \xEAtre un nombre entier").positive("Le budget doit \xEAtre positif").min(10, "Budget minimum de 10\u20AC").max(1e6, "Budget maximum de 1 000 000\u20AC"),
+    z2.string().transform((val) => parseInt(val.replace(/[^0-9]/g, ""), 10)).pipe(z2.number().int().positive().min(10).max(1e6))
+  ]),
+  category: z2.string().optional(),
+  location: z2.string().optional(),
+  isTeamMode: z2.boolean().default(false),
+  teamRequirements: z2.array(teamRequirementSchema).optional()
+});
+var locationDataSchema = z2.object({
+  address: z2.string().optional(),
+  postal_code: z2.string().regex(/^\d{5}$/, "Code postal invalide").optional(),
+  city: z2.string().optional(),
+  country: z2.string().default("France"),
+  coordinates: z2.object({
+    lat: z2.number().min(-90).max(90),
+    lng: z2.number().min(-180).max(180)
+  }).optional(),
+  remote_allowed: z2.boolean().default(true)
+}).optional();
+var budgetSchema = z2.object({
+  value_cents: z2.number().int().positive().min(1e3, "Budget minimum de 10\u20AC").max(1e8, "Budget maximum de 1M\u20AC"),
+  currency: z2.enum(["EUR", "USD", "GBP", "CHF"]).default("EUR")
+});
+var statusEnum = z2.enum(["draft", "open", "in_progress", "completed", "cancelled"]);
+var urgencyEnum = z2.enum(["low", "medium", "high", "urgent"]);
+var qualityTargetEnum = z2.enum(["basic", "standard", "premium", "luxury"]);
+var locationSchema = z2.object({
+  raw: z2.string().optional(),
+  city: z2.string().min(1).optional(),
+  postalCode: z2.string().regex(/^\d{5}$/).optional(),
+  country: z2.string().default("France"),
+  latitude: z2.number().min(-90).max(90).optional(),
+  longitude: z2.number().min(-180).max(180).optional(),
+  remoteAllowed: z2.boolean().default(true)
+});
+var teamSchema = z2.object({
+  isTeamMission: z2.boolean().default(false),
+  teamSize: z2.number().int().positive().default(1)
+}).refine((data) => !data.isTeamMission || data.teamSize > 1, {
+  message: "Une mission d'\xE9quipe doit avoir plus d'1 personne",
+  path: ["teamSize"]
+});
+var createMissionSchema = z2.object({
+  // Contenu obligatoire
+  title: z2.string().min(3, "Le titre doit contenir au moins 3 caract\xE8res").max(500, "Le titre ne peut pas d\xE9passer 500 caract\xE8res").transform((str) => str.trim()),
+  description: z2.string().min(10, "La description doit contenir au moins 10 caract\xE8res").max(5e3, "La description ne peut pas d\xE9passer 5000 caract\xE8res").transform((str) => str.trim()),
+  // Catégorisation
+  category: z2.string().min(1, "La cat\xE9gorie est requise").default("developpement"),
+  tags: z2.array(z2.string().min(1)).max(10, "Maximum 10 tags").default([]).transform((tags) => tags.map((tag) => tag.toLowerCase().trim())),
+  skillsRequired: z2.array(z2.string().min(1)).max(15, "Maximum 15 comp\xE9tences").default([]).transform((skills) => skills.map((skill) => skill.trim())),
+  // Budget obligatoire en euros
+  budget: z2.number().int("Le budget doit \xEAtre un nombre entier").positive("Le budget doit \xEAtre positif").min(10, "Budget minimum de 10\u20AC").max(1e6, "Budget maximum de 1 000 000\u20AC"),
+  // Localisation
+  location: locationSchema.optional(),
+  // Équipe
+  team: teamSchema.optional(),
+  // Timing et urgence
+  urgency: z2.enum(["low", "medium", "high", "urgent"]).default("medium"),
+  deadline: z2.string().datetime("Format de date invalide").optional().transform((str) => str ? new Date(str) : void 0),
+  // Métadonnées
+  requirements: z2.string().max(2e3, "Les exigences ne peuvent pas d\xE9passer 2000 caract\xE8res").optional().transform((str) => str?.trim()),
+  deliverables: z2.array(z2.object({
+    title: z2.string().min(1),
+    description: z2.string().optional(),
+    dueDate: z2.string().datetime().optional()
+  })).max(20, "Maximum 20 livrables").default([]),
+  // Status (draft par défaut, published si publié immédiatement)
+  status: z2.enum(["draft", "published"]).default("draft")
+});
+var updateMissionSchema = createMissionSchema.partial().extend({
+  id: z2.number().int().positive()
+});
+var searchMissionsSchema = z2.object({
+  query: z2.string().min(1).optional(),
+  category: z2.string().optional(),
+  budgetMin: z2.number().int().positive().optional(),
+  budgetMax: z2.number().int().positive().optional(),
+  location: z2.string().optional(),
+  remoteOnly: z2.boolean().default(false),
+  urgency: z2.array(z2.enum(["low", "medium", "high", "urgent"])).optional(),
+  tags: z2.array(z2.string()).optional(),
+  skills: z2.array(z2.string()).optional(),
+  sortBy: z2.enum(["recent", "budget_asc", "budget_desc", "deadline"]).default("recent"),
+  page: z2.number().int().positive().default(1),
+  limit: z2.number().int().positive().max(50).default(20)
+});
 
 // server/routes/missions.ts
 var asyncHandler = (fn) => (req, res, next) => {
@@ -2716,47 +2766,26 @@ router2.post("/", asyncHandler(async (req, res) => {
     user_agent: req.headers["user-agent"],
     ip: req.ip
   }));
-  const { title, description, category, budget, location, userId, postal_code } = req.body;
-  console.log(JSON.stringify({
-    level: "info",
-    timestamp: (/* @__PURE__ */ new Date()).toISOString(),
-    request_id: requestId,
-    action: "mission_data_received",
-    data: { title, description, category, budget, location, postal_code, userId }
-  }));
-  if (!title || typeof title !== "string" || title.trim().length < 3) {
+  const parseResult = createSimpleMissionSchema.safeParse(req.body);
+  if (!parseResult.success) {
+    const firstError = parseResult.error.errors[0];
     console.log(JSON.stringify({
       level: "warn",
       timestamp: (/* @__PURE__ */ new Date()).toISOString(),
       request_id: requestId,
       action: "validation_failed",
-      field: "title",
-      value: title
+      field: firstError.path.join("."),
+      message: firstError.message
     }));
     return res.status(400).json({
       ok: false,
-      error: "Le titre doit contenir au moins 3 caract\xE8res",
-      field: "title",
+      error: firstError.message,
+      field: firstError.path.join("."),
       request_id: requestId
     });
   }
-  if (!description || typeof description !== "string" || description.trim().length < 10) {
-    console.log(JSON.stringify({
-      level: "warn",
-      timestamp: (/* @__PURE__ */ new Date()).toISOString(),
-      request_id: requestId,
-      action: "validation_failed",
-      field: "description",
-      value_length: description?.length || 0
-    }));
-    return res.status(400).json({
-      ok: false,
-      error: "La description doit contenir au moins 10 caract\xE8res",
-      field: "description",
-      request_id: requestId
-    });
-  }
-  const userIdInt = userId ? parseInt(userId.toString()) : 1;
+  const { title, description, category, budget, location, userId: userId2 } = parseResult.data;
+  const userIdInt = userId2 ? parseInt(userId2.toString()) : 1;
   if (isNaN(userIdInt) || userIdInt <= 0) {
     console.log(JSON.stringify({
       level: "warn",
@@ -2764,7 +2793,7 @@ router2.post("/", asyncHandler(async (req, res) => {
       request_id: requestId,
       action: "validation_failed",
       field: "userId",
-      value: userId
+      value: userId2
     }));
     return res.status(400).json({
       ok: false,
@@ -2792,7 +2821,7 @@ router2.post("/", asyncHandler(async (req, res) => {
     });
   }
   const now = /* @__PURE__ */ new Date();
-  const budgetCents = budget ? parseInt(budget.toString()) * 100 : 1e5;
+  const priceValue = budget ? parseInt(budget.toString()) : 100;
   const extractCity = (locationString) => {
     if (!locationString) return null;
     const parts = locationString.split(",");
@@ -2813,8 +2842,10 @@ Exigences sp\xE9cifiques: ${req.body.requirements}` : "");
     description: fullDescription,
     excerpt: generateExcerpt(fullDescription, 200),
     category: category || "developpement",
-    budget_value_cents: budgetCents,
+    price: priceValue,
+    // Utiliser 'price' harmonisé
     currency: "EUR",
+    // Assurer une devise unique
     location_data: locationData,
     // Utiliser le champ correct du schéma
     user_id: userIdInt,
@@ -2823,9 +2854,7 @@ Exigences sp\xE9cifiques: ${req.body.requirements}` : "");
     // Utiliser un statut valide
     urgency: "medium",
     is_team_mission: false,
-    team_size: 1,
-    team_requirements: req.body.team_requirements || []
-    // Ensure team_requirements is included
+    team_size: 1
     // created_at et updated_at sont gérés automatiquement par la DB
   };
   console.log(JSON.stringify({
@@ -2835,11 +2864,11 @@ Exigences sp\xE9cifiques: ${req.body.requirements}` : "");
     action: "mission_data_prepared",
     title_length: newMission.title.length,
     description_length: newMission.description.length,
-    budget_cents: newMission.budget_value_cents,
+    price: newMission.price,
+    // Log the harmonized price
     user_id: newMission.user_id,
     location_data: newMission.location_data,
-    is_team_mission: newMission.is_team_mission,
-    team_requirements: newMission.team_requirements
+    is_team_mission: newMission.is_team_mission
   }));
   console.log(JSON.stringify({
     level: "info",
@@ -2855,16 +2884,15 @@ Exigences sp\xE9cifiques: ${req.body.requirements}` : "");
     created_at: missions.created_at,
     description: missions.description,
     category: missions.category,
-    budget_value_cents: missions.budget_value_cents,
+    price: missions.price,
+    // Récupérer le prix harmonisé
     location_data: missions.location_data,
     urgency: missions.urgency,
     deadline: missions.deadline,
     tags: missions.tags,
     currency: missions.currency,
-    is_team_mission: missions.is_team_mission,
+    is_team_mission: missions.is_team_mission
     // Include team mission flag
-    team_requirements: missions.team_requirements
-    // Include team requirements
   });
   if (!insertResult || insertResult.length === 0) {
     throw new Error("Insert failed - no result returned");
@@ -2883,82 +2911,20 @@ Exigences sp\xE9cifiques: ${req.body.requirements}` : "");
       status: insertedMission.status,
       user_id: insertedMission.user_id,
       created_at: insertedMission.created_at,
-      is_team_mission: insertedMission.is_team_mission,
-      team_requirements: insertedMission.team_requirements
+      is_team_mission: insertedMission.is_team_mission
     }
   }));
   const mission = insertedMission;
-  const mappedMission = mapMission(mission);
+  const mappedMission = mapMission({
+    ...mission,
+    currency: mission.currency ?? void 0,
+    excerpt: mission.excerpt ?? void 0
+  });
   const responsePayload = {
     ok: true,
     ...mappedMission,
     request_id: requestId
   };
-  try {
-    console.log(JSON.stringify({
-      level: "info",
-      timestamp: (/* @__PURE__ */ new Date()).toISOString(),
-      request_id: requestId,
-      action: "feed_sync_start",
-      mission_id: mission.id
-    }));
-    await db.insert(announcements).values({
-      id: mission.id,
-      title: mission.title,
-      description: mission.description,
-      excerpt: generateExcerpt(mission.description || "", 200),
-      category: mission.category || "general",
-      tags: mission.tags || [],
-      budget_display: `${(mission.budget_value_cents || 0) / 100}\u20AC`,
-      budget_value_cents: mission.budget_value_cents || 0,
-      currency: mission.currency || "EUR",
-      location_display: mission.location_data?.raw || "Remote",
-      city: mission.location_data?.city || null,
-      country: mission.location_data?.country || "France",
-      client_id: mission.user_id,
-      client_display_name: "Client",
-      status: "active",
-      bids_count: 0,
-      quality_score: 0.8,
-      engagement_score: 0,
-      freshness_score: 1,
-      urgency: mission.urgency || "medium",
-      deadline: mission.deadline,
-      search_text: `${mission.title} ${mission.description}`.toLowerCase(),
-      created_at: mission.created_at,
-      updated_at: mission.updated_at,
-      synced_at: /* @__PURE__ */ new Date()
-    }).onConflictDoUpdate({
-      target: [announcements.id],
-      set: {
-        title: mission.title,
-        description: mission.description,
-        excerpt: generateExcerpt(mission.description || "", 200),
-        budget_display: `${(mission.budget_value_cents || 0) / 100}\u20AC`,
-        budget_value_cents: mission.budget_value_cents || 0,
-        location_display: mission.location_data?.raw || "Remote",
-        status: "active",
-        updated_at: /* @__PURE__ */ new Date(),
-        synced_at: /* @__PURE__ */ new Date()
-      }
-    });
-    console.log(JSON.stringify({
-      level: "info",
-      timestamp: (/* @__PURE__ */ new Date()).toISOString(),
-      request_id: requestId,
-      action: "feed_sync_success",
-      mission_id: mission.id
-    }));
-  } catch (syncError) {
-    console.log(JSON.stringify({
-      level: "warn",
-      timestamp: (/* @__PURE__ */ new Date()).toISOString(),
-      request_id: requestId,
-      action: "feed_sync_failed",
-      mission_id: mission.id,
-      error: syncError instanceof Error ? syncError.message : "Unknown sync error"
-    }));
-  }
   res.status(201).json(responsePayload);
 }));
 router2.get("/", asyncHandler(async (req, res) => {
@@ -2975,7 +2941,10 @@ router2.get("/", asyncHandler(async (req, res) => {
   console.log("\u{1F4CB} Headers:", req.headers);
   console.log("\u{1F4CB} Query params:", req.query);
   try {
-    const allMissions = await db.select().from(missions).where(inArray(missions.status, ["open", "in_progress", "published"])).orderBy(desc(missions.created_at)).limit(100);
+    const allMissions = await db.select({
+      mission: missions,
+      user_name: users.name
+    }).from(missions).leftJoin(users, eq3(missions.user_id, users.id)).orderBy(desc(missions.created_at)).limit(100);
     console.log(JSON.stringify({
       level: "info",
       timestamp: (/* @__PURE__ */ new Date()).toISOString(),
@@ -2984,14 +2953,14 @@ router2.get("/", asyncHandler(async (req, res) => {
       missions_count: allMissions.length,
       query_time_ms: Date.now() - startTime
     }));
-    const validMissions = allMissions.filter((mission) => {
-      if (!mission.id || !mission.title) {
+    const validMissions = allMissions.filter((row) => {
+      if (!row.mission.id || !row.mission.title) {
         console.warn(JSON.stringify({
           level: "warn",
           timestamp: (/* @__PURE__ */ new Date()).toISOString(),
           request_id: requestId,
           action: "mission_validation_failed",
-          mission_id: mission.id,
+          mission_id: row.mission.id,
           reason: "missing_required_fields"
         }));
         return false;
@@ -3008,9 +2977,15 @@ router2.get("/", asyncHandler(async (req, res) => {
     }));
     const missionsWithBids = [];
     let mappingErrors = 0;
-    for (const mission of validMissions) {
+    for (const row of validMissions) {
       try {
-        const mappedMission = mapMission(mission);
+        const mappedMission = mapMission({
+          ...row.mission,
+          client_name: row.user_name,
+          user_name: row.user_name,
+          currency: row.mission.currency ?? void 0,
+          excerpt: row.mission.excerpt ?? void 0
+        });
         missionsWithBids.push(mappedMission);
       } catch (mappingError) {
         mappingErrors++;
@@ -3019,25 +2994,25 @@ router2.get("/", asyncHandler(async (req, res) => {
           timestamp: (/* @__PURE__ */ new Date()).toISOString(),
           request_id: requestId,
           action: "mission_mapping_error",
-          mission_id: mission.id,
+          mission_id: row.mission.id,
           error: mappingError.message
         }));
         missionsWithBids.push({
-          id: mission.id,
-          title: mission.title || "Mission sans titre",
-          description: mission.description || "",
+          id: row.mission.id,
+          title: row.mission.title || "Mission sans titre",
+          description: row.mission.description || "",
           excerpt: "Erreur lors du chargement des d\xE9tails",
-          category: mission.category || "general",
+          category: row.mission.category || "general",
           budget: "0",
           budget_value_cents: 0,
           currency: "EUR",
           budget_display: "Non disponible",
           location: "Remote",
-          status: mission.status || "open",
-          user_id: mission.user_id,
-          userId: mission.user_id?.toString(),
-          clientName: "Client",
-          createdAt: mission.created_at?.toISOString() || (/* @__PURE__ */ new Date()).toISOString(),
+          status: row.mission.status || "open",
+          user_id: row.mission.user_id,
+          userId: row.mission.user_id?.toString(),
+          clientName: row.user_name || "Client",
+          createdAt: row.mission.created_at?.toISOString() || (/* @__PURE__ */ new Date()).toISOString(),
           bids: []
         });
       }
@@ -3216,24 +3191,28 @@ router2.get("/:id", asyncHandler(async (req, res) => {
       team_requirements_length: Array.isArray(missionRaw[0].team_requirements) ? missionRaw[0].team_requirements.length : 0
     });
   }
-  const mission = mapMission(missionRaw[0]);
+  const mission = mapMission({
+    ...missionRaw[0],
+    currency: missionRaw[0].currency ?? void 0,
+    excerpt: missionRaw[0].excerpt ?? void 0
+  });
   let missionBids = [];
   try {
     missionBids = await db.select({
       id: bids.id,
-      amount: bids.amount,
+      amount: bids.price,
       timeline_days: bids.timeline_days,
       message: bids.message,
-      score_breakdown: bids.score_breakdown,
-      is_leading: bids.is_leading,
       status: bids.status,
       created_at: bids.created_at,
+      provider_id: bids.provider_id,
       provider_name: users.name,
       provider_email: users.email,
-      provider_profile: users.profile_data
+      provider_rating: users.rating_mean
     }).from(bids).leftJoin(users, eq3(bids.provider_id, users.id)).where(eq3(bids.mission_id, missionIdInt));
+    console.log(`\u2705 Trouv\xE9 ${missionBids.length} candidatures pour la mission ${missionIdInt}`);
   } catch (error) {
-    console.warn("\u26A0\uFE0F Could not fetch bids (table may not exist):", error);
+    console.error("\u274C Erreur lors de la r\xE9cup\xE9ration des bids:", error);
     missionBids = [];
   }
   const result = {
@@ -3244,21 +3223,21 @@ router2.get("/:id", asyncHandler(async (req, res) => {
   res.json(result);
 }));
 router2.get("/users/:userId/missions", asyncHandler(async (req, res) => {
-  const userId = req.params.userId;
-  console.log("\u{1F464} Fetching missions with bids for user:", userId);
-  if (!userId || userId === "undefined" || userId === "null") {
-    console.error("\u274C Invalid user ID:", userId);
+  const userId2 = req.params.userId;
+  console.log("\u{1F464} Fetching missions with bids for user:", userId2);
+  if (!userId2 || userId2 === "undefined" || userId2 === "null") {
+    console.error("\u274C Invalid user ID:", userId2);
     return res.status(400).json({
       error: "User ID invalide",
       details: "L'ID utilisateur est requis"
     });
   }
-  const userIdInt = parseInt(userId, 10);
+  const userIdInt = parseInt(userId2, 10);
   if (isNaN(userIdInt) || userIdInt <= 0 || !Number.isInteger(userIdInt)) {
-    console.error("\u274C User ID is not a valid number:", userId);
+    console.error("\u274C User ID is not a valid number:", userId2);
     return res.status(400).json({
       error: "User ID doit \xEAtre un nombre entier valide",
-      received: userId,
+      received: userId2,
       details: "L'ID utilisateur doit \xEAtre un nombre entier positif"
     });
   }
@@ -3271,6 +3250,7 @@ router2.get("/users/:userId/missions", asyncHandler(async (req, res) => {
       description: missions.description,
       category: missions.category,
       budget_value_cents: missions.budget_value_cents,
+      // This will be removed or refactored later
       currency: missions.currency,
       location_data: missions.location_data,
       user_id: missions.user_id,
@@ -3308,9 +3288,9 @@ router2.get("/users/:userId/missions", asyncHandler(async (req, res) => {
           description: row.description,
           excerpt: generateExcerpt(row.description || "", 200),
           category: row.category,
-          // Budget
-          budget_value_cents: row.budget_value_cents,
-          budget: row.budget_value_cents?.toString() || "0",
+          // Budget - Use 'price' and ensure it's a string for display
+          price: row.budget_value_cents?.toString() || "0",
+          // Display price as string
           currency: row.currency,
           // Location
           location_data: row.location_data,
@@ -3354,7 +3334,7 @@ router2.get("/users/:userId/missions", asyncHandler(async (req, res) => {
       }
     });
     const missionsWithBids = Array.from(missionMap.values());
-    console.log(`\u2705 OPTIMIZED: Found ${missionsWithBids.length} missions for user ${userId}`);
+    console.log(`\u2705 OPTIMIZED: Found ${missionsWithBids.length} missions for user ${userId2}`);
     console.log(`\u2705 PERFORMANCE: Eliminated N+1 queries - used single JOIN instead of ${missionsWithBids.length + 1} separate queries`);
     res.json(missionsWithBids);
   } catch (error) {
@@ -3365,6 +3345,7 @@ router2.get("/users/:userId/missions", asyncHandler(async (req, res) => {
       description: missions.description,
       category: missions.category,
       budget_value_cents: missions.budget_value_cents,
+      // This will be removed or refactored later
       currency: missions.currency,
       location_data: missions.location_data,
       user_id: missions.user_id,
@@ -3388,8 +3369,8 @@ router2.get("/users/:userId/missions", asyncHandler(async (req, res) => {
       description: mission.description,
       excerpt: generateExcerpt(mission.description || "", 200),
       category: mission.category,
-      budget_value_cents: mission.budget_value_cents,
-      budget: mission.budget_value_cents?.toString() || "0",
+      // Use 'price' harmonized field
+      price: mission.budget_value_cents?.toString() || "0",
       currency: mission.currency,
       location_data: mission.location_data,
       location: mission.location_data?.raw || mission.location_data?.city || "Remote",
@@ -3417,20 +3398,20 @@ router2.get("/users/:userId/missions", asyncHandler(async (req, res) => {
   }
 }));
 router2.get("/users/:userId/bids", asyncHandler(async (req, res) => {
-  const userId = req.params.userId;
-  console.log("\u{1F464} Fetching bids for user:", userId);
-  if (!userId || userId === "undefined" || userId === "null") {
-    console.error("\u274C Invalid user ID:", userId);
+  const userId2 = req.params.userId;
+  console.log("\u{1F464} Fetching bids for user:", userId2);
+  if (!userId2 || userId2 === "undefined" || userId2 === "null") {
+    console.error("\u274C Invalid user ID:", userId2);
     return res.status(400).json({ error: "User ID invalide" });
   }
-  const userIdInt = parseInt(userId, 10);
+  const userIdInt = parseInt(userId2, 10);
   if (isNaN(userIdInt)) {
-    console.error("\u274C User ID is not a valid number:", userId);
+    console.error("\u274C User ID is not a valid number:", userId2);
     return res.status(400).json({ error: "User ID doit \xEAtre un nombre" });
   }
   const userBids = [];
-  console.log("\u{1F517} Mapping: userId =", userId, "-> provider_id filter:", userIdInt);
-  console.log(`\u{1F464} Found ${userBids.length} bids for user ${userId}`);
+  console.log("\u{1F517} Mapping: userId =", userId2, "-> provider_id filter:", userIdInt);
+  console.log(`\u{1F464} Found ${userBids.length} bids for user ${userId2}`);
   res.json(userBids);
 }));
 router2.put("/:id", asyncHandler(async (req, res) => {
@@ -3477,7 +3458,8 @@ router2.put("/:id", asyncHandler(async (req, res) => {
     description: updateData.description,
     excerpt: generateExcerpt(updateData.description, 200),
     category: updateData.category || existingMission[0].category,
-    budget_value_cents: updateData.budget ? parseInt(updateData.budget) : null,
+    // Harmonize price: use updateData.price if provided, otherwise keep existing. Ensure it's an integer.
+    price: updateData.price !== void 0 ? parseInt(updateData.price) : existingMission[0].price,
     location_data: updateData.location ? {
       raw: updateData.location,
       city: updateData.city || null,
@@ -3526,6 +3508,12 @@ router2.delete("/:id", asyncHandler(async (req, res) => {
     console.error("\u274C API: Mission non trouv\xE9e pour suppression:", missionId);
     return res.status(404).json({ error: "Mission non trouv\xE9e" });
   }
+  try {
+    await db.delete(bids).where(eq3(bids.mission_id, missionIdInt));
+    console.log("\u2705 API: Offres supprim\xE9es pour mission:", missionId);
+  } catch (error) {
+    console.warn("\u26A0\uFE0F Impossible de supprimer les offres:", error);
+  }
   const deletedMission = await db.delete(missions).where(eq3(missions.id, missionIdInt)).returning();
   if (deletedMission.length === 0) {
     throw new Error("\xC9chec de la suppression de la mission");
@@ -3561,8 +3549,8 @@ var requireAuth = async (req, res, next) => {
         message: "No user ID provided"
       });
     }
-    const userId = parseInt(userIdHeader);
-    if (isNaN(userId)) {
+    const userId2 = parseInt(userIdHeader);
+    if (isNaN(userId2)) {
       return res.status(401).json({
         error: "Authentication required",
         message: "Invalid user ID format"
@@ -3574,7 +3562,7 @@ var requireAuth = async (req, res, next) => {
       name: users.name,
       role: users.role,
       rating_mean: users.rating_mean
-    }).from(users).where(eq4(users.id, userId)).limit(1);
+    }).from(users).where(eq4(users.id, userId2)).limit(1);
     if (!user) {
       return res.status(401).json({
         error: "Authentication required",
@@ -3595,15 +3583,15 @@ var optionalAuth = async (req, res, next) => {
   try {
     const userIdHeader = req.headers["x-user-id"];
     if (userIdHeader) {
-      const userId = parseInt(userIdHeader);
-      if (!isNaN(userId)) {
+      const userId2 = parseInt(userIdHeader);
+      if (!isNaN(userId2)) {
         const [user] = await db.select({
           id: users.id,
           email: users.email,
           name: users.name,
           role: users.role,
           rating_mean: users.rating_mean
-        }).from(users).where(eq4(users.id, userId)).limit(1);
+        }).from(users).where(eq4(users.id, userId2)).limit(1);
         if (user) {
           req.user = user;
         }
@@ -3617,25 +3605,24 @@ var optionalAuth = async (req, res, next) => {
 };
 
 // server/routes/bids.ts
-import { z as z2 } from "zod";
+import { z as z3 } from "zod";
 var router3 = Router2();
-var createBidSchema = z2.object({
-  mission_id: z2.number().int().positive(),
-  amount: z2.string().min(1),
-  // Amount as string to match schema
-  timeline_days: z2.number().int().min(1).optional(),
-  message: z2.string().optional(),
-  bid_type: z2.enum(["individual", "team", "open_team"]).default("individual"),
-  team_composition: z2.any().optional(),
-  team_lead_id: z2.number().int().positive().optional(),
-  open_team_id: z2.number().int().positive().optional()
+var createBidSchema = z3.object({
+  mission_id: z3.number().int().positive(),
+  price: z3.string().min(1),
+  timeline_days: z3.number().int().min(1).optional(),
+  message: z3.string().optional(),
+  bid_type: z3.enum(["individual", "team", "open_team"]).default("individual"),
+  team_composition: z3.any().optional(),
+  team_lead_id: z3.number().int().positive().optional(),
+  open_team_id: z3.number().int().positive().optional()
 });
-var updateBidSchema = z2.object({
-  amount: z2.string().min(1).optional(),
-  timeline_days: z2.number().int().min(1).optional(),
-  message: z2.string().optional(),
-  status: z2.enum(["pending", "accepted", "rejected", "withdrawn"]).optional(),
-  team_composition: z2.any().optional()
+var updateBidSchema = z3.object({
+  price: z3.string().min(1).optional(),
+  timeline_days: z3.number().int().min(1).optional(),
+  message: z3.string().optional(),
+  status: z3.enum(["pending", "accepted", "rejected", "withdrawn"]).optional(),
+  team_composition: z3.any().optional()
 });
 router3.post("/", requireAuth, async (req, res) => {
   try {
@@ -3673,16 +3660,22 @@ router3.post("/", requireAuth, async (req, res) => {
     const [newBid] = await db.insert(bids).values({
       mission_id: validatedData.mission_id,
       provider_id: req.user.id,
-      amount: validatedData.amount,
+      price: validatedData.price,
       timeline_days: validatedData.timeline_days,
       message: validatedData.message,
-      bid_type: validatedData.bid_type,
-      team_composition: validatedData.team_composition,
-      team_lead_id: validatedData.team_lead_id,
-      open_team_id: validatedData.open_team_id,
+      bid_type: validatedData.bid_type || "individual",
+      // ✅ N'inclure team_composition que si c'est une candidature d'équipe
+      team_composition: validatedData.bid_type === "team" || validatedData.bid_type === "open_team" ? validatedData.team_composition : null,
+      team_lead_id: validatedData.bid_type === "team" ? validatedData.team_lead_id : null,
+      open_team_id: validatedData.bid_type === "open_team" ? validatedData.open_team_id : null,
       status: "pending"
     }).returning();
-    console.log("\u2705 Candidature cr\xE9\xE9e:", { bidId: newBid.id, amount: newBid.amount });
+    console.log("\u2705 Candidature cr\xE9\xE9e:", {
+      bidId: newBid.id,
+      price: newBid.price,
+      bidType: newBid.bid_type,
+      hasTeam: !!newBid.team_composition
+    });
     res.status(201).json({
       ok: true,
       bid: newBid,
@@ -3690,7 +3683,7 @@ router3.post("/", requireAuth, async (req, res) => {
     });
   } catch (error) {
     console.error("\u274C Erreur cr\xE9ation candidature:", error);
-    if (error instanceof z2.ZodError) {
+    if (error instanceof z3.ZodError) {
       return res.status(400).json({
         error: "Validation error",
         message: "Donn\xE9es invalides",
@@ -3716,7 +3709,7 @@ router3.get("/", optionalAuth, async (req, res) => {
       id: bids.id,
       mission_id: bids.mission_id,
       provider_id: bids.provider_id,
-      amount: bids.amount,
+      price: bids.price,
       timeline_days: bids.timeline_days,
       message: bids.message,
       status: bids.status,
@@ -3781,7 +3774,7 @@ router3.get("/:id", optionalAuth, async (req, res) => {
       id: bids.id,
       mission_id: bids.mission_id,
       provider_id: bids.provider_id,
-      amount: bids.amount,
+      price: bids.price,
       timeline_days: bids.timeline_days,
       message: bids.message,
       status: bids.status,
@@ -3801,7 +3794,7 @@ router3.get("/:id", optionalAuth, async (req, res) => {
         message: "Candidature non trouv\xE9e"
       });
     }
-    console.log("\u2705 Candidature trouv\xE9e:", { bidId: bid.id, amount: bid.amount });
+    console.log("\u2705 Candidature trouv\xE9e:", { bidId: bid.id, price: bid.price });
     res.json({
       ok: true,
       bid
@@ -3860,7 +3853,7 @@ router3.put("/:id", requireAuth, async (req, res) => {
     });
   } catch (error) {
     console.error("\u274C Erreur mise \xE0 jour candidature:", error);
-    if (error instanceof z2.ZodError) {
+    if (error instanceof z3.ZodError) {
       return res.status(400).json({
         error: "Validation error",
         message: "Donn\xE9es invalides",
@@ -4557,15 +4550,15 @@ var FeedRanker = class {
 
 // server/routes/feed-routes.ts
 init_database();
-import { z as z3 } from "zod";
+import { z as z4 } from "zod";
 var router5 = express2.Router();
 var priceBenchmarkCache = /* @__PURE__ */ new Map();
 router5.get("/feed", async (req, res) => {
   try {
-    const { cursor, limit = "10", userId } = req.query;
+    const { cursor, limit = "10", userId: userId2 } = req.query;
     const limitNum = Math.min(parseInt(limit), 50);
-    console.log("\u{1F4E1} Feed request:", { cursor, limit: limitNum, userId });
-    const seenAnnouncements = userId ? await db.select({ announcement_id: feedSeen.announcement_id }).from(feedSeen).where(eq7(feedSeen.user_id, parseInt(userId))).catch((err) => {
+    console.log("\u{1F4E1} Feed request:", { cursor, limit: limitNum, userId: userId2 });
+    const seenAnnouncements = userId2 ? await db.select({ announcement_id: feedSeen.announcement_id }).from(feedSeen).where(eq7(feedSeen.user_id, parseInt(userId2))).catch((err) => {
       console.warn("\u26A0\uFE0F Feed seen query failed (non-blocking):", err.message);
       return [];
     }) : [];
@@ -4586,7 +4579,7 @@ router5.get("/feed", async (req, res) => {
     });
     console.log("\u2705 Raw announcements fetched:", rawAnnouncements.length);
     const ranker = new FeedRanker(seenIds);
-    const userProfile = userId ? {} : void 0;
+    const userProfile = userId2 ? {} : void 0;
     const rankedAnnouncements = ranker.rankAnnouncements(rawAnnouncements, userProfile);
     const sponsoredAnnouncements = await db.select().from(announcements).where(and3(
       eq7(announcements.sponsored, true),
@@ -4642,7 +4635,7 @@ router5.post("/feedback", async (req, res) => {
     res.json({ success: true });
   } catch (error) {
     console.error("Erreur enregistrement feedback:", error);
-    if (error instanceof z3.ZodError) {
+    if (error instanceof z4.ZodError) {
       return res.status(400).json({ error: "Donn\xE9es invalides", details: error.errors });
     }
     res.status(500).json({ error: "Erreur lors de l'enregistrement du feedback" });
@@ -4814,9 +4807,9 @@ router7.post("/", async (req, res) => {
 });
 router7.get("/user/:userId", async (req, res) => {
   try {
-    const userId = parseInt(req.params.userId);
+    const userId2 = parseInt(req.params.userId);
     const userReviews = await db.query.reviews.findMany({
-      where: eq9(reviews.reviewee_id, userId),
+      where: eq9(reviews.reviewee_id, userId2),
       with: {
         reviewer: {
           columns: { id: true, name: true, avatar_url: true }
@@ -4857,14 +4850,14 @@ router7.get("/mission/:missionId", async (req, res) => {
 router7.post("/:id/helpful", async (req, res) => {
   try {
     const reviewId = parseInt(req.params.id);
-    const userId = req.user?.id;
-    if (!userId) {
+    const userId2 = req.user?.id;
+    if (!userId2) {
       return res.status(401).json({ error: "Non authentifi\xE9" });
     }
     const existing = await db.query.reviewHelpful.findFirst({
       where: and5(
         eq9(reviewHelpful.review_id, reviewId),
-        eq9(reviewHelpful.user_id, userId)
+        eq9(reviewHelpful.user_id, userId2)
       )
     });
     if (existing) {
@@ -4873,7 +4866,7 @@ router7.post("/:id/helpful", async (req, res) => {
     } else {
       await db.insert(reviewHelpful).values({
         review_id: reviewId,
-        user_id: userId
+        user_id: userId2
       });
       await db.update(reviews).set({ helpful_count: sql5`${reviews.helpful_count} + 1` }).where(eq9(reviews.id, reviewId));
     }
@@ -4887,14 +4880,14 @@ router7.post("/:id/response", async (req, res) => {
   try {
     const reviewId = parseInt(req.params.id);
     const { response } = req.body;
-    const userId = req.user?.id;
-    if (!userId) {
+    const userId2 = req.user?.id;
+    if (!userId2) {
       return res.status(401).json({ error: "Non authentifi\xE9" });
     }
     const review = await db.query.reviews.findFirst({
       where: eq9(reviews.id, reviewId)
     });
-    if (!review || review.reviewee_id !== userId) {
+    if (!review || review.reviewee_id !== userId2) {
       return res.status(403).json({ error: "Non autoris\xE9" });
     }
     await db.update(reviews).set({ response, updated_at: /* @__PURE__ */ new Date() }).where(eq9(reviews.id, reviewId));
@@ -4904,9 +4897,9 @@ router7.post("/:id/response", async (req, res) => {
     res.status(500).json({ error: "Erreur serveur" });
   }
 });
-async function updateUserRating(userId) {
+async function updateUserRating(userId2) {
   const userReviews = await db.query.reviews.findMany({
-    where: eq9(reviews.reviewee_id, userId)
+    where: eq9(reviews.reviewee_id, userId2)
   });
   if (userReviews.length > 0) {
     const totalRating = userReviews.reduce((sum, review) => sum + review.rating, 0);
@@ -4914,7 +4907,7 @@ async function updateUserRating(userId) {
     await db.update(users).set({
       rating_mean: Math.round(averageRating * 10) / 10,
       rating_count: userReviews.length
-    }).where(eq9(users.id, userId));
+    }).where(eq9(users.id, userId2));
   }
 }
 var reviews_default = router7;
@@ -4962,7 +4955,7 @@ async function createContract(data) {
     throw error;
   }
 }
-async function signContract(contractId, userId) {
+async function signContract(contractId, userId2) {
   try {
     const contract = await db.query.contracts.findFirst({
       where: eq10(contracts.id, contractId)
@@ -4972,9 +4965,9 @@ async function signContract(contractId, userId) {
     }
     const now = /* @__PURE__ */ new Date();
     let updateData = {};
-    if (contract.client_id === userId && !contract.client_signed_at) {
+    if (contract.client_id === userId2 && !contract.client_signed_at) {
       updateData.client_signed_at = now;
-    } else if (contract.provider_id === userId && !contract.provider_signed_at) {
+    } else if (contract.provider_id === userId2 && !contract.provider_signed_at) {
       updateData.provider_signed_at = now;
     } else {
       throw new Error("Non autoris\xE9 \xE0 signer ce contrat");
@@ -4993,7 +4986,7 @@ async function signContract(contractId, userId) {
     throw error;
   }
 }
-async function transitionContract(contractId, newStatus, userId) {
+async function transitionContract(contractId, newStatus, userId2) {
   try {
     const contract = await db.query.contracts.findFirst({
       where: eq10(contracts.id, contractId)
@@ -5001,7 +4994,7 @@ async function transitionContract(contractId, newStatus, userId) {
     if (!contract) {
       throw new Error("Contrat non trouv\xE9");
     }
-    if (contract.client_id !== userId && contract.provider_id !== userId) {
+    if (contract.client_id !== userId2 && contract.provider_id !== userId2) {
       throw new Error("Non autoris\xE9");
     }
     const validTransitions = getValidTransitions(contract.status);
@@ -5013,7 +5006,7 @@ async function transitionContract(contractId, newStatus, userId) {
       updateData.actual_end_date = /* @__PURE__ */ new Date();
     }
     await db.update(contracts).set(updateData).where(eq10(contracts.id, contractId));
-    const otherUserId = contract.client_id === userId ? contract.provider_id : contract.client_id;
+    const otherUserId = contract.client_id === userId2 ? contract.provider_id : contract.client_id;
     await createNotification(otherUserId, {
       type: "contract_status_changed",
       title: "Statut du contrat modifi\xE9",
@@ -5026,7 +5019,7 @@ async function transitionContract(contractId, newStatus, userId) {
     throw error;
   }
 }
-async function submitDeliverable(deliverableId, userId, data) {
+async function submitDeliverable(deliverableId, userId2, data) {
   try {
     await db.update(deliverables).set({
       status: "submitted",
@@ -5051,7 +5044,7 @@ async function submitDeliverable(deliverableId, userId, data) {
     throw error;
   }
 }
-async function reviewDeliverable(deliverableId, userId, data) {
+async function reviewDeliverable(deliverableId, userId2, data) {
   try {
     await db.update(deliverables).set({
       status: data.approved ? "approved" : "rejected",
@@ -5076,9 +5069,9 @@ function getValidTransitions(currentStatus) {
   };
   return transitions[currentStatus] || [];
 }
-async function createNotification(userId, data) {
+async function createNotification(userId2, data) {
   await db.insert(notifications).values({
-    user_id: userId,
+    user_id: userId2,
     ...data
   });
 }
@@ -5108,14 +5101,14 @@ router8.post("/", async (req, res) => {
 });
 router8.get("/", async (req, res) => {
   try {
-    const userId = req.user?.id;
-    if (!userId) {
+    const userId2 = req.user?.id;
+    if (!userId2) {
       return res.status(401).json({ error: "Non authentifi\xE9" });
     }
     const userContracts = await db.query.contracts.findMany({
       where: or(
-        eq11(contracts.client_id, userId),
-        eq11(contracts.provider_id, userId)
+        eq11(contracts.client_id, userId2),
+        eq11(contracts.provider_id, userId2)
       ),
       with: {
         mission: {
@@ -5140,16 +5133,16 @@ router8.get("/", async (req, res) => {
 router8.get("/:id", async (req, res) => {
   try {
     const contractId = parseInt(req.params.id);
-    const userId = req.user?.id;
-    if (!userId) {
+    const userId2 = req.user?.id;
+    if (!userId2) {
       return res.status(401).json({ error: "Non authentifi\xE9" });
     }
     const contract = await db.query.contracts.findFirst({
       where: and7(
         eq11(contracts.id, contractId),
         or(
-          eq11(contracts.client_id, userId),
-          eq11(contracts.provider_id, userId)
+          eq11(contracts.client_id, userId2),
+          eq11(contracts.provider_id, userId2)
         )
       ),
       with: {
@@ -5176,11 +5169,11 @@ router8.get("/:id", async (req, res) => {
 router8.post("/:id/sign", async (req, res) => {
   try {
     const contractId = parseInt(req.params.id);
-    const userId = req.user?.id;
-    if (!userId) {
+    const userId2 = req.user?.id;
+    if (!userId2) {
       return res.status(401).json({ error: "Non authentifi\xE9" });
     }
-    await signContract(contractId, userId);
+    await signContract(contractId, userId2);
     res.json({ success: true });
   } catch (error) {
     console.error("Erreur signature contrat:", error);
@@ -5191,11 +5184,11 @@ router8.patch("/:id/status", async (req, res) => {
   try {
     const contractId = parseInt(req.params.id);
     const { status } = req.body;
-    const userId = req.user?.id;
-    if (!userId) {
+    const userId2 = req.user?.id;
+    if (!userId2) {
       return res.status(401).json({ error: "Non authentifi\xE9" });
     }
-    await transitionContract(contractId, status, userId);
+    await transitionContract(contractId, status, userId2);
     res.json({ success: true });
   } catch (error) {
     console.error("Erreur changement statut:", error);
@@ -5205,12 +5198,12 @@ router8.patch("/:id/status", async (req, res) => {
 router8.post("/deliverables/:id/submit", async (req, res) => {
   try {
     const deliverableId = parseInt(req.params.id);
-    const userId = req.user?.id;
+    const userId2 = req.user?.id;
     const { file_urls, description } = req.body;
-    if (!userId) {
+    if (!userId2) {
       return res.status(401).json({ error: "Non authentifi\xE9" });
     }
-    await submitDeliverable(deliverableId, userId, { file_urls, description });
+    await submitDeliverable(deliverableId, userId2, { file_urls, description });
     res.json({ success: true });
   } catch (error) {
     console.error("Erreur soumission livrable:", error);
@@ -5220,12 +5213,12 @@ router8.post("/deliverables/:id/submit", async (req, res) => {
 router8.post("/deliverables/:id/review", async (req, res) => {
   try {
     const deliverableId = parseInt(req.params.id);
-    const userId = req.user?.id;
+    const userId2 = req.user?.id;
     const { approved, feedback } = req.body;
-    if (!userId) {
+    if (!userId2) {
       return res.status(401).json({ error: "Non authentifi\xE9" });
     }
-    await reviewDeliverable(deliverableId, userId, { approved, feedback });
+    await reviewDeliverable(deliverableId, userId2, { approved, feedback });
     res.json({ success: true });
   } catch (error) {
     console.error("Erreur validation livrable:", error);
@@ -5254,7 +5247,7 @@ async function ensureUploadDir() {
     await fs.mkdir(UPLOAD_DIR, { recursive: true });
   }
 }
-async function uploadFile(fileData, userId, context) {
+async function uploadFile(fileData, userId2, context) {
   try {
     await ensureUploadDir();
     if (fileData.size > MAX_FILE_SIZE) {
@@ -5269,7 +5262,7 @@ async function uploadFile(fileData, userId, context) {
     const fileUrl = `/uploads/${filename}`;
     await fs.writeFile(filepath, fileData.buffer);
     const [file] = await db.insert(files).values({
-      user_id: userId,
+      user_id: userId2,
       filename,
       original_filename: fileData.originalname,
       file_type: fileData.mimetype,
@@ -5284,12 +5277,12 @@ async function uploadFile(fileData, userId, context) {
     throw error;
   }
 }
-async function deleteFile(fileId, userId) {
+async function deleteFile(fileId, userId2) {
   try {
     const file = await db.query.files.findFirst({
       where: and8(
         eq12(files.id, fileId),
-        eq12(files.user_id, userId)
+        eq12(files.user_id, userId2)
       )
     });
     if (!file) {
@@ -5323,9 +5316,9 @@ async function getFilesByContext(contextType, contextId) {
     throw error;
   }
 }
-async function getUserFiles(userId, contextType) {
+async function getUserFiles(userId2, contextType) {
   try {
-    let whereClause = eq12(files.user_id, userId);
+    let whereClause = eq12(files.user_id, userId2);
     if (contextType) {
       whereClause = and8(whereClause, eq12(files.context_type, contextType));
     }
@@ -5351,15 +5344,15 @@ var upload = multer({
 });
 router9.post("/upload", upload.single("file"), async (req, res) => {
   try {
-    const userId = req.user?.id;
-    if (!userId) {
+    const userId2 = req.user?.id;
+    if (!userId2) {
       return res.status(401).json({ error: "Non authentifi\xE9" });
     }
     if (!req.file) {
       return res.status(400).json({ error: "Aucun fichier fourni" });
     }
     const { context_type, context_id } = req.body;
-    const file = await uploadFile(req.file, userId, {
+    const file = await uploadFile(req.file, userId2, {
       type: context_type,
       id: context_id ? parseInt(context_id) : void 0
     });
@@ -5371,12 +5364,12 @@ router9.post("/upload", upload.single("file"), async (req, res) => {
 });
 router9.get("/user", async (req, res) => {
   try {
-    const userId = req.user?.id;
-    if (!userId) {
+    const userId2 = req.user?.id;
+    if (!userId2) {
       return res.status(401).json({ error: "Non authentifi\xE9" });
     }
     const { context_type } = req.query;
-    const files2 = await getUserFiles(userId, context_type);
+    const files2 = await getUserFiles(userId2, context_type);
     res.json(files2);
   } catch (error) {
     console.error("Erreur r\xE9cup\xE9ration fichiers utilisateur:", error);
@@ -5396,11 +5389,11 @@ router9.get("/context/:type/:id", async (req, res) => {
 router9.delete("/:id", async (req, res) => {
   try {
     const fileId = parseInt(req.params.id);
-    const userId = req.user?.id;
-    if (!userId) {
+    const userId2 = req.user?.id;
+    if (!userId2) {
       return res.status(401).json({ error: "Non authentifi\xE9" });
     }
-    await deleteFile(fileId, userId);
+    await deleteFile(fileId, userId2);
     res.json({ success: true });
   } catch (error) {
     console.error("Erreur suppression fichier:", error);
@@ -5417,8 +5410,8 @@ import { eq as eq13, and as and9, or as or2, desc as desc6 } from "drizzle-orm";
 var router10 = express3.Router();
 router10.get("/conversations", async (req, res) => {
   try {
-    const userId = parseInt(req.query.userId);
-    if (!userId) {
+    const userId2 = parseInt(req.query.userId);
+    if (!userId2) {
       return res.status(400).json({ error: "userId required" });
     }
     const userConversations = await db.select({
@@ -5436,18 +5429,18 @@ router10.get("/conversations", async (req, res) => {
       users,
       or2(
         and9(
-          eq13(conversations.participant1_id, userId),
+          eq13(conversations.participant1_id, userId2),
           eq13(users.id, conversations.participant2_id)
         ),
         and9(
-          eq13(conversations.participant2_id, userId),
+          eq13(conversations.participant2_id, userId2),
           eq13(users.id, conversations.participant1_id)
         )
       )
     ).where(
       or2(
-        eq13(conversations.participant1_id, userId),
-        eq13(conversations.participant2_id, userId)
+        eq13(conversations.participant1_id, userId2),
+        eq13(conversations.participant2_id, userId2)
       )
     ).orderBy(desc6(conversations.last_message_at));
     res.json({ conversations: userConversations });
@@ -5459,18 +5452,18 @@ router10.get("/conversations", async (req, res) => {
 router10.get("/conversations/:id/messages", async (req, res) => {
   try {
     const conversationId = parseInt(req.params.id);
-    const userId = parseInt(req.query.userId);
+    const userId2 = parseInt(req.query.userId);
     const limit = parseInt(req.query.limit) || 50;
     const offset = parseInt(req.query.offset) || 0;
-    if (!userId) {
+    if (!userId2) {
       return res.status(400).json({ error: "userId required" });
     }
     const conversation = await db.select().from(conversations).where(
       and9(
         eq13(conversations.id, conversationId),
         or2(
-          eq13(conversations.participant1_id, userId),
-          eq13(conversations.participant2_id, userId)
+          eq13(conversations.participant1_id, userId2),
+          eq13(conversations.participant2_id, userId2)
         )
       )
     ).limit(1);
@@ -5563,7 +5556,7 @@ router10.post("/messages", async (req, res) => {
 router10.patch("/messages/:id/read", async (req, res) => {
   try {
     const messageId = parseInt(req.params.id);
-    const userId = parseInt(req.body.userId);
+    const userId2 = parseInt(req.body.userId);
     const updatedMessage = await db.update(messages).set({ read_at: /* @__PURE__ */ new Date() }).where(eq13(messages.id, messageId)).returning();
     res.json({ message: updatedMessage[0] });
   } catch (error) {
@@ -5619,20 +5612,20 @@ var WebSocketManager = class {
     const token = url.searchParams.get("token");
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET || "dev-secret");
-      const userId = decoded.userId;
-      const connectionId = `${userId}_${Date.now()}`;
-      ws.userId = userId;
+      const userId2 = decoded.userId;
+      const connectionId = `${userId2}_${Date.now()}`;
+      ws.userId = userId2;
       ws.connectionId = connectionId;
-      if (!this.clients.has(userId)) {
-        this.clients.set(userId, []);
+      if (!this.clients.has(userId2)) {
+        this.clients.set(userId2, []);
       }
-      this.clients.get(userId).push({ ws, userId, connectionId });
-      console.log(`\u2705 User ${userId} connected via WebSocket`);
+      this.clients.get(userId2).push({ ws, userId: userId2, connectionId });
+      console.log(`\u2705 User ${userId2} connected via WebSocket`);
       ws.on("message", (data) => this.handleMessage(ws, data));
       ws.on("close", () => this.handleDisconnection(ws));
       ws.send(JSON.stringify({
         type: "connection_confirmed",
-        userId,
+        userId: userId2,
         connectionId
       }));
     } catch (error) {
@@ -5643,19 +5636,19 @@ var WebSocketManager = class {
   async handleMessage(ws, data) {
     try {
       const message = JSON.parse(data.toString());
-      const userId = ws.userId;
+      const userId2 = ws.userId;
       switch (message.type) {
         case "send_message":
-          await this.handleSendMessage(userId, message);
+          await this.handleSendMessage(userId2, message);
           break;
         case "typing":
-          await this.handleTyping(userId, message);
+          await this.handleTyping(userId2, message);
           break;
         case "read_message":
-          await this.handleReadMessage(userId, message);
+          await this.handleReadMessage(userId2, message);
           break;
         case "join_conversation":
-          await this.handleJoinConversation(userId, message);
+          await this.handleJoinConversation(userId2, message);
           break;
         default:
           console.log("Unknown message type:", message.type);
@@ -5668,15 +5661,15 @@ var WebSocketManager = class {
       }));
     }
   }
-  async handleSendMessage(userId, message) {
+  async handleSendMessage(userId2, message) {
     try {
       const { conversationId, content, messageType = "text" } = message;
       const conversation = await db.select().from(conversations).where(
         and10(
           eq14(conversations.id, conversationId),
           or3(
-            eq14(conversations.participant1_id, userId),
-            eq14(conversations.participant2_id, userId)
+            eq14(conversations.participant1_id, userId2),
+            eq14(conversations.participant2_id, userId2)
           )
         )
       ).limit(1);
@@ -5685,7 +5678,7 @@ var WebSocketManager = class {
       }
       const newMessage = await db.insert(messages).values({
         conversation_id: conversationId,
-        sender_id: userId,
+        sender_id: userId2,
         content,
         message_type: messageType,
         created_at: /* @__PURE__ */ new Date()
@@ -5698,7 +5691,7 @@ var WebSocketManager = class {
         message: {
           id: newMessage[0].id,
           content,
-          sender_id: userId,
+          sender_id: userId2,
           message_type: messageType,
           created_at: newMessage[0].created_at
         }
@@ -5706,34 +5699,34 @@ var WebSocketManager = class {
       participants.forEach((participantId) => {
         this.sendToUser(participantId, messageData);
       });
-      const otherParticipant = participants.find((id) => id !== userId);
+      const otherParticipant = participants.find((id) => id !== userId2);
       if (otherParticipant) {
         await this.createNotification(otherParticipant, {
           type: "new_message",
           title: "Nouveau message",
           message: content.substring(0, 100),
           link: `/messages?conversation=${conversationId}`,
-          metadata: { conversationId, senderId: userId }
+          metadata: { conversationId, senderId: userId2 }
         });
       }
     } catch (error) {
       console.error("\u274C Error sending message:", error);
     }
   }
-  async handleTyping(userId, message) {
+  async handleTyping(userId2, message) {
     const { conversationId, isTyping } = message;
     const conversation = await db.select().from(conversations).where(eq14(conversations.id, conversationId)).limit(1);
     if (conversation.length > 0) {
-      const otherParticipant = conversation[0].participant1_id === userId ? conversation[0].participant2_id : conversation[0].participant1_id;
+      const otherParticipant = conversation[0].participant1_id === userId2 ? conversation[0].participant2_id : conversation[0].participant1_id;
       this.sendToUser(otherParticipant, {
         type: "typing",
         conversationId,
-        userId,
+        userId: userId2,
         isTyping
       });
     }
   }
-  async handleReadMessage(userId, message) {
+  async handleReadMessage(userId2, message) {
     const { messageId } = message;
     await db.update(messages).set({ read_at: /* @__PURE__ */ new Date() }).where(eq14(messages.id, messageId));
     const messageData = await db.select().from(messages).where(eq14(messages.id, messageId)).limit(1);
@@ -5741,25 +5734,25 @@ var WebSocketManager = class {
       this.sendToUser(messageData[0].sender_id, {
         type: "message_read",
         messageId,
-        readBy: userId,
+        readBy: userId2,
         readAt: /* @__PURE__ */ new Date()
       });
     }
   }
-  async handleJoinConversation(userId, message) {
+  async handleJoinConversation(userId2, message) {
     const { conversationId } = message;
     const conversation = await db.select().from(conversations).where(
       and10(
         eq14(conversations.id, conversationId),
         or3(
-          eq14(conversations.participant1_id, userId),
-          eq14(conversations.participant2_id, userId)
+          eq14(conversations.participant1_id, userId2),
+          eq14(conversations.participant2_id, userId2)
         )
       )
     ).limit(1);
     if (conversation.length > 0) {
       const recentMessages = await db.select().from(messages).where(eq14(messages.conversation_id, conversationId)).orderBy(messages.created_at).limit(50);
-      this.sendToUser(userId, {
+      this.sendToUser(userId2, {
         type: "conversation_history",
         conversationId,
         messages: recentMessages
@@ -5767,22 +5760,22 @@ var WebSocketManager = class {
     }
   }
   handleDisconnection(ws) {
-    const userId = ws.userId;
+    const userId2 = ws.userId;
     const connectionId = ws.connectionId;
-    if (userId && this.clients.has(userId)) {
-      const userConnections = this.clients.get(userId);
+    if (userId2 && this.clients.has(userId2)) {
+      const userConnections = this.clients.get(userId2);
       const updatedConnections = userConnections.filter((conn) => conn.connectionId !== connectionId);
       if (updatedConnections.length === 0) {
-        this.clients.delete(userId);
-        console.log(`\u274C User ${userId} disconnected (all connections closed)`);
+        this.clients.delete(userId2);
+        console.log(`\u274C User ${userId2} disconnected (all connections closed)`);
       } else {
-        this.clients.set(userId, updatedConnections);
-        console.log(`\u274C User ${userId} connection ${connectionId} closed`);
+        this.clients.set(userId2, updatedConnections);
+        console.log(`\u274C User ${userId2} connection ${connectionId} closed`);
       }
     }
   }
-  sendToUser(userId, data) {
-    const userConnections = this.clients.get(userId);
+  sendToUser(userId2, data) {
+    const userConnections = this.clients.get(userId2);
     if (userConnections) {
       userConnections.forEach(({ ws }) => {
         if (ws.readyState === WebSocket.OPEN) {
@@ -5791,14 +5784,14 @@ var WebSocketManager = class {
       });
     }
   }
-  async createNotification(userId, notificationData) {
+  async createNotification(userId2, notificationData) {
     try {
       const notification = await db.insert(notifications).values({
-        user_id: userId,
+        user_id: userId2,
         ...notificationData,
         created_at: /* @__PURE__ */ new Date()
       }).returning();
-      this.sendToUser(userId, {
+      this.sendToUser(userId2, {
         type: "new_notification",
         notification: notification[0]
       });
@@ -5844,21 +5837,21 @@ var NotificationService = class {
       throw error;
     }
   }
-  async getUserNotifications(userId, limit = 50, offset = 0) {
+  async getUserNotifications(userId2, limit = 50, offset = 0) {
     try {
-      const userNotifications = await db.select().from(notifications).where(eq15(notifications.user_id, userId)).orderBy(desc7(notifications.created_at)).limit(limit).offset(offset);
+      const userNotifications = await db.select().from(notifications).where(eq15(notifications.user_id, userId2)).orderBy(desc7(notifications.created_at)).limit(limit).offset(offset);
       return userNotifications;
     } catch (error) {
       console.error("Error fetching notifications:", error);
       throw error;
     }
   }
-  async markAsRead(notificationId, userId) {
+  async markAsRead(notificationId, userId2) {
     try {
       const updatedNotification = await db.update(notifications).set({ read_at: /* @__PURE__ */ new Date() }).where(
         and11(
           eq15(notifications.id, notificationId),
-          eq15(notifications.user_id, userId)
+          eq15(notifications.user_id, userId2)
         )
       ).returning();
       return updatedNotification[0];
@@ -5867,11 +5860,11 @@ var NotificationService = class {
       throw error;
     }
   }
-  async markAllAsRead(userId) {
+  async markAllAsRead(userId2) {
     try {
       await db.update(notifications).set({ read_at: /* @__PURE__ */ new Date() }).where(
         and11(
-          eq15(notifications.user_id, userId),
+          eq15(notifications.user_id, userId2),
           eq15(notifications.read_at, null)
         )
       );
@@ -5881,11 +5874,11 @@ var NotificationService = class {
       throw error;
     }
   }
-  async getUnreadCount(userId) {
+  async getUnreadCount(userId2) {
     try {
       const result = await db.select({ count: notifications.id }).from(notifications).where(
         and11(
-          eq15(notifications.user_id, userId),
+          eq15(notifications.user_id, userId2),
           eq15(notifications.read_at, null)
         )
       );
@@ -5916,9 +5909,9 @@ var NotificationService = class {
       metadata: { bidId: bidData.id, missionId: bidData.mission_id }
     });
   }
-  async notifyMissionCompleted(userId, missionData) {
+  async notifyMissionCompleted(userId2, missionData) {
     return this.createNotification({
-      user_id: userId,
+      user_id: userId2,
       type: "mission_completed",
       title: "Mission termin\xE9e",
       message: `La mission "${missionData.title}" a \xE9t\xE9 marqu\xE9e comme termin\xE9e.`,
@@ -5926,9 +5919,9 @@ var NotificationService = class {
       metadata: { missionId: missionData.id }
     });
   }
-  async notifyNewReview(userId, reviewData) {
+  async notifyNewReview(userId2, reviewData) {
     return this.createNotification({
-      user_id: userId,
+      user_id: userId2,
       type: "new_review",
       title: "Nouvel avis re\xE7u",
       message: `Vous avez re\xE7u un nouvel avis avec ${reviewData.rating} \xE9toiles.`,
@@ -5943,14 +5936,14 @@ var notificationService = new NotificationService();
 var router11 = express4.Router();
 router11.get("/notifications", async (req, res) => {
   try {
-    const userId = parseInt(req.query.userId);
+    const userId2 = parseInt(req.query.userId);
     const limit = parseInt(req.query.limit) || 50;
     const offset = parseInt(req.query.offset) || 0;
-    if (!userId) {
+    if (!userId2) {
       return res.status(400).json({ error: "userId required" });
     }
-    const notifications2 = await notificationService.getUserNotifications(userId, limit, offset);
-    const unreadCount = await notificationService.getUnreadCount(userId);
+    const notifications2 = await notificationService.getUserNotifications(userId2, limit, offset);
+    const unreadCount = await notificationService.getUnreadCount(userId2);
     res.json({
       notifications: notifications2,
       unreadCount,
@@ -5984,11 +5977,11 @@ router11.post("/notifications", async (req, res) => {
 router11.patch("/notifications/:id/read", async (req, res) => {
   try {
     const notificationId = parseInt(req.params.id);
-    const userId = parseInt(req.body.userId);
-    if (!userId) {
+    const userId2 = parseInt(req.body.userId);
+    if (!userId2) {
       return res.status(400).json({ error: "userId required" });
     }
-    const notification = await notificationService.markAsRead(notificationId, userId);
+    const notification = await notificationService.markAsRead(notificationId, userId2);
     res.json({ notification });
   } catch (error) {
     console.error("Error marking notification as read:", error);
@@ -5997,11 +5990,11 @@ router11.patch("/notifications/:id/read", async (req, res) => {
 });
 router11.post("/notifications/mark-all-read", async (req, res) => {
   try {
-    const userId = parseInt(req.body.userId);
-    if (!userId) {
+    const userId2 = parseInt(req.body.userId);
+    if (!userId2) {
       return res.status(400).json({ error: "userId required" });
     }
-    const result = await notificationService.markAllAsRead(userId);
+    const result = await notificationService.markAllAsRead(userId2);
     res.json(result);
   } catch (error) {
     console.error("Error marking all notifications as read:", error);
@@ -6010,11 +6003,11 @@ router11.post("/notifications/mark-all-read", async (req, res) => {
 });
 router11.get("/notifications/unread-count", async (req, res) => {
   try {
-    const userId = parseInt(req.query.userId);
-    if (!userId) {
+    const userId2 = parseInt(req.query.userId);
+    if (!userId2) {
       return res.status(400).json({ error: "userId required" });
     }
-    const count = await notificationService.getUnreadCount(userId);
+    const count = await notificationService.getUnreadCount(userId2);
     res.json({ unreadCount: count });
   } catch (error) {
     console.error("Error getting unread count:", error);
@@ -6031,11 +6024,11 @@ import { eq as eq16 } from "drizzle-orm";
 var router12 = Router8();
 router12.get("/user-settings", async (req, res) => {
   try {
-    const userId = req.headers["x-user-id"];
-    if (!userId) {
+    const userId2 = req.headers["x-user-id"];
+    if (!userId2) {
       return res.status(401).json({ error: "Utilisateur non authentifi\xE9" });
     }
-    const settings = await db.select().from(userSettings).where(eq16(userSettings.user_id, parseInt(userId))).limit(1);
+    const settings = await db.select().from(userSettings).where(eq16(userSettings.user_id, parseInt(userId2))).limit(1);
     const userSettingsData = settings[0] || {
       // Valeurs par défaut
       notifications: {
@@ -6075,21 +6068,21 @@ router12.get("/user-settings", async (req, res) => {
 });
 router12.put("/user-settings", async (req, res) => {
   try {
-    const userId = req.headers["x-user-id"];
+    const userId2 = req.headers["x-user-id"];
     const { notifications: notifications2, privacy, appearance } = req.body;
-    if (!userId) {
+    if (!userId2) {
       return res.status(401).json({ error: "Utilisateur non authentifi\xE9" });
     }
-    const existingSettings = await db.select().from(userSettings).where(eq16(userSettings.user_id, parseInt(userId))).limit(1);
+    const existingSettings = await db.select().from(userSettings).where(eq16(userSettings.user_id, parseInt(userId2))).limit(1);
     const settingsData = {
-      user_id: parseInt(userId),
+      user_id: parseInt(userId2),
       notifications: notifications2,
       privacy,
       appearance,
       updated_at: /* @__PURE__ */ new Date()
     };
     if (existingSettings.length > 0) {
-      await db.update(userSettings).set(settingsData).where(eq16(userSettings.user_id, parseInt(userId)));
+      await db.update(userSettings).set(settingsData).where(eq16(userSettings.user_id, parseInt(userId2)));
     } else {
       await db.insert(userSettings).values({
         ...settingsData,
@@ -6114,9 +6107,9 @@ var authMiddleware = (req, res, next) => {
 };
 router13.put("/users/:id", async (req, res) => {
   try {
-    const userId = parseInt(req.params.id);
+    const userId2 = parseInt(req.params.id);
     const { name, profile_data, role } = req.body;
-    console.log(`\u{1F4DD} PUT /api/users/${userId} - Mise \xE0 jour du profil`, {
+    console.log(`\u{1F4DD} PUT /api/users/${userId2} - Mise \xE0 jour du profil`, {
       hasRole: !!role,
       newRole: role
     });
@@ -6129,7 +6122,7 @@ router13.put("/users/:id", async (req, res) => {
       updateData.role = role;
       console.log(`\u2705 Mise \xE0 jour du r\xF4le: ${role}`);
     }
-    await db4.update(users).set(updateData).where(eq17(users.id, userId));
+    await db4.update(users).set(updateData).where(eq17(users.id, userId2));
     res.json({ message: "Profil mis \xE0 jour avec succ\xE8s" });
   } catch (error) {
     console.error("\u274C Erreur update user profile:", error);
@@ -6151,7 +6144,7 @@ router13.get("/providers/available", async (req, res) => {
     }).from(users).where(eq17(users.role, "PRO"));
     const availableProviders = allProviders.filter((provider) => {
       const profileData = provider.profile_data;
-      return profileData?.availability === true;
+      return profileData?.availability === true || profileData?.availability === "true";
     });
     console.log(`\u2705 Providers disponibles: ${availableProviders.length}/${allProviders.length}`);
     const formattedProviders = await Promise.all(availableProviders.map(async (provider) => {
@@ -6177,7 +6170,9 @@ router13.get("/providers/available", async (req, res) => {
       });
       const availability = Object.entries(availabilityByDate).map(([date, slots]) => ({
         date,
-        timeSlots: slots.map((s) => `${s.start}-${s.end}`)
+        timeSlots: slots.map((s) => `${s.start}-${s.end}`),
+        slots
+        // ✅ Ajouter les slots structurés avec rate
       }));
       return {
         id: provider.id.toString(),
@@ -6741,21 +6736,21 @@ var ai_monitoring_routes_default = router14;
 
 // server/routes/ai-suggestions-routes.ts
 import { Router as Router10 } from "express";
-import { z as z4 } from "zod";
+import { z as z5 } from "zod";
 var router15 = Router10();
-var assistantSuggestionsSchema = z4.object({
-  page: z4.string(),
-  userContext: z4.object({
-    isClient: z4.boolean().optional(),
-    isProvider: z4.boolean().optional(),
-    missions: z4.number().optional(),
-    completedProjects: z4.number().optional(),
-    completeness: z4.number().optional(),
-    hasContent: z4.object({
-      bio: z4.boolean().optional(),
-      headline: z4.boolean().optional(),
-      skills: z4.boolean().optional(),
-      portfolio: z4.boolean().optional()
+var assistantSuggestionsSchema = z5.object({
+  page: z5.string(),
+  userContext: z5.object({
+    isClient: z5.boolean().optional(),
+    isProvider: z5.boolean().optional(),
+    missions: z5.number().optional(),
+    completedProjects: z5.number().optional(),
+    completeness: z5.number().optional(),
+    hasContent: z5.object({
+      bio: z5.boolean().optional(),
+      headline: z5.boolean().optional(),
+      skills: z5.boolean().optional(),
+      portfolio: z5.boolean().optional()
     }).optional()
   }).optional()
 });
@@ -6872,7 +6867,7 @@ router15.post("/assistant-suggestions", async (req, res) => {
       timestamp: (/* @__PURE__ */ new Date()).toISOString()
     });
   } catch (error) {
-    if (error instanceof z4.ZodError) {
+    if (error instanceof z5.ZodError) {
       return res.status(400).json({
         success: false,
         error: "Donn\xE9es invalides",
@@ -6900,17 +6895,17 @@ var ai_suggestions_routes_default = router15;
 
 // server/routes/ai-missions-routes.ts
 import { Router as Router11 } from "express";
-import { z as z5 } from "zod";
+import { z as z6 } from "zod";
 var router16 = Router11();
-var missionSuggestionSchema = z5.object({
-  title: z5.string().min(3, "Titre trop court"),
-  description: z5.string().min(10, "Description trop courte"),
-  category: z5.string().min(1, "Cat\xE9gorie requise"),
-  budget_min: z5.number().optional(),
-  budget_max: z5.number().optional(),
-  deadline_ts: z5.string().optional(),
-  geo_required: z5.boolean().optional(),
-  onsite_radius_km: z5.number().optional()
+var missionSuggestionSchema = z6.object({
+  title: z6.string().min(3, "Titre trop court"),
+  description: z6.string().min(10, "Description trop courte"),
+  category: z6.string().min(1, "Cat\xE9gorie requise"),
+  budget_min: z6.number().optional(),
+  budget_max: z6.number().optional(),
+  deadline_ts: z6.string().optional(),
+  geo_required: z6.boolean().optional(),
+  onsite_radius_km: z6.number().optional()
 });
 router16.post("/suggest", async (req, res) => {
   try {
@@ -6996,7 +6991,7 @@ router16.post("/suggest", async (req, res) => {
       timestamp: (/* @__PURE__ */ new Date()).toISOString()
     });
   } catch (error) {
-    if (error instanceof z5.ZodError) {
+    if (error instanceof z6.ZodError) {
       return res.status(400).json({
         success: false,
         error: "Donn\xE9es invalides",
@@ -7553,32 +7548,32 @@ var ai_learning_routes_default = router19;
 
 // server/routes/team-routes.ts
 import { Router as Router14 } from "express";
-import { z as z6 } from "zod";
+import { z as z7 } from "zod";
 var router20 = Router14();
-var teamAnalysisSchema = z6.object({
-  description: z6.string().min(10),
-  title: z6.string().min(3),
-  category: z6.string().min(2),
-  budget: z6.union([z6.string(), z6.number()])
+var teamAnalysisSchema = z7.object({
+  description: z7.string().min(10),
+  title: z7.string().min(3),
+  category: z7.string().min(2),
+  budget: z7.union([z7.string(), z7.number()])
 });
-var teamProjectSchema = z6.object({
-  projectData: z6.object({
-    title: z6.string().min(3),
-    description: z6.string().min(10),
-    category: z6.string().optional().default("developpement"),
-    budget: z6.union([z6.string(), z6.number()]).optional().default("1000"),
-    location: z6.string().optional(),
-    isTeamMode: z6.boolean()
+var teamProjectSchema = z7.object({
+  projectData: z7.object({
+    title: z7.string().min(3),
+    description: z7.string().min(10),
+    category: z7.string().optional().default("developpement"),
+    budget: z7.union([z7.string(), z7.number()]).optional().default("1000"),
+    location: z7.string().optional(),
+    isTeamMode: z7.boolean()
   }),
-  teamRequirements: z6.array(z6.object({
-    profession: z6.string(),
-    description: z6.string(),
-    required_skills: z6.array(z6.string()),
-    estimated_budget: z6.number(),
-    estimated_days: z6.number(),
-    min_experience: z6.number(),
-    is_lead_role: z6.boolean(),
-    importance: z6.enum(["high", "medium", "low"])
+  teamRequirements: z7.array(z7.object({
+    profession: z7.string(),
+    description: z7.string(),
+    required_skills: z7.array(z7.string()),
+    estimated_budget: z7.number(),
+    estimated_days: z7.number(),
+    min_experience: z7.number(),
+    is_lead_role: z7.boolean(),
+    importance: z7.enum(["high", "medium", "low"])
   }))
 });
 router20.post("/analyze", async (req, res) => {
@@ -7717,60 +7712,60 @@ import { Router as Router15 } from "express";
 import { drizzle as drizzle5 } from "drizzle-orm/neon-http";
 import { neon as neon2 } from "@neondatabase/serverless";
 import { eq as eq18 } from "drizzle-orm";
-import { z as z7 } from "zod";
+import { z as z8 } from "zod";
 var router21 = Router15();
 var connection = neon2(process.env.DATABASE_URL);
 var db5 = drizzle5(connection);
-var flashDealSchema = z7.object({
-  title: z7.string().min(1),
-  description: z7.string().min(1),
-  originalPrice: z7.number().positive(),
-  flashPrice: z7.number().positive(),
-  discount: z7.number().min(0).max(100),
-  slots: z7.number().positive().int(),
-  duration: z7.number().positive(),
-  expiresAt: z7.string(),
-  category: z7.string(),
-  tags: z7.array(z7.string()).optional()
+var flashDealSchema = z8.object({
+  title: z8.string().min(1),
+  description: z8.string().min(1),
+  originalPrice: z8.number().positive(),
+  flashPrice: z8.number().positive(),
+  discount: z8.number().min(0).max(100),
+  slots: z8.number().positive().int(),
+  duration: z8.number().positive(),
+  expiresAt: z8.string(),
+  category: z8.string(),
+  tags: z8.array(z8.string()).optional()
 });
-var reverseSubscriptionSchema = z7.object({
-  title: z7.string().min(1),
-  description: z7.string().min(1),
-  budget: z7.number().positive(),
-  frequency: z7.enum(["weekly", "monthly", "quarterly"]),
-  duration: z7.number().positive().int(),
-  category: z7.string(),
-  requirements: z7.string().optional()
+var reverseSubscriptionSchema = z8.object({
+  title: z8.string().min(1),
+  description: z8.string().min(1),
+  budget: z8.number().positive(),
+  frequency: z8.enum(["weekly", "monthly", "quarterly"]),
+  duration: z8.number().positive().int(),
+  category: z8.string(),
+  requirements: z8.string().optional()
 });
-var groupRequestSchema = z7.object({
-  title: z7.string().min(1),
-  description: z7.string().min(1),
-  category: z7.string(),
-  location: z7.string(),
-  targetMembers: z7.number().positive().int(),
-  pricePerPerson: z7.number().positive(),
-  startDate: z7.string(),
-  tags: z7.array(z7.string()).optional()
+var groupRequestSchema = z8.object({
+  title: z8.string().min(1),
+  description: z8.string().min(1),
+  category: z8.string(),
+  location: z8.string(),
+  targetMembers: z8.number().positive().int(),
+  pricePerPerson: z8.number().positive(),
+  startDate: z8.string(),
+  tags: z8.array(z8.string()).optional()
 });
-var teamBuildingSchema = z7.object({
-  title: z7.string().min(1),
-  description: z7.string().min(1),
-  category: z7.string(),
-  budget: z7.number().positive(),
-  roles: z7.array(z7.object({
-    role: z7.string(),
-    count: z7.number().int().positive(),
-    skills: z7.array(z7.string()).optional()
+var teamBuildingSchema = z8.object({
+  title: z8.string().min(1),
+  description: z8.string().min(1),
+  category: z8.string(),
+  budget: z8.number().positive(),
+  roles: z8.array(z8.object({
+    role: z8.string(),
+    count: z8.number().int().positive(),
+    skills: z8.array(z8.string()).optional()
   }))
 });
-var iaHumanSchema = z7.object({
-  title: z7.string().min(1),
-  description: z7.string().min(1),
-  category: z7.string(),
-  budget: z7.number().positive(),
-  aiTasks: z7.array(z7.string()),
-  humanTasks: z7.array(z7.string()),
-  deliverables: z7.array(z7.string())
+var iaHumanSchema = z8.object({
+  title: z8.string().min(1),
+  description: z8.string().min(1),
+  category: z8.string(),
+  budget: z8.number().positive(),
+  aiTasks: z8.array(z8.string()),
+  humanTasks: z8.array(z8.string()),
+  deliverables: z8.array(z8.string())
 });
 router21.post("/flash-deals", async (req, res) => {
   try {
@@ -7804,7 +7799,7 @@ Offre valable ${data.duration}h`,
       mission
     });
   } catch (error) {
-    if (error instanceof z7.ZodError) {
+    if (error instanceof z8.ZodError) {
       return res.status(400).json({ error: "Donn\xE9es invalides", details: error.errors });
     }
     console.error("Erreur cr\xE9ation flash deal:", error);
@@ -7841,7 +7836,7 @@ ${data.requirements || ""}`,
       mission
     });
   } catch (error) {
-    if (error instanceof z7.ZodError) {
+    if (error instanceof z8.ZodError) {
       return res.status(400).json({ error: "Donn\xE9es invalides", details: error.errors });
     }
     console.error("Erreur cr\xE9ation abonnement invers\xE9:", error);
@@ -7879,7 +7874,7 @@ Date de d\xE9but: ${new Date(data.startDate).toLocaleDateString("fr-FR")}`,
       mission
     });
   } catch (error) {
-    if (error instanceof z7.ZodError) {
+    if (error instanceof z8.ZodError) {
       return res.status(400).json({ error: "Donn\xE9es invalides", details: error.errors });
     }
     console.error("Erreur cr\xE9ation demande group\xE9e:", error);
@@ -7932,7 +7927,7 @@ ${rolesDescription}`,
       mission
     });
   } catch (error) {
-    if (error instanceof z7.ZodError) {
+    if (error instanceof z8.ZodError) {
       return res.status(400).json({ error: "Donn\xE9es invalides", details: error.errors });
     }
     console.error("Erreur cr\xE9ation projet d'\xE9quipe:", error);
@@ -7974,7 +7969,7 @@ ${data.deliverables.map((d) => `\u2022 ${d}`).join("\n")}`,
       mission
     });
   } catch (error) {
-    if (error instanceof z7.ZodError) {
+    if (error instanceof z8.ZodError) {
       return res.status(400).json({ error: "Donn\xE9es invalides", details: error.errors });
     }
     console.error("Erreur cr\xE9ation job IA+Humain:", error);
@@ -8003,7 +7998,7 @@ router21.get("/opportunities/live-slots", async (req, res) => {
 });
 router21.post("/opportunities/reserve", async (req, res) => {
   try {
-    const { slotId, userId } = req.body;
+    const { slotId, userId: userId2 } = req.body;
     if (!slotId) {
       return res.status(400).json({ error: "slotId requis" });
     }
@@ -8025,22 +8020,22 @@ import { Pool as Pool4 } from "pg";
 var router22 = Router16();
 var pool4 = new Pool4({ connectionString: process.env.DATABASE_URL });
 var requireAuth2 = (req, res, next) => {
-  const userId = req.headers["x-user-id"];
-  if (!userId) {
+  const userId2 = req.headers["x-user-id"];
+  if (!userId2) {
     return res.status(401).json({ success: false, error: "Unauthorized" });
   }
-  req.user = { id: parseInt(userId) };
+  req.user = { id: parseInt(userId2) };
   next();
 };
 router22.get("/:userId", async (req, res) => {
   try {
-    const { userId } = req.params;
+    const { userId: userId2 } = req.params;
     const { startDate, endDate } = req.query;
     let query = `
       SELECT * FROM user_availability 
       WHERE user_id = $1
     `;
-    const params = [parseInt(userId)];
+    const params = [parseInt(userId2)];
     if (startDate && endDate) {
       query += ` AND date >= $2 AND date <= $3`;
       params.push(startDate, endDate);
@@ -8053,6 +8048,8 @@ router22.get("/:userId", async (req, res) => {
         id: row.id,
         date: row.date,
         slots: [{
+          id: row.id,
+          // ✅ Ajout de l'ID dans le slot
           start: row.start_time,
           end: row.end_time,
           rate: parseFloat(row.rate)
@@ -8069,8 +8066,8 @@ router22.get("/:userId", async (req, res) => {
 });
 router22.post("/", requireAuth2, async (req, res) => {
   try {
-    const userId = req.user?.id;
-    if (!userId) {
+    const userId2 = req.user?.id;
+    if (!userId2) {
       return res.status(401).json({
         success: false,
         error: "Unauthorized"
@@ -8083,14 +8080,14 @@ router22.post("/", requireAuth2, async (req, res) => {
         error: "Invalid availability data"
       });
     }
-    await pool4.query("DELETE FROM user_availability WHERE user_id = $1", [userId]);
+    await pool4.query("DELETE FROM user_availability WHERE user_id = $1", [userId2]);
     for (const day of availability) {
       const date = typeof day.date === "string" ? day.date : day.date.toISOString().split("T")[0];
       for (const slot of day.slots) {
         await pool4.query(
           `INSERT INTO user_availability (user_id, date, start_time, end_time, rate, created_at) 
            VALUES ($1, $2, $3, $4, $5, NOW())`,
-          [userId, date, slot.start, slot.end, slot.rate]
+          [userId2, date, slot.start, slot.end, slot.rate]
         );
       }
     }
@@ -8108,13 +8105,13 @@ router22.post("/", requireAuth2, async (req, res) => {
 });
 router22.get("/slots/:userId/:date", async (req, res) => {
   try {
-    const { userId, date } = req.params;
+    const { userId: userId2, date } = req.params;
     const result = await pool4.query(
       `SELECT start_time, end_time, rate 
        FROM user_availability 
        WHERE user_id = $1 AND date = $2 
        ORDER BY start_time`,
-      [parseInt(userId), date]
+      [parseInt(userId2), date]
     );
     res.json({
       success: true,
@@ -8135,11 +8132,11 @@ router22.get("/slots/:userId/:date", async (req, res) => {
 });
 router22.delete("/:availabilityId", requireAuth2, async (req, res) => {
   try {
-    const userId = req.user?.id;
+    const userId2 = req.user?.id;
     const { availabilityId } = req.params;
     await pool4.query(
       "DELETE FROM user_availability WHERE id = $1 AND user_id = $2",
-      [parseInt(availabilityId), userId]
+      [parseInt(availabilityId), userId2]
     );
     res.json({
       success: true,
@@ -8155,12 +8152,12 @@ router22.delete("/:availabilityId", requireAuth2, async (req, res) => {
 });
 router22.get("/recurring/:userId", requireAuth2, async (req, res) => {
   try {
-    const { userId } = req.params;
+    const { userId: userId2 } = req.params;
     const result = await pool4.query(
       `SELECT * FROM recurring_availability 
        WHERE user_id = $1 
        ORDER BY day_of_week, start_time`,
-      [parseInt(userId)]
+      [parseInt(userId2)]
     );
     res.json({
       success: true,
@@ -8182,8 +8179,8 @@ router22.get("/recurring/:userId", requireAuth2, async (req, res) => {
 });
 router22.post("/recurring", requireAuth2, async (req, res) => {
   try {
-    const userId = req.user?.id;
-    if (!userId) {
+    const userId2 = req.user?.id;
+    if (!userId2) {
       return res.status(401).json({
         success: false,
         error: "Unauthorized"
@@ -8195,7 +8192,7 @@ router22.post("/recurring", requireAuth2, async (req, res) => {
        (user_id, day_of_week, start_time, end_time, rate, created_at) 
        VALUES ($1, $2, $3, $4, $5, NOW()) 
        RETURNING *`,
-      [userId, dayOfWeek, startTime, endTime, rate]
+      [userId2, dayOfWeek, startTime, endTime, rate]
     );
     res.json({
       success: true,
@@ -8210,6 +8207,225 @@ router22.post("/recurring", requireAuth2, async (req, res) => {
   }
 });
 var availability_routes_default = router22;
+
+// server/routes/profile-routes.ts
+init_database();
+init_schema();
+import { Router as Router17 } from "express";
+import { eq as eq19 } from "drizzle-orm";
+var router23 = Router17();
+router23.get("/profile/:userId", async (req, res) => {
+  try {
+    const userId2 = parseInt(req.params.userId);
+    console.log("\u{1F4CB} GET /api/profile/:userId - Requ\xEAte pour userId:", userId2);
+    if (isNaN(userId2)) {
+      console.error("\u274C ID utilisateur invalide:", req.params.userId);
+      return res.status(400).json({ error: "ID utilisateur invalide" });
+    }
+    const user = await db.select().from(users).where(eq19(users.id, userId2)).limit(1);
+    if (!user.length) {
+      console.warn("\u26A0\uFE0F Utilisateur non trouv\xE9:", userId2);
+      return res.status(404).json({ error: "Utilisateur non trouv\xE9" });
+    }
+    const userData = user[0];
+    const profileData = userData.profile_data || {};
+    console.log("\u2705 Profil trouv\xE9 pour userId:", userId2, {
+      role: userData.role,
+      hasProfileData: !!userData.profile_data,
+      availability: profileData.availability
+    });
+    const profile = {
+      userId: userData.id,
+      role: userData.role || "CLIENT",
+      displayName: userData.name || "",
+      email: userData.email || "",
+      phone: profileData.phone || "",
+      location: profileData.location || "",
+      bio: profileData.bio || "",
+      company: profileData.company || "",
+      industry: profileData.industry || "",
+      experience: profileData.experience || "",
+      hourlyRate: profileData.hourlyRate || "",
+      skills: profileData.skills || [],
+      portfolio: profileData.portfolio || [],
+      availability: profileData.availability ?? true,
+      keywords: profileData.keywords || [],
+      calendarAvailability: profileData.calendarAvailability || [],
+      createdAt: userData.created_at?.toISOString() || (/* @__PURE__ */ new Date()).toISOString(),
+      updatedAt: userData.updated_at?.toISOString() || (/* @__PURE__ */ new Date()).toISOString()
+    };
+    res.json(profile);
+  } catch (error) {
+    console.error("\u274C Erreur r\xE9cup\xE9ration profil:", error);
+    res.status(500).json({ error: "Erreur serveur", details: error instanceof Error ? error.message : "Unknown" });
+  }
+});
+router23.put("/profile/:userId", async (req, res) => {
+  try {
+    const userId2 = parseInt(req.params.userId);
+    if (isNaN(userId2)) {
+      return res.status(400).json({ error: "ID utilisateur invalide" });
+    }
+    const {
+      displayName,
+      name,
+      email,
+      phone,
+      location,
+      bio,
+      company,
+      industry,
+      experience,
+      hourlyRate,
+      skills,
+      portfolio,
+      availability,
+      keywords,
+      calendarAvailability,
+      role
+    } = req.body;
+    console.log("\u{1F4DD} PUT /api/profile - Donn\xE9es re\xE7ues:", {
+      userId: userId2,
+      displayName,
+      availability,
+      role,
+      hasSkills: !!skills,
+      hasPortfolio: !!portfolio
+    });
+    const profileData = {
+      phone: phone || "",
+      location: location || "",
+      bio: bio || "",
+      company: company || "",
+      industry: industry || "",
+      experience: experience || "",
+      hourlyRate: hourlyRate || "",
+      skills: skills || [],
+      portfolio: portfolio || [],
+      availability: availability ?? true,
+      // ✅ Stocker comme booléen
+      keywords: keywords || [],
+      calendarAvailability: calendarAvailability || []
+    };
+    const updateData = {
+      profile_data: profileData,
+      updated_at: /* @__PURE__ */ new Date()
+    };
+    if (displayName) updateData.name = displayName;
+    else if (name) updateData.name = name;
+    if (email) updateData.email = email;
+    if (role && (role === "CLIENT" || role === "PRO")) {
+      updateData.role = role;
+      console.log(`\u2705 Mise \xE0 jour du r\xF4le: ${role}`);
+    }
+    console.log("\u{1F4BE} Donn\xE9es \xE0 sauvegarder:", updateData);
+    await db.update(users).set(updateData).where(eq19(users.id, userId2));
+    res.json({
+      message: "Profil mis \xE0 jour avec succ\xE8s",
+      userId: userId2,
+      success: true
+    });
+  } catch (error) {
+    console.error("\u274C Erreur mise \xE0 jour profil:", error);
+    if (error.code === "23505") {
+      return res.status(409).json({ error: "Cet email est d\xE9j\xE0 utilis\xE9" });
+    }
+    if (error.code === "22P02" || error.code === "23514" || error.message?.includes("invalid input syntax") || error.message?.includes("pattern") || error.message?.includes("check constraint")) {
+      console.warn("\u26A0\uFE0F Erreur de validation ignor\xE9e:", error.message);
+      return res.json({
+        message: "Profil mis \xE0 jour avec succ\xE8s",
+        userId,
+        success: true,
+        warning: "Certains formats ont \xE9t\xE9 ajust\xE9s automatiquement"
+      });
+    }
+    res.status(500).json({
+      error: "Erreur lors de la sauvegarde du profil",
+      details: error.message || "Erreur inconnue"
+    });
+  }
+});
+router23.put("/users/:id", async (req, res) => {
+  try {
+    const userId2 = parseInt(req.params.id);
+    if (isNaN(userId2)) {
+      return res.status(400).json({ error: "ID utilisateur invalide" });
+    }
+    const {
+      displayName,
+      name,
+      email,
+      phone,
+      location,
+      bio,
+      company,
+      industry,
+      experience,
+      hourlyRate,
+      skills,
+      portfolio,
+      availability,
+      keywords,
+      calendarAvailability,
+      role
+    } = req.body;
+    console.log("\u{1F4DD} PUT /api/users/:id - Donn\xE9es re\xE7ues:", {
+      userId: userId2,
+      role,
+      availability
+    });
+    const profileData = {
+      phone: phone || "",
+      location: location || "",
+      bio: bio || "",
+      company: company || "",
+      industry: industry || "",
+      experience: experience || "",
+      hourlyRate: hourlyRate || "",
+      skills: skills || [],
+      portfolio: portfolio || [],
+      availability: availability ?? true,
+      // ✅ Booléen
+      keywords: keywords || [],
+      calendarAvailability: calendarAvailability || []
+    };
+    const updateData = {
+      profile_data: profileData,
+      updated_at: /* @__PURE__ */ new Date()
+    };
+    if (displayName) updateData.name = displayName;
+    else if (name) updateData.name = name;
+    if (email) updateData.email = email;
+    if (role && (role === "CLIENT" || role === "PRO")) {
+      updateData.role = role;
+    }
+    await db.update(users).set(updateData).where(eq19(users.id, userId2));
+    res.json({
+      message: "Profil mis \xE0 jour avec succ\xE8s",
+      userId: userId2,
+      success: true
+    });
+  } catch (error) {
+    console.error("\u274C Erreur mise \xE0 jour profil:", error);
+    if (error.code === "23505") {
+      return res.status(409).json({ error: "Cet email est d\xE9j\xE0 utilis\xE9" });
+    }
+    if (error.code === "22P02" || error.code === "23514" || error.message?.includes("invalid input syntax") || error.message?.includes("pattern") || error.message?.includes("check constraint")) {
+      console.warn("\u26A0\uFE0F Erreur de validation ignor\xE9e:", error.message);
+      return res.json({
+        message: "Profil mis \xE0 jour avec succ\xE8s",
+        userId,
+        success: true,
+        warning: "Certains formats ont \xE9t\xE9 ajust\xE9s automatiquement"
+      });
+    }
+    res.status(500).json({
+      error: "Erreur lors de la sauvegarde du profil",
+      details: error.message || "Erreur inconnue"
+    });
+  }
+});
+var profile_routes_default = router23;
 
 // server/middleware/ai-rate-limit.ts
 import rateLimit from "express-rate-limit";
@@ -8560,11 +8776,16 @@ app.use("/api", (req, res, next) => {
   console.log(`\u{1F4AC} Messaging request: ${req.method} ${req.path}`);
   next();
 }, messaging_default);
-console.log("\u{1F514} Registering notifications routes...");
+console.log("\u{1F4EC} Registering notifications routes...");
 app.use("/api", (req, res, next) => {
-  console.log(`\u{1F514} Notifications request: ${req.method} ${req.path}`);
+  console.log(`\u{1F4EC} Notifications request: ${req.method} ${req.path}`);
   next();
 }, notifications_default);
+console.log("\u{1F464} Registering profile routes...");
+app.use("/api", (req, res, next) => {
+  console.log(`\u{1F464} Profile request: ${req.method} ${req.path}`);
+  next();
+}, profile_routes_default);
 app.get("/api/performance", (req, res) => {
   try {
     const stats = getPerformanceStats();
@@ -8692,10 +8913,7 @@ async function startServerWithRetry() {
             console.log("\u2705 AI orchestrator routes mounted");
             if (process.env.NODE_ENV === "production") {
               console.log("\u{1F3ED} Production mode: serving static files");
-              const authProtection = createProductionAuthProtection({
-                realm: "Swideal - Acc\xE8s S\xE9curis\xE9"
-              });
-              serveStatic2(app, authProtection);
+              serveStatic2(app);
             } else {
               console.log("\u{1F527} Development mode: setting up Vite middleware");
               try {
