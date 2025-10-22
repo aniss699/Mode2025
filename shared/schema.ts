@@ -685,7 +685,7 @@ export type Announcement = typeof announcements.$inferSelect;
 // Ancien nom -> Nouveau nom
 export const wardrobeItems = fashionItems;
 export const missions = looks; // Les "missions" sont maintenant des "looks"
-export const announcements = looks; // Les "announcements" sont maintenant des "looks"
+// announcements is a real table in the marketplace section, not an alias
 export const bids = comments; // Les "bids" (offres) sont maintenant des "comments"
 export const outfitsTable = looks; // Les "outfits" sont maintenant des "looks"
 export const outfitLikesTable = likes; // Les "outfit likes" sont maintenant des "likes"
@@ -694,6 +694,6 @@ export const outfitCommentsTable = comments; // Les "outfit comments" sont maint
 // Types d'alias
 export type WardrobeItem = FashionItem;
 export type Mission = Look;
-export type Announcement = Look;
+// Announcement type is defined in the marketplace section
 export type Bid = Comment;
 export type Outfit = Look;
