@@ -1,12 +1,27 @@
 
 import { db } from '../database.js';
-import { contracts, deliverables, notifications, missions, bids, users } from '../../shared/schema.js';
+// TODO: Contract system not applicable to fashion social network
+// import { contracts, deliverables, notifications, missions, bids, users } from '../../shared/schema.js';
+import { notifications, looks, comments, users } from '../../shared/schema.js';
 import { eq, and } from 'drizzle-orm';
 
+// DISABLED: Contract system not applicable to fashion platform
 export type ContractStatus = 'pending_signature' | 'active' | 'in_progress' | 'under_review' | 'completed' | 'disputed' | 'cancelled';
 
 // Créer un nouveau contrat
 export async function createContract(data: {
+  mission_id: number;
+  bid_id: number;
+  client_id: number;
+  provider_id: number;
+  terms: any;
+  deliverables: any[];
+}) {
+  throw new Error('Contract system not available in fashion platform');
+}
+
+/* LEGACY CODE - DISABLED
+export async function createContractOLD(data: {
   mission_id: number;
   bid_id: number;
   client_id: number;
@@ -228,3 +243,4 @@ async function createNotification(userId: number, data: {
     ...data
   });
 }
+*/

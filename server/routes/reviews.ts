@@ -1,13 +1,19 @@
 
 import { Router } from 'express';
 import { db } from '../database.js';
-import { reviews, reviewHelpful, users, missions, bids } from '../../shared/schema.js';
+// TODO: Reviews system needs to be redesigned for fashion social network
+// import { reviews, reviewHelpful, users, missions, bids } from '../../shared/schema.js';
+import { users, looks, comments } from '../../shared/schema.js';
 import { eq, and, desc, sql } from 'drizzle-orm';
 
 const router = Router();
 
+// DISABLED: Reviews system needs redesign for fashion platform
 // POST /api/reviews - Créer une review
 router.post('/', async (req, res) => {
+  res.status(501).json({ error: 'Reviews system under maintenance' });
+  return;
+  /*
   try {
     const { mission_id, reviewee_id, rating, comment, criteria } = req.body;
     const reviewer_id = req.user?.id;
@@ -198,6 +204,9 @@ async function updateUserRating(userId: number) {
       })
       .where(eq(users.id, userId));
   }
+}
+
+*/
 }
 
 export default router;

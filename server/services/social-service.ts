@@ -1,6 +1,6 @@
 
 import { db } from '../db';
-import { followsTable, outfitLikesTable, users } from '../../shared/schema';
+import { follows, likes, users } from '../../shared/schema';
 import { eq, and } from 'drizzle-orm';
 
 export class SocialService {
@@ -11,11 +11,11 @@ export class SocialService {
     }
 
     const existing = await db.select()
-      .from(followsTable)
+      .from(follows)
       .where(
         and(
-          eq(followsTable.followerId, followerId),
-          eq(followsTable.followingId, followingId)
+          eq(follows.follower_id, followerId),
+          eq(follows.following_id, followingId)
         )
       );
 
@@ -23,20 +23,20 @@ export class SocialService {
       throw new Error('Already following');
     }
 
-    await db.insert(followsTable).values({
-      followerId,
-      followingId
+    await db.insert(follows).values({
+      follower_id: followerId,
+      following_id: followingId
     });
 
     return { success: true };
   }
 
   async unfollowUser(followerId: number, followingId: number) {
-    await db.delete(followsTable)
+    await db.delete(follows)
       .where(
         and(
-          eq(followsTable.followerId, followerId),
-          eq(followsTable.followingId, followingId)
+          eq(follows.follower_id, followerId),
+          eq(follows.following_id, followingId)
         )
       );
 
@@ -45,11 +45,11 @@ export class SocialService {
 
   async isFollowing(followerId: number, followingId: number): Promise<boolean> {
     const result = await db.select()
-      .from(followsTable)
+      .from(follows)
       .where(
         and(
-          eq(followsTable.followerId, followerId),
-          eq(followsTable.followingId, followingId)
+          eq(follows.follower_id, followerId),
+          eq(follows.following_id, followingId)
         )
       );
 
@@ -58,9 +58,9 @@ export class SocialService {
 
   async getFollowers(userId: number, limit = 50) {
     const followers = await db.select()
-      .from(followsTable)
-      .innerJoin(users, eq(followsTable.followerId, users.id))
-      .where(eq(followsTable.followingId, userId))
+      .from(follows)
+      .innerJoin(users, eq(follows.follower_id, users.id))
+      .where(eq(follows.following_id, userId))
       .limit(limit);
 
     return followers.map(f => f.users);
@@ -68,9 +68,9 @@ export class SocialService {
 
   async getFollowing(userId: number, limit = 50) {
     const following = await db.select()
-      .from(followsTable)
-      .innerJoin(users, eq(followsTable.followingId, users.id))
-      .where(eq(followsTable.followerId, userId))
+      .from(follows)
+      .innerJoin(users, eq(follows.following_id, users.id))
+      .where(eq(follows.follower_id, userId))
       .limit(limit);
 
     return following.map(f => f.users);

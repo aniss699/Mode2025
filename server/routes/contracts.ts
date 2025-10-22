@@ -1,7 +1,8 @@
 
 import { Router } from 'express';
 import { db } from '../database.js';
-import { contracts, deliverables } from '../../shared/schema.js';
+// TODO: Contracts system not applicable to fashion social network
+// import { contracts, deliverables } from '../../shared/schema.js';
 import { eq, and, or } from 'drizzle-orm';
 import { 
   createContract, 
@@ -13,8 +14,12 @@ import {
 
 const router = Router();
 
+// DISABLED: Contracts not applicable to fashion social platform
 // POST /api/contracts - Créer un contrat
 router.post('/', async (req, res) => {
+  res.status(501).json({ error: 'Contracts feature not available' });
+  return;
+  /*
   try {
     const { mission_id, bid_id, provider_id, terms, deliverables } = req.body;
     const client_id = req.user?.id;
@@ -191,5 +196,8 @@ router.post('/deliverables/:id/review', async (req, res) => {
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
+
+*/
+}
 
 export default router;
