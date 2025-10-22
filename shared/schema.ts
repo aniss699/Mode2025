@@ -1,5 +1,18 @@
-import { pgTable, serial, integer, text, timestamp, boolean, decimal, jsonb, numeric } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
+import {
+  pgTable,
+  serial,
+  text,
+  integer,
+  timestamp,
+  boolean,
+  decimal,
+  jsonb,
+  index,
+  uniqueIndex,
+  date,
+  unique,
+} from 'drizzle-orm/pg-core';
 import { z } from 'zod';
 
 export const users = pgTable('users', {
@@ -804,3 +817,240 @@ export const insertAiEventSchema = z.object({
   rating: z.number().int().min(1).max(5).optional(),
   edits: z.any().optional()
 });
+
+// --- Nouvelles tables pour le réseau social de mode ---
+
+// Table pour les profiles de mode (garde-robe, style, etc.)
+export const fashionProfiles = pgTable('fashion_profiles', {
+  id: serial('id').primaryKey(),
+  user_id: integer('user_id').references(() => users.id).notNull().unique(),
+  style_preferences: jsonb('style_preferences'), // { aesthetic: string[], colors: string[], brands: string[] }
+  body_type: text('body_type'),
+  // ... autres champs spécifiques à la mode
+  created_at: timestamp('created_at').defaultNow(),
+  updated_at: timestamp('updated_at').defaultNow()
+});
+
+// Table pour les articles de mode (vêtements, accessoires)
+export const fashionItems = pgTable('fashion_items', {
+  id: serial('id').primaryKey(),
+  user_id: integer('user_id').references(() => users.id).notNull(),
+  name: text('name').notNull(),
+  description: text('description'),
+  category: text('category').notNull(), // 'top', 'bottom', 'shoes', 'accessory'
+  brand: text('brand'),
+  color: text('color'),
+  material: text('material'),
+  size: text('size'),
+  image_url: text('image_url'),
+  created_at: timestamp('created_at').defaultNow(),
+  updated_at: timestamp('updated_at').defaultNow()
+});
+
+// Table pour les outfits (combinaisons d'articles)
+export const outfits = pgTable('outfits', {
+  id: serial('id').primaryKey(),
+  user_id: integer('user_id').references(() => users.id).notNull(),
+  name: text('name').notNull(),
+  description: text('description'),
+  created_at: timestamp('created_at').defaultNow(),
+  updated_at: timestamp('updated_at').defaultNow()
+});
+
+// Table de liaison entre outfits et fashion_items
+export const outfitItems = pgTable('outfit_items', {
+  outfit_id: integer('outfit_id').references(() => outfits.id).notNull(),
+  item_id: integer('item_id').references(() => fashionItems.id).notNull(),
+  primaryKey({ outfit_id, item_id }) // Clé primaire composite
+});
+
+// Table pour les posts dans le feed
+export const feedPosts = pgTable('feed_posts', {
+  id: serial('id').primaryKey(),
+  user_id: integer('user_id').references(() => users.id).notNull(),
+  content: text('content'), // Texte du post
+  outfit_id: integer('outfit_id').references(() => outfits.id), // Outfit partagé
+  created_at: timestamp('created_at').defaultNow(),
+  updated_at: timestamp('updated_at').defaultNow()
+});
+
+// Table pour les likes sur les posts
+export const postLikes = pgTable('post_likes', {
+  id: serial('id').primaryKey(),
+  post_id: integer('post_id').references(() => feedPosts.id).notNull(),
+  user_id: integer('user_id').references(() => users.id).notNull(),
+  created_at: timestamp('created_at').defaultNow()
+});
+
+// Table pour les commentaires sur les posts
+export const postComments = pgTable('post_comments', {
+  id: serial('id').primaryKey(),
+  post_id: integer('post_id').references(() => feedPosts.id).notNull(),
+  user_id: integer('user_id').references(() => users.id).notNull(),
+  content: text('content').notNull(),
+  created_at: timestamp('created_at').defaultNow(),
+  updated_at: timestamp('updated_at').defaultNow()
+});
+
+// Table pour les followers/following
+export const follows = pgTable('follows', {
+  follower_id: integer('follower_id').references(() => users.id).notNull(),
+  following_id: integer('following_id').references(() => users.id).notNull(),
+  created_at: timestamp('created_at').defaultNow(),
+  primaryKey({ follower_id, following_id }) // Clé primaire composite
+});
+
+// Ajout des relations pour les nouvelles tables
+export const fashionProfilesRelations = relations(fashionProfiles, ({ one }) => ({
+  user: one(users, {
+    fields: [fashionProfiles.user_id],
+    references: [users.id]
+  })
+}));
+
+export const fashionItemsRelations = relations(fashionItems, ({ one }) => ({
+  user: one(users, {
+    fields: [fashionItems.user_id],
+    references: [users.id]
+  })
+}));
+
+export const outfitsRelations = relations(outfits, ({ one, many }) => ({
+  user: one(users, {
+    fields: [outfits.user_id],
+    references: [users.id]
+  }),
+  items: many(outfitItems),
+  posts: many(feedPosts)
+}));
+
+export const outfitItemsRelations = relations(outfitItems, ({ one }) => ({
+  outfit: one(outfits, {
+    fields: [outfitItems.outfit_id],
+    references: [outfits.id]
+  }),
+  item: one(fashionItems, {
+    fields: [outfitItems.item_id],
+    references: [fashionItems.id]
+  })
+}));
+
+export const feedPostsRelations = relations(feedPosts, ({ one, many }) => ({
+  user: one(users, {
+    fields: [feedPosts.user_id],
+    references: [users.id]
+  }),
+  outfit: one(outfits, {
+    fields: [feedPosts.outfit_id],
+    references: [outfits.id]
+  }),
+  likes: many(postLikes),
+  comments: many(postComments)
+}));
+
+export const postLikesRelations = relations(postLikes, ({ one }) => ({
+  post: one(feedPosts, {
+    fields: [postLikes.post_id],
+    references: [feedPosts.id]
+  }),
+  user: one(users, {
+    fields: [postLikes.user_id],
+    references: [users.id]
+  })
+}));
+
+export const postCommentsRelations = relations(postComments, ({ one }) => ({
+  post: one(feedPosts, {
+    fields: [postComments.post_id],
+    references: [feedPosts.id]
+  }),
+  user: one(users, {
+    fields: [postComments.user_id],
+    references: [users.id]
+  })
+}));
+
+export const followsRelations = relations(follows, ({ one }) => ({
+  follower: one(users, {
+    fields: [follows.follower_id],
+    references: [users.id]
+  }),
+  following: one(users, {
+    fields: [follows.following_id],
+    references: [users.id]
+  })
+}));
+
+// Exportation des nouveaux types pour le réseau social de mode
+export type StylePreferences = {
+  aesthetic?: string[];
+  colors?: string[];
+  brands?: string[];
+};
+
+export type FashionItemCategory = 'top' | 'bottom' | 'shoes' | 'accessory';
+
+export interface FashionProfile {
+  id: number;
+  user_id: number;
+  style_preferences?: StylePreferences;
+  body_type?: string;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface FashionItem {
+  id: number;
+  user_id: number;
+  name: string;
+  description?: string;
+  category: FashionItemCategory;
+  brand?: string;
+  color?: string;
+  material?: string;
+  size?: string;
+  image_url?: string;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface Outfit {
+  id: number;
+  user_id: number;
+  name: string;
+  description?: string;
+  items?: FashionItem[]; // Pourrait être utilisé pour afficher les items dans l'outfit
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface FeedPost {
+  id: number;
+  user_id: number;
+  content?: string;
+  outfit_id?: number;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface PostLike {
+  id: number;
+  post_id: number;
+  user_id: number;
+  created_at: Date;
+}
+
+export interface PostComment {
+  id: number;
+  post_id: number;
+  user_id: number;
+  content: string;
+  created_at: Date;
+  updated_at: Date;
+}
+
+export interface Follow {
+  follower_id: number;
+  following_id: number;
+  created_at: Date;
+}

@@ -274,6 +274,9 @@ app.use('/api', limitRequestSize, validateRequest, performanceMonitor, express.j
 
 // Import auth routes
 import authRoutes from './auth-routes.js';
+// Import des routes
+import wardrobeRoutes from './routes/wardrobe';
+import outfitsRoutes from './routes/outfits';
 
 // Auth routes avec logging amélioré
 app.use('/api/auth', (req, res, next) => {
@@ -399,6 +402,12 @@ app.use('/api', (req, res, next) => {
   console.log(`👤 Profile request: ${req.method} ${req.path}`);
   next();
 }, profileRoutes);
+
+// Routes
+app.use('/api/auth', authRoutes);
+app.use('/api', apiRoutes);
+app.use('/api/wardrobe', wardrobeRoutes);
+app.use('/api/outfits', outfitsRoutes);
 
 // Performance stats endpoint
 app.get('/api/performance', (req, res) => {
