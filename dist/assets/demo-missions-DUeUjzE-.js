@@ -1,0 +1,1 @@
+import{r}from"./ui-BcXBiFQq.js";import{u as t}from"./index-nWhfEAo1.js";import"./vendor-D3F3s8fL.js";function n(){const[,o]=t();return r.useEffect(()=>{o("/provider-profile")},[o]),null}export{n as default};
