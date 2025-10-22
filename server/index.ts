@@ -408,6 +408,8 @@ app.use('/api', (req, res, next) => {
 
 // Import social routes
 import socialRoutes from './routes/social-routes';
+import aiFashionRoutes from './routes/ai-fashion-routes';
+import analyticsRoutes from './routes/analytics-routes';
 
 // Routes
 app.use('/api/auth', authRoutes);
@@ -418,6 +420,8 @@ app.use('/api/collections', collectionsRoutes);
 app.use('/api/search', searchRoutes);
 app.use('/api/stats', statsRoutes);
 app.use('/api/social', socialRoutes);
+app.use('/api/ai-fashion', aiFashionRoutes);
+app.use('/api/analytics', analyticsRoutes);
 
 // Performance stats endpoint
 app.get('/api/performance', (req, res) => {
