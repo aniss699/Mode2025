@@ -10,462 +10,452 @@ import {
   jsonb,
   index,
   uniqueIndex,
-  date,
   unique,
-  primaryKey,
+  varchar,
 } from 'drizzle-orm/pg-core';
 import { z } from 'zod';
+import { createInsertSchema } from 'drizzle-zod';
+
+// Helper pour numeric
+function numeric(name: string, config: { precision: number; scale: number }) {
+  return decimal(name, config);
+}
+
+// ==========================================
+// TABLES UTILISATEURS ET PROFILS
+// ==========================================
 
 export const users = pgTable('users', {
   id: serial('id').primaryKey(),
   email: text('email').notNull().unique(),
   name: text('name').notNull(),
   password: text('password').notNull(),
-  role: text('role').notNull().$type<'CLIENT' | 'PRO'>(),
-  rating_mean: numeric('rating_mean', { precision: 3, scale: 2 }),
-  rating_count: integer('rating_count').default(0),
-  // ✅ profile_data (JSONB) contient:
-  // {
-  //   phone?: string,
-  //   location?: string,
-  //   bio?: string,
-  //   company?: string,
-  //   industry?: string,
-  //   experience?: string,
-  //   hourlyRate?: string,
-  //   skills?: Array<{name: string, hourlyRate?: number, category?: string}>,
-  //   portfolio?: Array<{title: string, description: string}>,
-  //   availability?: boolean,  // ✅ BOOLEAN pour disponibilité globale
-  //   keywords?: string[],
-  //   calendarAvailability?: Array<{id?: number, date: string, startTime: string, endTime: string, rate?: number}>
-  // }
-  profile_data: jsonb('profile_data'),
+  username: text('username').unique(), // Nom d'utilisateur unique pour le réseau social
+  avatar_url: text('avatar_url'),
+  bio: text('bio'),
+  
+  // Style et préférences mode
+  style_tags: text('style_tags').array().default([]), // ["minimalist", "vintage", "streetwear"]
+  favorite_colors: text('favorite_colors').array().default([]),
+  favorite_brands: text('favorite_brands').array().default([]),
+  
+  // Statistiques
+  followers_count: integer('followers_count').default(0),
+  following_count: integer('following_count').default(0),
+  posts_count: integer('posts_count').default(0),
+  
+  // Paramètres
+  is_private: boolean('is_private').default(false), // Profil privé
+  is_verified: boolean('is_verified').default(false), // Badge vérifié
+  
   created_at: timestamp('created_at').defaultNow(),
   updated_at: timestamp('updated_at').defaultNow(),
 });
 
-export const missions = pgTable('missions', {
+// ==========================================
+// SYSTÈME DE FOLLOWS
+// ==========================================
+
+export const follows = pgTable('follows', {
   id: serial('id').primaryKey(),
-  user_id: integer('user_id').references(() => users.id).notNull(),
-  client_id: integer('client_id').references(() => users.id),
-  title: text('title').notNull(),
-  description: text('description').notNull(),
-  excerpt: text('excerpt'),
-  category: text('category').notNull(),
-
-  // Localisation unifiée en JSON
-  location_data: jsonb('location_data'),
-
-  // Budget simplifié - prix entier en euros
-  price: integer('price').notNull(),
-  currency: text('currency').default('EUR'),
-
-  // ENUMs PostgreSQL optimisés
-  urgency: text('urgency').$type<'low' | 'medium' | 'high' | 'urgent'>().default('medium'),
-  status: text('status').$type<'draft' | 'open' | 'in_progress' | 'completed' | 'cancelled'>().default('draft'),
-  quality_target: text('quality_target').$type<'basic' | 'standard' | 'premium' | 'luxury'>().default('standard'),
-
-  deadline: timestamp('deadline'),
-  tags: jsonb('tags'),
-  skills_required: jsonb('skills_required'),
-  requirements: text('requirements'),
-  is_team_mission: boolean('is_team_mission').default(false),
-  team_size: integer('team_size').default(1),
+  follower_id: integer('follower_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  following_id: integer('following_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
   created_at: timestamp('created_at').defaultNow(),
-  updated_at: timestamp('updated_at').defaultNow()
-});
+}, (table) => ({
+  // Index unique pour éviter les doublons de follows
+  uniqueFollow: unique().on(table.follower_id, table.following_id),
+}));
 
-// Table pour les équipes ouvertes (en cours de constitution)
-export const openTeams = pgTable('open_teams', {
+// ==========================================
+// ARTICLES DE MODE (DRESSING VIRTUEL)
+// ==========================================
+
+export const fashionItems = pgTable('fashion_items', {
   id: serial('id').primaryKey(),
-  mission_id: integer('mission_id').references(() => missions.id).notNull(),
-  name: text('name').notNull(), // Nom de l'équipe
+  user_id: integer('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  
+  // Informations de base
+  title: text('title').notNull(),
   description: text('description'),
-  creator_id: integer('creator_id').references(() => users.id).notNull(), // Initiateur de l'équipe
-  estimated_budget: integer('estimated_budget'), // Budget estimé en centimes
-  estimated_timeline_days: integer('estimated_timeline_days'),
-  members: jsonb('members'), // Membres actuels de l'équipe
-  required_roles: jsonb('required_roles'), // Rôles recherchés
-  max_members: integer('max_members').default(5),
-  status: text('status').$type<'recruiting' | 'complete' | 'submitted' | 'cancelled'>().default('recruiting'),
-  visibility: text('visibility').$type<'public' | 'private'>().default('public'),
-  auto_accept: boolean('auto_accept').default(true), // Accepter automatiquement les candidatures
-  created_at: timestamp('created_at').defaultNow(),
-  updated_at: timestamp('updated_at').defaultNow()
-});
-
-export const bids = pgTable('bids', {
-  id: serial('id').primaryKey(),
-  mission_id: integer('mission_id').notNull().references(() => missions.id, { onDelete: 'cascade' }),
-  provider_id: integer('provider_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
-  price: decimal('price', { precision: 10, scale: 2 }).notNull(),
-  timeline_days: integer('timeline_days'),
-  message: text('message'),
-  score_breakdown: jsonb('score_breakdown'),
-  is_leading: boolean('is_leading').default(false),
-  status: text('status').$type<'pending' | 'accepted' | 'rejected' | 'withdrawn'>().default('pending'),
-  // Extensions pour les équipes
-  bid_type: text('bid_type').$type<'individual' | 'team' | 'open_team'>().default('individual'),
-  team_composition: jsonb('team_composition'), // Structure de l'équipe
-  team_lead_id: integer('team_lead_id').references(() => users.id), // Chef d'équipe
-  open_team_id: integer('open_team_id').references(() => openTeams.id), // Référence vers équipe ouverte
-  created_at: timestamp('created_at').defaultNow(),
-  updated_at: timestamp('updated_at').defaultNow()
-});
-
-// Schéma de la table announcements pour le feed (29 colonnes)
-export const announcements = pgTable('announcements', {
-  id: integer('id').primaryKey(),  // Utilise l'ID de la mission
-
-  // Contenu principal
-  title: text('title').notNull(),
-  description: text('description').notNull(),
-  excerpt: text('excerpt').notNull(),
-
-  // Catégorisation pour le feed
-  category: text('category').notNull(),
+  
+  // Images
+  images: text('images').array().default([]), // URLs des images
+  
+  // Catégorisation
+  category: text('category').notNull(), // "top", "bottom", "shoes", "accessory", "outerwear", "dress", "bag"
+  sub_category: text('sub_category'), // "t-shirt", "jeans", "sneakers", etc.
+  
+  // Caractéristiques
+  brand: text('brand'),
+  color: text('color'),
+  season: text('season'), // "spring", "summer", "fall", "winter", "all"
+  occasion: text('occasion'), // "casual", "formal", "sport", "party"
   tags: text('tags').array().default([]),
-
-  // Prix simplifié
-  price: integer('price').notNull(),
-  currency: text('currency').default('EUR'),
-
-  // Localisation simplifiée
-  location_display: text('location_display'),
-  city: text('city'),
-  country: text('country'),
-
-  // Métadonnées feed
-  client_id: integer('client_id').notNull(),
-  client_display_name: text('client_display_name').notNull(),
-
-  // Stats engagements
-  bids_count: integer('bids_count').default(0),
-  lowest_bid_cents: integer('lowest_bid_cents'),
-  views_count: integer('views_count').default(0),
-  saves_count: integer('saves_count').default(0),
-
-  // Scoring pour algorithme feed
-  quality_score: decimal('quality_score', { precision: 3, scale: 2 }).default('0.0'),
-  engagement_score: decimal('engagement_score', { precision: 5, scale: 2 }).default('0.0'),
-  freshness_score: decimal('freshness_score', { precision: 3, scale: 2 }).default('1.0'),
-
-  // Status et timing
-  status: text('status').notNull().default('active'),
-  urgency: text('urgency').default('medium'),
-  deadline: timestamp('deadline'),
-
-  // Metadata pour feed
-  is_sponsored: boolean('is_sponsored').default(false),
-  boost_score: decimal('boost_score', { precision: 3, scale: 2 }).default('0.0'),
-
-  // Recherche optimisée
-  search_text: text('search_text').notNull(),
-  // search_vector géré par PostgreSQL, pas inclus dans Drizzle
-
-  // Audit
-  created_at: timestamp('created_at').notNull().defaultNow(),
-  updated_at: timestamp('updated_at').notNull().defaultNow(),
-  synced_at: timestamp('synced_at').defaultNow()
-});
-
-export const feedFeedback = pgTable('feed_feedback', {
-  id: serial('id').primaryKey(),
-  announcement_id: integer('announcement_id').references(() => announcements.id).notNull(),
-  user_id: integer('user_id').references(() => users.id).notNull(),
-  feedback_type: text('feedback_type').$type<'like' | 'dislike' | 'interested' | 'not_relevant'>().notNull(),
-  created_at: timestamp('created_at').defaultNow()
-});
-
-export const feedSeen = pgTable('feed_seen', {
-  id: serial('id').primaryKey(),
-  announcement_id: integer('announcement_id').references(() => announcements.id).notNull(),
-  user_id: integer('user_id').references(() => users.id).notNull(),
-  seen_at: timestamp('seen_at').defaultNow()
-});
-
-export const favorites = pgTable('favorites', {
-  id: serial('id').primaryKey(),
-  user_id: integer('user_id').references(() => users.id).notNull(),
-  announcement_id: integer('announcement_id').references(() => announcements.id).notNull(),
-  created_at: timestamp('created_at').defaultNow()
-});
-
-// Tables pour le système de reviews
-export const reviews = pgTable('reviews', {
-  id: serial('id').primaryKey(),
-  mission_id: integer('mission_id').references(() => missions.id).notNull(),
-  reviewer_id: integer('reviewer_id').references(() => users.id).notNull(),
-  reviewee_id: integer('reviewee_id').references(() => users.id).notNull(),
-  rating: integer('rating').notNull(), // 1-5
-  comment: text('comment'),
-  response: text('response'), // Réponse du prestataire
-  criteria: jsonb('criteria'), // {communication: 5, quality: 4, deadline: 5, etc.}
+  
+  // Métadonnées
+  purchase_date: timestamp('purchase_date'),
+  price: integer('price'), // Prix en centimes
+  size: text('size'),
+  
+  // Statistiques d'utilisation
+  worn_count: integer('worn_count').default(0), // Nombre de fois porté dans des looks
+  
+  // Visibilité
   is_public: boolean('is_public').default(true),
-  helpful_count: integer('helpful_count').default(0),
+  
   created_at: timestamp('created_at').defaultNow(),
-  updated_at: timestamp('updated_at').defaultNow()
+  updated_at: timestamp('updated_at').defaultNow(),
 });
 
-export const reviewHelpful = pgTable('review_helpful', {
+// ==========================================
+// LOOKS (TENUES COMPLÈTES)
+// ==========================================
+
+export const looks = pgTable('looks', {
   id: serial('id').primaryKey(),
-  review_id: integer('review_id').references(() => reviews.id).notNull(),
-  user_id: integer('user_id').references(() => users.id).notNull(),
-  created_at: timestamp('created_at').defaultNow()
-});
-
-// Tables pour la gestion des contrats
-export const contracts = pgTable('contracts', {
-  id: serial('id').primaryKey(),
-  mission_id: integer('mission_id').references(() => missions.id).notNull(),
-  bid_id: integer('bid_id').references(() => bids.id).notNull(),
-  client_id: integer('client_id').references(() => users.id).notNull(),
-  provider_id: integer('provider_id').references(() => users.id).notNull(),
-
-  status: text('status').$type<
-    'pending_signature' | 'active' | 'in_progress' | 'under_review' |
-    'completed' | 'disputed' | 'cancelled'
-  >().default('pending_signature'),
-
-  terms: jsonb('terms'), // Conditions acceptées
-  deliverables: jsonb('deliverables'), // Liste des livrables attendus
-  milestones: jsonb('milestones'), // Jalons de paiement
-
-  // Signatures électroniques
-  client_signed_at: timestamp('client_signed_at'),
-  provider_signed_at: timestamp('provider_signed_at'),
-
-  // Dates importantes
-  start_date: timestamp('start_date'),
-  expected_end_date: timestamp('expected_end_date'),
-  actual_end_date: timestamp('actual_end_date'),
-
-  created_at: timestamp('created_at').defaultNow(),
-  updated_at: timestamp('updated_at').defaultNow()
-});
-
-export const deliverables = pgTable('deliverables', {
-  id: serial('id').primaryKey(),
-  contract_id: integer('contract_id').references(() => contracts.id).notNull(),
+  user_id: integer('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  
+  // Contenu
   title: text('title').notNull(),
   description: text('description'),
-  status: text('status').$type<'pending' | 'submitted' | 'approved' | 'rejected'>().default('pending'),
-  file_urls: jsonb('file_urls'), // URLs des fichiers livrés
-  submitted_at: timestamp('submitted_at'),
-  reviewed_at: timestamp('reviewed_at'),
-  feedback: text('feedback'),
-  created_at: timestamp('created_at').defaultNow()
+  cover_image: text('cover_image'), // Image principale du look
+  
+  // Catégorisation
+  style_tags: text('style_tags').array().default([]), // ["casual", "chic", "streetwear"]
+  occasion: text('occasion'), // "daily", "work", "party", "date", "sport"
+  season: text('season'), // "spring", "summer", "fall", "winter"
+  
+  // Statistiques d'engagement
+  likes_count: integer('likes_count').default(0),
+  comments_count: integer('comments_count').default(0),
+  saves_count: integer('saves_count').default(0),
+  views_count: integer('views_count').default(0),
+  
+  // Algorithme feed
+  engagement_score: decimal('engagement_score', { precision: 5, scale: 2 }).default('0.0'),
+  
+  // Visibilité
+  is_public: boolean('is_public').default(true),
+  is_featured: boolean('is_featured').default(false), // Mis en avant par la plateforme
+  
+  created_at: timestamp('created_at').defaultNow(),
+  updated_at: timestamp('updated_at').defaultNow(),
 });
 
-// Tables pour la messagerie
+// ==========================================
+// LIAISON LOOKS <-> ARTICLES
+// ==========================================
+
+export const lookItems = pgTable('look_items', {
+  id: serial('id').primaryKey(),
+  look_id: integer('look_id').references(() => looks.id, { onDelete: 'cascade' }).notNull(),
+  fashion_item_id: integer('fashion_item_id').references(() => fashionItems.id, { onDelete: 'cascade' }).notNull(),
+  position: integer('position').default(0), // Ordre d'affichage
+  created_at: timestamp('created_at').defaultNow(),
+});
+
+// ==========================================
+// COLLECTIONS (BOARDS PINTEREST-STYLE)
+// ==========================================
+
+export const collections = pgTable('collections', {
+  id: serial('id').primaryKey(),
+  user_id: integer('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  
+  title: text('title').notNull(),
+  description: text('description'),
+  cover_image: text('cover_image'),
+  
+  // Visibilité
+  is_public: boolean('is_public').default(true),
+  
+  // Statistiques
+  looks_count: integer('looks_count').default(0),
+  followers_count: integer('followers_count').default(0),
+  
+  created_at: timestamp('created_at').defaultNow(),
+  updated_at: timestamp('updated_at').defaultNow(),
+});
+
+// ==========================================
+// LOOKS DANS LES COLLECTIONS
+// ==========================================
+
+export const collectionLooks = pgTable('collection_looks', {
+  id: serial('id').primaryKey(),
+  collection_id: integer('collection_id').references(() => collections.id, { onDelete: 'cascade' }).notNull(),
+  look_id: integer('look_id').references(() => looks.id, { onDelete: 'cascade' }).notNull(),
+  created_at: timestamp('created_at').defaultNow(),
+}, (table) => ({
+  uniqueCollectionLook: unique().on(table.collection_id, table.look_id),
+}));
+
+// ==========================================
+// LIKES SUR LES LOOKS
+// ==========================================
+
+export const likes = pgTable('likes', {
+  id: serial('id').primaryKey(),
+  user_id: integer('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  look_id: integer('look_id').references(() => looks.id, { onDelete: 'cascade' }).notNull(),
+  created_at: timestamp('created_at').defaultNow(),
+}, (table) => ({
+  uniqueLike: unique().on(table.user_id, table.look_id),
+}));
+
+// ==========================================
+// COMMENTAIRES SUR LES LOOKS
+// ==========================================
+
+export const comments = pgTable('comments', {
+  id: serial('id').primaryKey(),
+  user_id: integer('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  look_id: integer('look_id').references(() => looks.id, { onDelete: 'cascade' }).notNull(),
+  
+  content: text('content').notNull(),
+  parent_id: integer('parent_id').references((): any => comments.id, { onDelete: 'cascade' }), // Pour les réponses
+  
+  likes_count: integer('likes_count').default(0),
+  
+  created_at: timestamp('created_at').defaultNow(),
+  updated_at: timestamp('updated_at').defaultNow(),
+});
+
+// ==========================================
+// SAUVEGARDES/FAVORIS DE LOOKS
+// ==========================================
+
+export const savedLooks = pgTable('saved_looks', {
+  id: serial('id').primaryKey(),
+  user_id: integer('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  look_id: integer('look_id').references(() => looks.id, { onDelete: 'cascade' }).notNull(),
+  created_at: timestamp('created_at').defaultNow(),
+}, (table) => ({
+  uniqueSave: unique().on(table.user_id, table.look_id),
+}));
+
+// ==========================================
+// NOTIFICATIONS
+// ==========================================
+
+export const notifications = pgTable('notifications', {
+  id: serial('id').primaryKey(),
+  user_id: integer('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  
+  type: text('type').notNull(), // 'like', 'comment', 'follow', 'mention'
+  title: text('title').notNull(),
+  message: text('message').notNull(),
+  link: text('link'), // URL de redirection
+  
+  // Acteur de la notification
+  actor_id: integer('actor_id').references(() => users.id, { onDelete: 'cascade' }),
+  actor_name: text('actor_name'),
+  actor_avatar: text('actor_avatar'),
+  
+  // Métadonnées
+  metadata: jsonb('metadata'),
+  
+  read_at: timestamp('read_at'),
+  created_at: timestamp('created_at').defaultNow(),
+});
+
+// ==========================================
+// MESSAGERIE
+// ==========================================
+
 export const conversations = pgTable('conversations', {
   id: serial('id').primaryKey(),
-  mission_id: integer('mission_id').references(() => missions.id),
-  participant1_id: integer('participant1_id').references(() => users.id).notNull(),
-  participant2_id: integer('participant2_id').references(() => users.id).notNull(),
+  participant1_id: integer('participant1_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  participant2_id: integer('participant2_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
   last_message_at: timestamp('last_message_at').defaultNow(),
-  created_at: timestamp('created_at').defaultNow()
+  created_at: timestamp('created_at').defaultNow(),
 });
 
 export const messages = pgTable('messages', {
   id: serial('id').primaryKey(),
-  conversation_id: integer('conversation_id').references(() => conversations.id).notNull(),
-  sender_id: integer('sender_id').references(() => users.id).notNull(),
+  conversation_id: integer('conversation_id').references(() => conversations.id, { onDelete: 'cascade' }).notNull(),
+  sender_id: integer('sender_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  
   content: text('content').notNull(),
-  message_type: text('message_type').$type<'text' | 'image' | 'file' | 'system'>().default('text'),
-  file_url: text('file_url'),
+  message_type: text('message_type').$type<'text' | 'image' | 'look'>().default('text'),
+  
+  // Pour partager un look
+  look_id: integer('look_id').references(() => looks.id),
+  image_url: text('image_url'),
+  
   read_at: timestamp('read_at'),
-  created_at: timestamp('created_at').defaultNow()
+  created_at: timestamp('created_at').defaultNow(),
 });
 
-// Tables pour les notifications
-export const notifications = pgTable('notifications', {
-  id: serial('id').primaryKey(),
-  user_id: integer('user_id').references(() => users.id).notNull(),
-  type: text('type').notNull(), // 'new_bid', 'message', 'payment', 'review', etc.
-  title: text('title').notNull(),
-  message: text('message').notNull(),
-  link: text('link'), // URL de redirection
-  metadata: jsonb('metadata'),
-  read_at: timestamp('read_at'),
-  created_at: timestamp('created_at').defaultNow()
-});
+// ==========================================
+// FICHIERS (POUR UPLOADS)
+// ==========================================
 
-// Tables pour les fichiers
 export const files = pgTable('files', {
   id: serial('id').primaryKey(),
-  user_id: integer('user_id').references(() => users.id).notNull(),
+  user_id: integer('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  
   filename: text('filename').notNull(),
   original_filename: text('original_filename').notNull(),
   file_type: text('file_type').notNull(), // mime type
   file_size: integer('file_size').notNull(), // en bytes
   file_url: text('file_url').notNull(),
-
+  
   // Contexte d'utilisation
-  context_type: text('context_type'), // 'portfolio', 'bid', 'deliverable', 'profile_picture'
-  context_id: integer('context_id'), // ID de la mission, bid, etc.
-
+  context_type: text('context_type'), // 'fashion_item', 'look', 'avatar', 'message'
+  context_id: integer('context_id'),
+  
   metadata: jsonb('metadata'),
-  created_at: timestamp('created_at').defaultNow()
+  created_at: timestamp('created_at').defaultNow(),
 });
 
-// Relations entre les tables
+// ==========================================
+// PARAMÈTRES UTILISATEUR
+// ==========================================
+
+export const userSettings = pgTable('user_settings', {
+  id: serial('id').primaryKey(),
+  user_id: integer('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull().unique(),
+  
+  notifications: jsonb('notifications'), // Préférences de notifications
+  privacy: jsonb('privacy'), // Paramètres de confidentialité
+  appearance: jsonb('appearance'), // Thème, langue, etc.
+  
+  created_at: timestamp('created_at').defaultNow(),
+  updated_at: timestamp('updated_at').defaultNow(),
+});
+
+// ==========================================
+// RELATIONS
+// ==========================================
+
 export const usersRelations = relations(users, ({ many }) => ({
-  missions: many(missions),
-  bids: many(bids),
-  // teamMembers: many(teamMembers), // This seems to be a leftover from a previous or incomplete change. Removing it.
-  reviewsGiven: many(reviews, { relationName: "reviewer" }),
-  reviewsReceived: many(reviews, { relationName: "reviewee" }),
-  contracts: many(contracts),
+  fashionItems: many(fashionItems),
+  looks: many(looks),
+  collections: many(collections),
+  likes: many(likes),
+  comments: many(comments),
+  savedLooks: many(savedLooks),
+  followers: many(follows, { relationName: "following" }),
+  following: many(follows, { relationName: "follower" }),
   notifications: many(notifications),
-  files: many(files)
+  files: many(files),
+  messages: many(messages),
 }));
 
-export const missionsRelations = relations(missions, ({ one, many }) => ({
+export const fashionItemsRelations = relations(fashionItems, ({ one, many }) => ({
   user: one(users, {
-    fields: [missions.user_id],
+    fields: [fashionItems.user_id],
     references: [users.id]
   }),
-  bids: many(bids),
-  reviews: many(reviews)
+  lookItems: many(lookItems),
 }));
 
-export const openTeamsRelations = relations(openTeams, ({ one, many }) => ({
-  mission: one(missions, {
-    fields: [openTeams.mission_id],
-    references: [missions.id]
-  }),
-  creator: one(users, {
-    fields: [openTeams.creator_id],
-    references: [users.id]
-  }),
-  bids: many(bids)
-}));
-
-export const bidsRelations = relations(bids, ({ one }) => ({
-  mission: one(missions, {
-    fields: [bids.mission_id],
-    references: [missions.id]
-  }),
-  provider: one(users, {
-    fields: [bids.provider_id],
-    references: [users.id]
-  }),
-  teamLead: one(users, {
-    fields: [bids.team_lead_id],
-    references: [users.id]
-  }),
-  openTeam: one(openTeams, {
-    fields: [bids.open_team_id],
-    references: [openTeams.id]
-  })
-}));
-
-export const announcementsRelations = relations(announcements, ({ one, many }) => ({
-  client: one(users, {
-    fields: [announcements.client_id],
-    references: [users.id]
-  }),
-  feedbacks: many(feedFeedback),
-  seenBy: many(feedSeen),
-  favorites: many(favorites)
-}));
-
-export const feedFeedbackRelations = relations(feedFeedback, ({ one }) => ({
-  announcement: one(announcements, {
-    fields: [feedFeedback.announcement_id],
-    references: [announcements.id]
-  }),
+export const looksRelations = relations(looks, ({ one, many }) => ({
   user: one(users, {
-    fields: [feedFeedback.user_id],
+    fields: [looks.user_id],
     references: [users.id]
-  })
+  }),
+  lookItems: many(lookItems),
+  likes: many(likes),
+  comments: many(comments),
+  savedLooks: many(savedLooks),
+  collectionLooks: many(collectionLooks),
 }));
 
-export const feedSeenRelations = relations(feedSeen, ({ one }) => ({
-  announcement: one(announcements, {
-    fields: [feedSeen.announcement_id],
-    references: [announcements.id]
+export const lookItemsRelations = relations(lookItems, ({ one }) => ({
+  look: one(looks, {
+    fields: [lookItems.look_id],
+    references: [looks.id]
   }),
+  fashionItem: one(fashionItems, {
+    fields: [lookItems.fashion_item_id],
+    references: [fashionItems.id]
+  }),
+}));
+
+export const collectionsRelations = relations(collections, ({ one, many }) => ({
   user: one(users, {
-    fields: [feedSeen.user_id],
+    fields: [collections.user_id],
     references: [users.id]
-  })
+  }),
+  collectionLooks: many(collectionLooks),
 }));
 
-export const favoritesRelations = relations(favorites, ({ one }) => ({
-  announcement: one(announcements, {
-    fields: [favorites.announcement_id],
-    references: [announcements.id]
+export const collectionLooksRelations = relations(collectionLooks, ({ one }) => ({
+  collection: one(collections, {
+    fields: [collectionLooks.collection_id],
+    references: [collections.id]
   }),
+  look: one(looks, {
+    fields: [collectionLooks.look_id],
+    references: [looks.id]
+  }),
+}));
+
+export const likesRelations = relations(likes, ({ one }) => ({
   user: one(users, {
-    fields: [favorites.user_id],
+    fields: [likes.user_id],
     references: [users.id]
-  })
+  }),
+  look: one(looks, {
+    fields: [likes.look_id],
+    references: [looks.id]
+  }),
 }));
 
-// Relations pour reviews
-export const reviewsRelations = relations(reviews, ({ one, many }) => ({
-  mission: one(missions, {
-    fields: [reviews.mission_id],
-    references: [missions.id]
-  }),
-  reviewer: one(users, {
-    fields: [reviews.reviewer_id],
-    references: [users.id]
-  }),
-  reviewee: one(users, {
-    fields: [reviews.reviewee_id],
-    references: [users.id]
-  }),
-  helpfulMarks: many(reviewHelpful)
-}));
-
-export const reviewHelpfulRelations = relations(reviewHelpful, ({ one }) => ({
-  review: one(reviews, {
-    fields: [reviewHelpful.review_id],
-    references: [reviews.id]
-  }),
+export const commentsRelations = relations(comments, ({ one, many }) => ({
   user: one(users, {
-    fields: [reviewHelpful.user_id],
-    references: [users.id]
-  })
-}));
-
-// Relations pour contrats
-export const contractsRelations = relations(contracts, ({ one, many }) => ({
-  mission: one(missions, {
-    fields: [contracts.mission_id],
-    references: [missions.id]
-  }),
-  bid: one(bids, {
-    fields: [contracts.bid_id],
-    references: [bids.id]
-  }),
-  client: one(users, {
-    fields: [contracts.client_id],
+    fields: [comments.user_id],
     references: [users.id]
   }),
-  provider: one(users, {
-    fields: [contracts.provider_id],
+  look: one(looks, {
+    fields: [comments.look_id],
+    references: [looks.id]
+  }),
+  parent: one(comments, {
+    fields: [comments.parent_id],
+    references: [comments.id]
+  }),
+  replies: many(comments),
+}));
+
+export const savedLooksRelations = relations(savedLooks, ({ one }) => ({
+  user: one(users, {
+    fields: [savedLooks.user_id],
     references: [users.id]
   }),
-  deliverables: many(deliverables)
+  look: one(looks, {
+    fields: [savedLooks.look_id],
+    references: [looks.id]
+  }),
 }));
 
-export const deliverablesRelations = relations(deliverables, ({ one }) => ({
-  contract: one(contracts, {
-    fields: [deliverables.contract_id],
-    references: [contracts.id]
-  })
+export const followsRelations = relations(follows, ({ one }) => ({
+  follower: one(users, {
+    fields: [follows.follower_id],
+    references: [users.id],
+    relationName: "follower"
+  }),
+  following: one(users, {
+    fields: [follows.following_id],
+    references: [users.id],
+    relationName: "following"
+  }),
 }));
 
-// Relations pour conversations
+export const notificationsRelations = relations(notifications, ({ one }) => ({
+  user: one(users, {
+    fields: [notifications.user_id],
+    references: [users.id]
+  }),
+  actor: one(users, {
+    fields: [notifications.actor_id],
+    references: [users.id]
+  }),
+}));
+
 export const conversationsRelations = relations(conversations, ({ one, many }) => ({
-  mission: one(missions, {
-    fields: [conversations.mission_id],
-    references: [missions.id]
-  }),
   participant1: one(users, {
     fields: [conversations.participant1_id],
     references: [users.id]
@@ -485,26 +475,19 @@ export const messagesRelations = relations(messages, ({ one }) => ({
   sender: one(users, {
     fields: [messages.sender_id],
     references: [users.id]
-  })
+  }),
+  look: one(looks, {
+    fields: [messages.look_id],
+    references: [looks.id]
+  }),
 }));
 
-// Relations pour notifications
-export const notificationsRelations = relations(notifications, ({ one }) => ({
+export const filesRelations = relations(files, ({ one }) => ({
   user: one(users, {
-    fields: [notifications.user_id],
+    fields: [files.user_id],
     references: [users.id]
   })
 }));
-
-export const userSettings = pgTable('user_settings', {
-  id: serial('id').primaryKey(),
-  user_id: integer('user_id').references(() => users.id).notNull().unique(),
-  notifications: jsonb('notifications'),
-  privacy: jsonb('privacy'),
-  appearance: jsonb('appearance'),
-  created_at: timestamp('created_at').defaultNow(),
-  updated_at: timestamp('updated_at').defaultNow()
-});
 
 export const userSettingsRelations = relations(userSettings, ({ one }) => ({
   user: one(users, {
@@ -513,712 +496,100 @@ export const userSettingsRelations = relations(userSettings, ({ one }) => ({
   })
 }));
 
-// Relations pour fichiers
-export const filesRelations = relations(files, ({ one }) => ({
-  user: one(users, {
-    fields: [files.user_id],
-    references: [users.id]
-  })
-}));
+// ==========================================
+// ZOD SCHEMAS POUR VALIDATION
+// ==========================================
 
-// Export types that might be used elsewhere
-export type FeedbackType = 'like' | 'dislike' | 'interested' | 'not_relevant';
-export type AnnouncementStatus = 'active' | 'completed' | 'cancelled' | 'draft';
-export type ContractStatus = 'pending_signature' | 'active' | 'in_progress' | 'under_review' | 'completed' | 'disputed' | 'cancelled';
-export type DeliverableStatus = 'pending' | 'submitted' | 'approved' | 'rejected';
-export type NotificationType = 'new_bid' | 'message' | 'payment' | 'review' | string;
-export type FileContextType = 'portfolio' | 'bid' | 'deliverable' | 'profile_picture' | string | null;
-
-// Types pour les équipes
-export interface TeamMember {
-  id?: number;
-  user_id?: number;
-  name: string;
-  role: string;
-  experience: string;
-  isLead: boolean;
-  rating?: number;
-  profile_url?: string;
-}
-
-export interface TeamComposition {
-  members: TeamMember[];
-  total_budget: number;
-  estimated_timeline: number;
-  description: string;
-}
-
-export interface OpenTeamMember {
-  user_id: number;
-  name: string;
-  role: string;
-  experience_years: number;
-  rating: number;
-  joined_at: string;
-}
-
-export interface RequiredRole {
-  title: string;
-  description: string;
-  skills: string[];
-  min_experience: number;
-  priority: 'high' | 'medium' | 'low';
-}
-
-// Types de candidatures
-export type BidType = 'individual' | 'team' | 'open_team';
-
-// Added team mission types
-export interface TeamRequirement {
-  profession: string;
-  description: string;
-  required_skills: string[];
-  estimated_budget: number;
-  estimated_days: number;
-  min_experience: number;
-  is_lead_role: boolean;
-  importance: 'high' | 'medium' | 'low';
-}
-
-export interface Mission {
-  id: number;
-  title: string;
-  description: string;
-  teamRequirements?: TeamRequirement[];
-  category: string;
-  budget?: string | number;
-  location?: string;
-  clientName?: string;
-  createdAt?: string;
-  bids?: any[];
-}
-
-// ⚠️ DEPRECATED LEGACY UI TYPES
-// Please use types from @shared/types instead for UI components
-// These are kept only for backward compatibility and will be removed
-export namespace DeprecatedUITypes {
-  export interface MissionWithBids extends Mission {
-    bids: any[];
-  }
-
-  export interface Announcement {
-    id: number;
-    title: string;
-    description: string;
-    category: string;
-    budget_min?: number;
-    budget_max?: number;
-    deadline?: Date;
-    city?: string;
-    user_id: number;
-    tags?: string[];
-    sponsored?: boolean;
-    quality_score?: number;
-  }
-}
-
-// Re-exports for backward compatibility - to be removed
-export interface MissionWithBids extends DeprecatedUITypes.MissionWithBids {}
-export interface Announcement extends DeprecatedUITypes.Announcement {}
-
-// Zod schemas for validation (already present and seem fine, no changes requested)
-export const insertUserSchema = z.object({
-  email: z.string().min(1), // Accepte tout texte non vide au lieu de valider strictement le format email
-  name: z.string().min(1),
-  password: z.string().optional(), // Mot de passe optionnel et sans longueur minimale
-  role: z.enum(['CLIENT', 'PRO', 'ADMIN']),
-  rating_mean: z.string().optional(),
-  rating_count: z.number().int().min(0).optional(),
-  profile_data: z.any().optional()
+export const insertUserSchema = createInsertSchema(users).omit({
+  id: true,
+  created_at: true,
+  updated_at: true,
+  followers_count: true,
+  following_count: true,
+  posts_count: true,
 });
 
-export const insertMissionSchema = z.object({
-  user_id: z.number().int().positive(),
-  title: z.string().min(1),
-  description: z.string().min(1),
-  category: z.string().min(1),
-  location: z.string().optional(),
-  postal_code: z.string().optional(),
-  price: z.number().int().min(10),
-  urgency: z.enum(['low', 'medium', 'high', 'urgent']).optional(),
-  status: z.enum(['draft', 'open', 'published', 'assigned', 'completed', 'cancelled']).optional(),
-  quality_target: z.enum(['basic', 'standard', 'premium', 'luxury']).optional()
+export const insertFashionItemSchema = createInsertSchema(fashionItems).omit({
+  id: true,
+  created_at: true,
+  updated_at: true,
+  worn_count: true,
 });
 
-export const insertBidSchema = z.object({
-  mission_id: z.number().int().positive(),
-  provider_id: z.number().int().positive(),
-  price: z.string(), // Changed from amount to price
-  timeline_days: z.number().int().min(1).optional(),
-  message: z.string().optional(),
-  score_breakdown: z.any().optional(),
-  is_leading: z.boolean().optional(),
-  status: z.enum(['pending', 'accepted', 'rejected', 'withdrawn']).optional(),
-  // Extensions pour les équipes
-  bid_type: z.enum(['individual', 'team', 'open_team']).optional(),
-  team_composition: z.any().optional(), // Structure de l'équipe
-  team_lead_id: z.number().int().positive().optional(),
-  open_team_id: z.number().int().positive().optional()
+export const insertLookSchema = createInsertSchema(looks).omit({
+  id: true,
+  created_at: true,
+  updated_at: true,
+  likes_count: true,
+  comments_count: true,
+  saves_count: true,
+  views_count: true,
+  engagement_score: true,
 });
 
-// Schema pour les équipes ouvertes
-export const insertOpenTeamSchema = z.object({
-  mission_id: z.number().int().positive(),
-  name: z.string().min(1),
-  description: z.string().optional(),
-  // creator_id is set from authenticated user, not from client
-  estimated_budget: z.number().int().positive().optional(),
-  estimated_timeline_days: z.number().int().min(1).optional(),
-  members: z.any().optional(),
-  required_roles: z.any().optional(),
-  max_members: z.number().int().min(2).max(10).optional(),
-  status: z.enum(['recruiting', 'complete', 'submitted', 'cancelled']).optional(),
-  visibility: z.enum(['public', 'private']).optional(),
-  auto_accept: z.boolean().optional()
+export const insertCollectionSchema = createInsertSchema(collections).omit({
+  id: true,
+  created_at: true,
+  updated_at: true,
+  looks_count: true,
+  followers_count: true,
 });
 
-// Schemas for new tables
-export const insertReviewSchema = z.object({
-  mission_id: z.number().int().positive(),
-  reviewer_id: z.number().int().positive(),
-  reviewee_id: z.number().int().positive(),
-  rating: z.number().int().min(1).max(5),
-  comment: z.string().optional(),
-  response: z.string().optional(),
-  criteria: z.any().optional(),
-  is_public: z.boolean().optional(),
-  helpful_count: z.number().int().min(0).optional(),
+export const insertCommentSchema = createInsertSchema(comments).omit({
+  id: true,
+  created_at: true,
+  updated_at: true,
+  likes_count: true,
 });
 
-export const insertReviewHelpfulSchema = z.object({
-  review_id: z.number().int().positive(),
-  user_id: z.number().int().positive(),
+export const insertMessageSchema = createInsertSchema(messages).omit({
+  id: true,
+  created_at: true,
 });
 
-export const insertContractSchema = z.object({
-  mission_id: z.number().int().positive(),
-  bid_id: z.number().int().positive(),
-  client_id: z.number().int().positive(),
-  provider_id: z.number().int().positive(),
-  status: z.enum(['pending_signature', 'active', 'in_progress', 'under_review', 'completed', 'disputed', 'cancelled']).optional(),
-  terms: z.any().optional(),
-  deliverables: z.any().optional(),
-  milestones: z.any().optional(),
-  client_signed_at: z.string().datetime().optional(),
-  provider_signed_at: z.string().datetime().optional(),
-  start_date: z.string().datetime().optional(),
-  expected_end_date: z.string().datetime().optional(),
-  actual_end_date: z.string().datetime().optional(),
-});
+// ==========================================
+// TYPES TYPESCRIPT
+// ==========================================
 
-export const insertDeliverableSchema = z.object({
-  contract_id: z.number().int().positive(),
-  title: z.string().min(1),
-  description: z.string().optional(),
-  status: z.enum(['pending', 'submitted', 'approved', 'rejected']).optional(),
-  file_urls: z.any().optional(),
-  submitted_at: z.string().datetime().optional(),
-  reviewed_at: z.string().datetime().optional(),
-  feedback: z.string().optional(),
-});
+export type User = typeof users.$inferSelect;
+export type InsertUser = z.infer<typeof insertUserSchema>;
 
-export const insertNotificationSchema = z.object({
-  user_id: z.number().int().positive(),
-  type: z.string().min(1),
-  title: z.string().min(1),
-  message: z.string().min(1),
-  link: z.string().url().optional(),
-  metadata: z.any().optional(),
-  read_at: z.string().datetime().optional(),
-});
+export type FashionItem = typeof fashionItems.$inferSelect;
+export type InsertFashionItem = z.infer<typeof insertFashionItemSchema>;
 
-export const insertFileSchema = z.object({
-  user_id: z.number().int().positive(),
-  filename: z.string().min(1),
-  original_filename: z.string().min(1),
-  file_type: z.string().min(1),
-  file_size: z.number().int().min(0),
-  file_url: z.string().url().min(1),
-  context_type: z.string().optional(),
-  context_id: z.number().int().positive().optional(),
-  metadata: z.any().optional(),
-});
+export type Look = typeof looks.$inferSelect;
+export type InsertLook = z.infer<typeof insertLookSchema>;
 
+export type Collection = typeof collections.$inferSelect;
+export type InsertCollection = z.infer<typeof insertCollectionSchema>;
 
-export const insertAnnouncementSchema = z.object({
-  title: z.string().min(1),
-  content: z.string().min(1),
-  type: z.enum(['info', 'warning', 'error', 'success']).optional(),
-  priority: z.number().int().min(1).optional(),
-  is_active: z.boolean().optional(),
-  status: z.enum(['active', 'completed', 'cancelled', 'draft']).optional(),
-  category: z.string().optional(),
-  budget: z.number().int().min(0).optional(),
-  location: z.string().optional(),
-  user_id: z.number().int().positive().optional(),
-  sponsored: z.boolean().optional()
-});
+export type Comment = typeof comments.$inferSelect;
+export type InsertComment = z.infer<typeof insertCommentSchema>;
 
-export const insertFeedFeedbackSchema = z.object({
-  announcement_id: z.number().int().positive(),
-  user_id: z.number().int().positive(),
-  feedback_type: z.enum(['like', 'dislike', 'interested', 'not_relevant'])
-});
+export type Like = typeof likes.$inferSelect;
+export type Follow = typeof follows.$inferSelect;
+export type SavedLook = typeof savedLooks.$inferSelect;
+export type Notification = typeof notifications.$inferSelect;
+export type Message = typeof messages.$inferSelect;
+export type InsertMessage = z.infer<typeof insertMessageSchema>;
+export type Conversation = typeof conversations.$inferSelect;
+export type File = typeof files.$inferSelect;
 
-export const insertFeedSeenSchema = z.object({
-  announcement_id: z.number().int().positive(),
-  user_id: z.number().int().positive()
-});
-
-export const insertFavoritesSchema = z.object({
-  user_id: z.number().int().positive(),
-  announcement_id: z.number().int().positive()
-});
-
-export const aiEvents = pgTable('ai_events', {
-  id: text('id').primaryKey(),
-  phase: text('phase').$type<'pricing' | 'brief_enhance' | 'matching' | 'scoring'>().notNull(),
-  provider: text('provider').notNull(),
-  model_family: text('model_family').$type<'gemini' | 'openai' | 'local' | 'other'>().notNull(),
-  model_name: text('model_name').notNull(),
-  allow_training: boolean('allow_training').notNull(),
-  input_redacted: jsonb('input_redacted'),
-  output: jsonb('output'),
-  confidence: text('confidence'),
-  tokens: integer('tokens'),
-  latency_ms: integer('latency_ms'),
-  provenance: text('provenance').$type<'auto' | 'human_validated' | 'ab_test_winner'>().notNull(),
-  prompt_hash: text('prompt_hash'),
-  accepted: boolean('accepted'),
-  rating: integer('rating'),
-  edits: jsonb('edits'),
-  created_at: timestamp('created_at').defaultNow(),
-  updated_at: timestamp('updated_at').defaultNow()
-});
-
-export const aiEventsRelations = relations(aiEvents, ({ one }) => ({
-  // Pas de relations directes pour l'instant
-}));
-
-export const insertAiEventSchema = z.object({
-  id: z.string(),
-  phase: z.enum(['pricing', 'brief_enhance', 'matching', 'scoring']),
-  provider: z.string(),
-  model_family: z.enum(['gemini', 'openai', 'local', 'other']),
-  model_name: z.string(),
-  allow_training: z.boolean(),
-  input_redacted: z.any().optional(),
-  output: z.any().optional(),
-  confidence: z.string().optional(),
-  tokens: z.number().int().optional(),
-  latency_ms: z.number().int().optional(),
-  provenance: z.enum(['auto', 'human_validated', 'ab_test_winner']),
-  prompt_hash: z.string().optional(),
-  accepted: z.boolean().optional(),
-  rating: z.number().int().min(1).max(5).optional(),
-  edits: z.any().optional()
-});
-
-// --- Nouvelles tables pour le réseau social de mode ---
-
-// Table pour les profiles de mode (garde-robe, style, etc.)
-export const fashionProfiles = pgTable('fashion_profiles', {
-  id: serial('id').primaryKey(),
-  user_id: integer('user_id').references(() => users.id).notNull().unique(),
-  style_preferences: jsonb('style_preferences'), // { aesthetic: string[], colors: string[], brands: string[] }
-  body_type: text('body_type'),
-  // ... autres champs spécifiques à la mode
-  created_at: timestamp('created_at').defaultNow(),
-  updated_at: timestamp('updated_at').defaultNow()
-});
-
-// Table pour les articles de mode (vêtements, accessoires)
-export const fashionItems = pgTable('fashion_items', {
-  id: serial('id').primaryKey(),
-  user_id: integer('user_id').references(() => users.id).notNull(),
-  name: text('name').notNull(),
-  description: text('description'),
-  category: text('category').notNull(), // 'top', 'bottom', 'shoes', 'accessory'
-  brand: text('brand'),
-  color: text('color'),
-  material: text('material'),
-  size: text('size'),
-  image_url: text('image_url'),
-  created_at: timestamp('created_at').defaultNow(),
-  updated_at: timestamp('updated_at').defaultNow()
-});
-
-// Table pour les outfits (combinaisons d'articles)
-export const outfits = pgTable('outfits', {
-  id: serial('id').primaryKey(),
-  user_id: integer('user_id').references(() => users.id).notNull(),
-  name: text('name').notNull(),
-  description: text('description'),
-  created_at: timestamp('created_at').defaultNow(),
-  updated_at: timestamp('updated_at').defaultNow()
-});
-
-// Table de liaison entre outfits et fashion_items
-export const outfitItems = pgTable('outfit_items', {
-  outfit_id: integer('outfit_id').references(() => outfits.id).notNull(),
-  item_id: integer('item_id').references(() => fashionItems.id).notNull(),
-}, (table) => ({
-  pk: primaryKey({ columns: [table.outfit_id, table.item_id] })
-}));
-
-// Table pour les likes sur les posts
-export const postLikes = pgTable('post_likes', {
-  id: serial('id').primaryKey(),
-  post_id: integer('post_id').references(() => feedPosts.id).notNull(),
-  user_id: integer('user_id').references(() => users.id).notNull(),
-  created_at: timestamp('created_at').defaultNow()
-});
-
-// Table pour les commentaires sur les posts
-export const postComments = pgTable('post_comments', {
-  id: serial('id').primaryKey(),
-  post_id: integer('post_id').references(() => feedPosts.id).notNull(),
-  user_id: integer('user_id').references(() => users.id).notNull(),
-  content: text('content').notNull(),
-  created_at: timestamp('created_at').defaultNow(),
-  updated_at: timestamp('updated_at').defaultNow()
-});
-
-// Table pour les followers/following
-export const follows = pgTable('follows', {
-  follower_id: integer('follower_id').references(() => users.id).notNull(),
-  following_id: integer('following_id').references(() => users.id).notNull(),
-  created_at: timestamp('created_at').defaultNow(),
-}, (table) => ({
-  pk: primaryKey({ columns: [table.follower_id, table.following_id] })
-}));
-
-// Ajout des relations pour les nouvelles tables
-export const fashionProfilesRelations = relations(fashionProfiles, ({ one }) => ({
-  user: one(users, {
-    fields: [fashionProfiles.user_id],
-    references: [users.id]
-  })
-}));
-
-export const fashionItemsRelations = relations(fashionItems, ({ one }) => ({
-  user: one(users, {
-    fields: [fashionItems.user_id],
-    references: [users.id]
-  })
-}));
-
-export const outfitsRelations = relations(outfits, ({ one, many }) => ({
-  user: one(users, {
-    fields: [outfits.user_id],
-    references: [users.id]
-  }),
-  items: many(outfitItems),
-  posts: many(feedPosts)
-}));
-
-export const outfitItemsRelations = relations(outfitItems, ({ one }) => ({
-  outfit: one(outfits, {
-    fields: [outfitItems.outfit_id],
-    references: [outfits.id]
-  }),
-  item: one(fashionItems, {
-    fields: [outfitItems.item_id],
-    references: [fashionItems.id]
-  })
-}));
-
-
-export const followsRelations = relations(follows, ({ one }) => ({
-  follower: one(users, {
-    fields: [follows.follower_id],
-    references: [users.id]
-  }),
-  following: one(users, {
-    fields: [follows.following_id],
-    references: [users.id]
-  })
-}));
-
-// Exportation des nouveaux types pour le réseau social de mode
-export type StylePreferences = {
-  aesthetic?: string[];
-  colors?: string[];
-  brands?: string[];
+// Types pour les vues enrichies
+export type LookWithUser = Look & {
+  user: User;
+  items: (typeof lookItems.$inferSelect & { fashionItem: FashionItem })[];
+  likesCount: number;
+  commentsCount: number;
+  isLikedByUser?: boolean;
+  isSavedByUser?: boolean;
 };
 
-export type FashionItemCategory = 'top' | 'bottom' | 'shoes' | 'accessory';
+export type FashionItemWithUser = FashionItem & {
+  user: User;
+};
 
-export interface FashionProfile {
-  id: number;
-  user_id: number;
-  style_preferences?: StylePreferences;
-  body_type?: string;
-  created_at: Date;
-  updated_at: Date;
-}
-
-export interface FashionItem {
-  id: number;
-  user_id: number;
-  name: string;
-  description?: string;
-  category: FashionItemCategory;
-  brand?: string;
-  color?: string;
-  material?: string;
-  size?: string;
-  image_url?: string;
-  created_at: Date;
-  updated_at: Date;
-}
-
-export interface Outfit {
-  id: number;
-  user_id: number;
-  name: string;
-  description?: string;
-  items?: FashionItem[];
-  created_at: Date;
-  updated_at: Date;
-}
-
-export interface FeedPost {
-  id: number;
-  user_id: number;
-  content?: string;
-  outfit_id?: number;
-  created_at: Date;
-  updated_at: Date;
-}
-
-export interface PostLike {
-  id: number;
-  post_id: number;
-  user_id: number;
-  created_at: Date;
-}
-
-export interface PostComment {
-  id: number;
-  post_id: number;
-  user_id: number;
-  content: string;
-  created_at: Date;
-  updated_at: Date;
-}
-
-export interface Follow {
-  follower_id: number;
-  following_id: number;
-  created_at: Date;
-}
-
-// Fonction helper pour numeric (helper manquant)
-function numeric(name: string, config?: { precision?: number; scale?: number }) {
-  return text(name);
-}
-
-// Tables wardrobe pour le fashion social network
-export const wardrobeItems = pgTable('wardrobe_items', {
-  id: serial('id').primaryKey(),
-  userId: integer('user_id').references(() => users.id).notNull(),
-  name: text('name').notNull(),
-  description: text('description'),
-  category: text('category').notNull(),
-  subcategory: text('subcategory'),
-  brand: text('brand'),
-  color: text('color').array(),
-  size: text('size'),
-  material: text('material'),
-  season: text('season'),
-  imageUrl: text('image_url').notNull(),
-  imageUrls: text('image_urls').array(),
-  purchaseDate: date('purchase_date'),
-  purchasePrice: decimal('purchase_price', { precision: 10, scale: 2 }),
-  currentValue: decimal('current_value', { precision: 10, scale: 2 }),
-  purchaseLocation: text('purchase_location'),
-  tags: text('tags').array(),
-  condition: text('condition').default('good'),
-  isPublic: boolean('is_public').default(true),
-  isForSale: boolean('is_for_sale').default(false),
-  isForSwap: boolean('is_for_swap').default(false),
-  viewsCount: integer('views_count').default(0),
-  likesCount: integer('likes_count').default(0),
-  savedCount: integer('saved_count').default(0),
-  usedInOutfitsCount: integer('used_in_outfits_count').default(0),
-  createdAt: timestamp('created_at').notNull().defaultNow(),
-  updatedAt: timestamp('updated_at').notNull().defaultNow()
-});
-
-export const wardrobeCollections = pgTable('wardrobe_collections', {
-  id: serial('id').primaryKey(),
-  userId: integer('user_id').references(() => users.id).notNull(),
-  name: text('name').notNull(),
-  description: text('description'),
-  coverImageUrl: text('cover_image_url'),
-  items: text('items').array(), // Array of wardrobe_item_ids as strings
-  isPublic: boolean('is_public').default(true),
-  sortOrder: integer('sort_order').default(0),
-  createdAt: timestamp('created_at').notNull().defaultNow(),
-  updatedAt: timestamp('updated_at').notNull().defaultNow()
-});
-
-export const feedPosts = pgTable('feed_posts', {
-  id: serial('id').primaryKey(),
-  userId: integer('user_id').references(() => users.id).notNull(),
-  postType: text('post_type').notNull(), // 'outfit', 'wardrobe_item', 'collection', 'question'
-  outfitId: integer('outfit_id').references(() => outfits.id),
-  wardrobeItemId: integer('wardrobe_item_id').references(() => wardrobeItems.id),
-  collectionId: integer('collection_id').references(() => wardrobeCollections.id),
-  caption: text('caption'),
-  tags: text('tags').array(),
-  qualityScore: decimal('quality_score', { precision: 3, scale: 2 }).default('0'),
-  engagementScore: decimal('engagement_score', { precision: 5, scale: 2 }).default('0'),
-  freshnessScore: decimal('freshness_score', { precision: 3, scale: 2 }).default('1'),
-  viewsCount: integer('views_count').default(0),
-  likesCount: integer('likes_count').default(0),
-  commentsCount: integer('comments_count').default(0),
-  savesCount: integer('saves_count').default(0),
-  createdAt: timestamp('created_at').notNull().defaultNow(),
-  updatedAt: timestamp('updated_at').notNull().defaultNow()
-});
-
-export const feedPostsRelations = relations(feedPosts, ({ one, many }) => ({
-  user: one(users, {
-    fields: [feedPosts.userId],
-    references: [users.id]
-  }),
-  outfit: one(outfits, {
-    fields: [feedPosts.outfitId],
-    references: [outfits.id]
-  }),
-  likes: many(postLikes),
-  comments: many(postComments)
-}));
-
-export const postLikesRelations = relations(postLikes, ({ one }) => ({
-  post: one(feedPosts, {
-    fields: [postLikes.post_id],
-    references: [feedPosts.id]
-  }),
-  user: one(users, {
-    fields: [postLikes.user_id],
-    references: [users.id]
-  })
-}));
-
-export const postCommentsRelations = relations(postComments, ({ one }) => ({
-  post: one(feedPosts, {
-    fields: [postComments.post_id],
-    references: [feedPosts.id]
-  }),
-  user: one(users, {
-    fields: [postComments.user_id],
-    references: [users.id]
-  })
-}));
-
-export const wardrobeItemsRelations = relations(wardrobeItems, ({ one }) => ({
-  user: one(users, {
-    fields: [wardrobeItems.userId],
-    references: [users.id]
-  })
-}));
-
-export const outfitsTable = pgTable('outfits', {
-  id: serial('id').primaryKey(),
-  userId: integer('user_id').references(() => users.id).notNull(),
-  title: text('title').notNull(),
-  description: text('description'),
-  photoUrl: text('photo_url'),
-  items: jsonb('items').default('[]'),
-  occasion: text('occasion'),
-  season: text('season'),
-  weather: text('weather'),
-  location: text('location'),
-  tags: text('tags').array(),
-  colorPalette: text('color_palette').array(),
-  isPublic: boolean('is_public').default(true),
-  viewsCount: integer('views_count').default(0),
-  likesCount: integer('likes_count').default(0),
-  savesCount: integer('saves_count').default(0),
-  commentsCount: integer('comments_count').default(0),
-  qualityScore: decimal('quality_score', { precision: 3, scale: 2 }).default('0'),
-  engagementScore: decimal('engagement_score', { precision: 5, scale: 2 }).default('0'),
-  freshnessScore: decimal('freshness_score', { precision: 3, scale: 2 }).default('1'),
-  createdAt: timestamp('created_at').notNull().defaultNow(),
-  updatedAt: timestamp('updated_at').notNull().defaultNow()
-});
-
-export const outfitsTableRelations = relations(outfitsTable, ({ one, many }) => ({
-  user: one(users, {
-    fields: [outfitsTable.userId],
-    references: [users.id]
-  }),
-  likes: many(outfitLikesTable),
-  comments: many(outfitCommentsTable)
-}));
-
-export const outfitLikesTable = pgTable('outfit_likes', {
-  id: serial('id').primaryKey(),
-  outfitId: integer('outfit_id').references(() => outfitsTable.id).notNull(),
-  userId: integer('user_id').references(() => users.id).notNull(),
-  createdAt: timestamp('created_at').notNull().defaultNow()
-}, (table) => ({
-  uniqueLike: uniqueIndex('unique_outfit_like').on(table.outfitId, table.userId)
-}));
-
-export const outfitLikesTableRelations = relations(outfitLikesTable, ({ one }) => ({
-  outfit: one(outfitsTable, {
-    fields: [outfitLikesTable.outfitId],
-    references: [outfitsTable.id]
-  }),
-  user: one(users, {
-    fields: [outfitLikesTable.userId],
-    references: [users.id]
-  })
-}));
-
-export const outfitCommentsTable = pgTable('outfit_comments', {
-  id: serial('id').primaryKey(),
-  outfitId: integer('outfit_id').references(() => outfitsTable.id).notNull(),
-  userId: integer('user_id').references(() => users.id).notNull(),
-  parentCommentId: integer('parent_comment_id').references((): any => outfitCommentsTable.id),
-  content: text('content').notNull(),
-  likesCount: integer('likes_count').default(0),
-  isEdited: boolean('is_edited').default(false),
-  createdAt: timestamp('created_at').notNull().defaultNow(),
-  updatedAt: timestamp('updated_at').notNull().defaultNow()
-});
-
-export const outfitCommentsTableRelations = relations(outfitCommentsTable, ({ one }) => ({
-  outfit: one(outfitsTable, {
-    fields: [outfitCommentsTable.outfitId],
-    references: [outfitsTable.id]
-  }),
-  user: one(users, {
-    fields: [outfitCommentsTable.userId],
-    references: [users.id]
-  })
-}));
-
-export const followsTable = pgTable('follows', {
-  id: serial('id').primaryKey(),
-  followerId: integer('follower_id').references(() => users.id).notNull(),
-  followingId: integer('following_id').references(() => users.id).notNull(),
-  createdAt: timestamp('created_at').notNull().defaultNow()
-}, (table) => ({
-  uniqueFollow: uniqueIndex('unique_follow').on(table.followerId, table.followingId)
-}));
-
-export const followsTableRelations = relations(followsTable, ({ one }) => ({
-  follower: one(users, {
-    fields: [followsTable.followerId],
-    references: [users.id]
-  }),
-  following: one(users, {
-    fields: [followsTable.followingId],
-    references: [users.id]
-  })
-}));
+export type CollectionWithLooks = Collection & {
+  user: User;
+  looks: LookWithUser[];
+};
