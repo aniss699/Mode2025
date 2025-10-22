@@ -1019,7 +1019,7 @@ export interface Outfit {
   user_id: number;
   name: string;
   description?: string;
-  items?: FashionItem[]; // Pourrait être utilisé pour afficher les items dans l'outfit
+  items?: FashionItem[];
   created_at: Date;
   updated_at: Date;
 }
@@ -1054,3 +1054,40 @@ export interface Follow {
   following_id: number;
   created_at: Date;
 }
+
+// Fonction helper pour numeric (helper manquant)
+function numeric(name: string, config?: { precision?: number; scale?: number }) {
+  return text(name);
+}
+
+// Tables wardrobe pour le fashion social network
+export const wardrobeItems = pgTable('wardrobe_items', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id').references(() => users.id).notNull(),
+  name: text('name').notNull(),
+  description: text('description'),
+  category: text('category').notNull(),
+  subcategory: text('subcategory'),
+  brand: text('brand'),
+  color: text('color').array(),
+  size: text('size'),
+  material: text('material'),
+  season: text('season'),
+  imageUrl: text('image_url').notNull(),
+  imageUrls: text('image_urls').array(),
+  purchaseDate: date('purchase_date'),
+  purchasePrice: decimal('purchase_price', { precision: 10, scale: 2 }),
+  currentValue: decimal('current_value', { precision: 10, scale: 2 }),
+  purchaseLocation: text('purchase_location'),
+  tags: text('tags').array(),
+  condition: text('condition').default('good'),
+  isPublic: boolean('is_public').default(true),
+  isForSale: boolean('is_for_sale').default(false),
+  isForSwap: boolean('is_for_swap').default(false),
+  viewsCount: integer('views_count').default(0),
+  likesCount: integer('likes_count').default(0),
+  savedCount: integer('saved_count').default(0),
+  usedInOutfitsCount: integer('used_in_outfits_count').default(0),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow()
+});
