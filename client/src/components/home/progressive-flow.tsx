@@ -56,7 +56,15 @@ import { useQueryClient } from '@tanstack/react-query';
 import type { TeamRequirement } from '@shared/schema';
 import { useLanguage } from '@/hooks/use-language';
 
-type ServiceType = 'mise-en-relation' | 'appel-offres' | null;
+type StylePersona = 'fashionista' | 'minimalist' | 'influencer' | 'sustainable' | null;
+
+interface FashionProfileData {
+  persona: StylePersona;
+  favoriteBrands: string[];
+  styleTags: string[];
+  firstLooks: File[];
+  bio: string;
+}
 
 interface ProgressiveFlowProps {
   onComplete?: (data: any) => void;
@@ -124,19 +132,13 @@ export function ProgressiveFlow({ onComplete, onSubmit, isLoading: externalLoadi
     };
     return iconMap[iconName] || Target;
   };
-  const [serviceType, setServiceType] = useState<ServiceType>(null);
-  const [selectedCategory, setSelectedCategory] = useState('');
-  const [projectData, setProjectData] = useState({
-    title: '',
-    description: '',
-    budget: '',
-    location: {
-      address: '',
-      lat: null as number | null,
-      lng: null as number | null,
-      radius: 10
-    },
-    needsLocation: false
+  const [persona, setPersona] = useState<StylePersona>(null);
+  const [fashionProfile, setFashionProfile] = useState<FashionProfileData>({
+    persona: null,
+    favoriteBrands: [],
+    styleTags: [],
+    firstLooks: [],
+    bio: ''
   });
 
   const [aiSuggestions, setAiSuggestions] = useState<any>(null);
@@ -342,85 +344,88 @@ export function ProgressiveFlow({ onComplete, onSubmit, isLoading: externalLoadi
 
 
 
-  // Étape -1: Présentation professionnelle de SwipDEAL
+  // Étape -1: Présentation du réseau social mode
   const renderStepMinus1 = () => (
-    <div className="w-full min-h-[100svh] md:h-screen md:max-h-screen bg-gradient-to-br from-white via-blue-50/30 to-purple-50/30 dark:from-gray-950 dark:via-gray-900 dark:to-gray-800 overflow-y-auto md:overflow-hidden">
+    <div className="w-full min-h-[100svh] md:h-screen md:max-h-screen bg-gradient-to-br from-pink-50 via-white to-purple-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-800 overflow-y-auto md:overflow-hidden">
       <div className="flex flex-col justify-start md:justify-center items-center h-full px-2 pt-2 pb-4 md:px-6 md:py-8">
         <div className="text-center w-full max-w-5xl mx-auto space-y-2 md:space-y-8 flex flex-col md:justify-center min-h-0">
 
-          {/* En-tête principal avec effet visuel */}
+          {/* En-tête principal */}
           <div className="space-y-2 md:space-y-6 relative flex-shrink-0">
-            <div className="absolute inset-0 bg-gradient-to-r from-blue-600/10 via-purple-600/10 to-blue-600/10 rounded-3xl blur-3xl opacity-30"></div>
+            <div className="absolute inset-0 bg-gradient-to-r from-pink-600/10 via-purple-600/10 to-pink-600/10 rounded-3xl blur-3xl opacity-30"></div>
             <div className="relative max-w-4xl mx-auto px-3">
               <h1 className="text-lg sm:text-xl md:text-2xl lg:text-3xl text-gray-800 dark:text-white font-semibold leading-[1.3]">
-                Swideal réinvente la mise en relation : chaque mission devient une opportunité gagnant-gagnant
+                Votre garde-robe devient votre portfolio de style
               </h1>
-              <div className="w-16 md:w-24 h-1 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full mx-auto mt-2 md:mt-4"></div>
+              <p className="text-sm md:text-lg text-gray-600 dark:text-gray-300 mt-2 md:mt-4">
+                Partagez vos looks, découvrez l'inspiration, créez votre identité mode
+              </p>
+              <div className="w-16 md:w-24 h-1 bg-gradient-to-r from-pink-600 to-purple-600 rounded-full mx-auto mt-2 md:mt-4"></div>
             </div>
           </div>
 
-          {/* Propositions de valeur avec disposition améliorée */}
+          {/* Propositions de valeur mode */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-6 max-w-4xl mx-auto flex-none md:flex-1 md:min-h-0">
 
-            {/* Enchère inversée */}
-            <div className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-2xl p-3 md:p-6 text-center space-y-2 md:space-y-3 group hover:bg-white/80 dark:hover:bg-gray-800/80 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 border border-blue-100/50 dark:border-gray-700/50">
-              <div className="w-10 h-10 md:w-16 md:h-16 mx-auto bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-                <Target className="w-5 h-5 md:w-8 md:h-8 text-white" />
+            {/* Garde-robe virtuelle */}
+            <div className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-2xl p-3 md:p-6 text-center space-y-2 md:space-y-3 group hover:bg-white/80 dark:hover:bg-gray-800/80 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 border border-pink-100/50 dark:border-gray-700/50">
+              <div className="w-10 h-10 md:w-16 md:h-16 mx-auto bg-gradient-to-br from-pink-500 to-pink-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                <Home className="w-5 h-5 md:w-8 md:h-8 text-white" />
               </div>
               <h3 className="text-sm md:text-lg font-bold text-gray-900 dark:text-white">
-                {t('home.reverseAuction.title')}
+                Dressing virtuel
               </h3>
               <p className="text-xs md:text-base text-gray-600 dark:text-gray-300 leading-relaxed">
-                {t('home.reverseAuction.description')}
+                Organisez votre garde-robe, créez des looks, partagez votre style unique
               </p>
             </div>
 
-            {/* Mise en relation */}
-            <div className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-2xl p-3 md:p-6 text-center space-y-2 md:space-y-3 group hover:bg-white/80 dark:hover:bg-gray-800/80 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 border border-green-100/50 dark:border-gray-700/50">
-              <div className="w-10 h-10 md:w-16 md:h-16 mx-auto bg-gradient-to-br from-green-500 to-green-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-                <Zap className="w-5 h-5 md:w-8 md:h-8 text-white" />
-              </div>
-              <h3 className="text-sm md:text-lg font-bold text-gray-900 dark:text-white">
-                {t('home.directContact.title')}
-              </h3>
-              <p className="text-xs md:text-base text-gray-600 dark:text-gray-300 leading-relaxed">
-                {t('home.directContact.description')}
-              </p>
-            </div>
-
-            {/* Monétisation */}
+            {/* Communauté mode */}
             <div className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-2xl p-3 md:p-6 text-center space-y-2 md:space-y-3 group hover:bg-white/80 dark:hover:bg-gray-800/80 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 border border-purple-100/50 dark:border-gray-700/50">
               <div className="w-10 h-10 md:w-16 md:h-16 mx-auto bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-                <Euro className="w-5 h-5 md:w-8 md:h-8 text-white" />
+                <Users className="w-5 h-5 md:w-8 md:h-8 text-white" />
               </div>
               <h3 className="text-sm md:text-lg font-bold text-gray-900 dark:text-white">
-                {t('home.networkValue.title')}
+                Feed d'inspiration
               </h3>
               <p className="text-xs md:text-base text-gray-600 dark:text-gray-300 leading-relaxed">
-                {t('home.networkValue.description')}
+                Découvrez les looks de la communauté, suivez vos fashionistas préférés
+              </p>
+            </div>
+
+            {/* IA Mode */}
+            <div className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-2xl p-3 md:p-6 text-center space-y-2 md:space-y-3 group hover:bg-white/80 dark:hover:bg-gray-800/80 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 border border-blue-100/50 dark:border-gray-700/50">
+              <div className="w-10 h-10 md:w-16 md:h-16 mx-auto bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
+                <Star className="w-5 h-5 md:w-8 md:h-8 text-white" />
+              </div>
+              <h3 className="text-sm md:text-lg font-bold text-gray-900 dark:text-white">
+                IA Fashion
+              </h3>
+              <p className="text-xs md:text-base text-gray-600 dark:text-gray-300 leading-relaxed">
+                Suggestions de looks automatiques, détection de tendances, conseils personnalisés
               </p>
             </div>
           </div>
 
-          {/* Bouton d'action amélioré */}
+          {/* Bouton d'action */}
           <div className="flex justify-center items-center mt-3 md:mt-12 px-4 flex-shrink-0">
             <Button 
               onClick={() => setCurrentStep(0)}
-              className="w-full sm:w-auto bg-gradient-to-r from-blue-600 via-purple-600 to-blue-600 hover:from-blue-700 hover:via-purple-700 hover:to-blue-700 text-white px-6 py-2 md:px-12 md:py-4 rounded-2xl font-semibold transition-all duration-300 text-sm md:text-lg shadow-xl hover:shadow-2xl hover:scale-105 transform"
+              className="w-full sm:w-auto bg-gradient-to-r from-pink-600 via-purple-600 to-pink-600 hover:from-pink-700 hover:via-purple-700 hover:to-pink-700 text-white px-6 py-2 md:px-12 md:py-4 rounded-2xl font-semibold transition-all duration-300 text-sm md:text-lg shadow-xl hover:shadow-2xl hover:scale-105 transform"
               size="lg"
-              data-testid="button-create-mission"
+              data-testid="button-create-profile"
             >
               <span className="flex items-center space-x-2">
-                <span>{t('home.startButton')}</span>
-                <span className="animate-bounce">🚀</span>
+                <span>Créer mon profil mode</span>
+                <span className="animate-bounce">✨</span>
               </span>
             </Button>
           </div>
 
-          {/* Indicateur subtil repositionné */}
+          {/* Indicateur */}
           <div className="mt-2 md:mt-8 flex-shrink-0">
             <p className="text-gray-500 dark:text-gray-400 text-xs md:text-sm px-4 opacity-75">
-              Rejoignez des milliers de professionnels qui font confiance à SwipDEAL
+              Rejoignez des milliers de fashionistas qui partagent leur style
             </p>
           </div>
 
