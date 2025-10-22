@@ -1091,3 +1091,107 @@ export const wardrobeItems = pgTable('wardrobe_items', {
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow()
 });
+
+export const wardrobeItemsRelations = relations(wardrobeItems, ({ one }) => ({
+  user: one(users, {
+    fields: [wardrobeItems.userId],
+    references: [users.id]
+  })
+}));
+
+export const outfitsTable = pgTable('outfits', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id').references(() => users.id).notNull(),
+  title: text('title').notNull(),
+  description: text('description'),
+  photoUrl: text('photo_url'),
+  items: jsonb('items').default('[]'),
+  occasion: text('occasion'),
+  season: text('season'),
+  weather: text('weather'),
+  location: text('location'),
+  tags: text('tags').array(),
+  colorPalette: text('color_palette').array(),
+  isPublic: boolean('is_public').default(true),
+  viewsCount: integer('views_count').default(0),
+  likesCount: integer('likes_count').default(0),
+  savesCount: integer('saves_count').default(0),
+  commentsCount: integer('comments_count').default(0),
+  qualityScore: decimal('quality_score', { precision: 3, scale: 2 }).default('0'),
+  engagementScore: decimal('engagement_score', { precision: 5, scale: 2 }).default('0'),
+  freshnessScore: decimal('freshness_score', { precision: 3, scale: 2 }).default('1'),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow()
+});
+
+export const outfitsTableRelations = relations(outfitsTable, ({ one, many }) => ({
+  user: one(users, {
+    fields: [outfitsTable.userId],
+    references: [users.id]
+  }),
+  likes: many(outfitLikesTable),
+  comments: many(outfitCommentsTable)
+}));
+
+export const outfitLikesTable = pgTable('outfit_likes', {
+  id: serial('id').primaryKey(),
+  outfitId: integer('outfit_id').references(() => outfitsTable.id).notNull(),
+  userId: integer('user_id').references(() => users.id).notNull(),
+  createdAt: timestamp('created_at').notNull().defaultNow()
+}, (table) => ({
+  uniqueLike: uniqueIndex('unique_outfit_like').on(table.outfitId, table.userId)
+}));
+
+export const outfitLikesTableRelations = relations(outfitLikesTable, ({ one }) => ({
+  outfit: one(outfitsTable, {
+    fields: [outfitLikesTable.outfitId],
+    references: [outfitsTable.id]
+  }),
+  user: one(users, {
+    fields: [outfitLikesTable.userId],
+    references: [users.id]
+  })
+}));
+
+export const outfitCommentsTable = pgTable('outfit_comments', {
+  id: serial('id').primaryKey(),
+  outfitId: integer('outfit_id').references(() => outfitsTable.id).notNull(),
+  userId: integer('user_id').references(() => users.id).notNull(),
+  parentCommentId: integer('parent_comment_id').references((): any => outfitCommentsTable.id),
+  content: text('content').notNull(),
+  likesCount: integer('likes_count').default(0),
+  isEdited: boolean('is_edited').default(false),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow()
+});
+
+export const outfitCommentsTableRelations = relations(outfitCommentsTable, ({ one }) => ({
+  outfit: one(outfitsTable, {
+    fields: [outfitCommentsTable.outfitId],
+    references: [outfitsTable.id]
+  }),
+  user: one(users, {
+    fields: [outfitCommentsTable.userId],
+    references: [users.id]
+  })
+}));
+
+export const followsTable = pgTable('follows', {
+  id: serial('id').primaryKey(),
+  followerId: integer('follower_id').references(() => users.id).notNull(),
+  followingId: integer('following_id').references(() => users.id).notNull(),
+  createdAt: timestamp('created_at').notNull().defaultNow()
+}, (table) => ({
+  uniqueFollow: uniqueIndex('unique_follow').on(table.followerId, table.followingId)
+}));
+
+export const followsTableRelations = relations(followsTable, ({ one }) => ({
+  follower: one(users, {
+    fields: [followsTable.followerId],
+    references: [users.id]
+  }),
+  following: one(users, {
+    fields: [followsTable.followingId],
+    references: [users.id]
+  })
+}));

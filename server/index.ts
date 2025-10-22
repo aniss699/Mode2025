@@ -403,11 +403,15 @@ app.use('/api', (req, res, next) => {
   next();
 }, profileRoutes);
 
+// Import social routes
+import socialRoutes from './routes/social-routes';
+
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api', apiRoutes);
 app.use('/api/wardrobe', wardrobeRoutes);
 app.use('/api/outfits', outfitsRoutes);
+app.use('/api/social', socialRoutes);
 
 // Performance stats endpoint
 app.get('/api/performance', (req, res) => {

@@ -1,7 +1,7 @@
 
 import { Router } from 'express';
 import { db } from '../db';
-import { outfits, outfitLikes, outfitComments, users } from '../../shared/schema';
+import { outfitsTable, outfitLikesTable, outfitCommentsTable, users } from '../../shared/schema';
 import { eq, desc, and } from 'drizzle-orm';
 import multer from 'multer';
 import path from 'path';
@@ -29,9 +29,9 @@ router.get('/', async (req, res) => {
     const offset = parseInt(req.query.offset as string) || 0;
 
     const outfitsList = await db.select()
-      .from(outfits)
-      .where(eq(outfits.isPublic, true))
-      .orderBy(desc(outfits.engagementScore), desc(outfits.createdAt))
+      .from(outfitsTable)
+      .where(eq(outfitsTable.isPublic, true))
+      .orderBy(desc(outfitsTable.engagementScore), desc(outfitsTable.createdAt))
       .limit(limit)
       .offset(offset);
 
@@ -48,8 +48,8 @@ router.get('/:id', async (req, res) => {
     const outfitId = parseInt(req.params.id);
     
     const [outfit] = await db.select()
-      .from(outfits)
-      .where(eq(outfits.id, outfitId));
+      .from(outfitsTable)
+      .where(eq(outfitsTable.id, outfitId));
 
     if (!outfit) {
       return res.status(404).json({ error: 'Outfit non trouvé' });
@@ -60,9 +60,9 @@ router.get('/:id', async (req, res) => {
     }
 
     // Incrémenter vues
-    await db.update(outfits)
+    await db.update(outfitsTable)
       .set({ viewsCount: outfit.viewsCount + 1 })
-      .where(eq(outfits.id, outfitId));
+      .where(eq(outfitsTable.id, outfitId));
 
     res.json({ ...outfit, viewsCount: outfit.viewsCount + 1 });
   } catch (error) {
@@ -93,7 +93,7 @@ router.post('/', upload.single('photo'), async (req, res) => {
 
     const photoUrl = req.file ? `/uploads/outfits/${req.file.filename}` : null;
 
-    const [outfit] = await db.insert(outfits).values({
+    const [outfit] = await db.insert(outfitsTable).values({
       userId: req.user.id,
       title,
       description,
@@ -131,28 +131,28 @@ router.post('/:id/like', async (req, res) => {
 
     // Vérifier si déjà liké
     const existing = await db.select()
-      .from(outfitLikes)
+      .from(outfitLikesTable)
       .where(
         and(
-          eq(outfitLikes.outfitId, outfitId),
-          eq(outfitLikes.userId, req.user.id)
+          eq(outfitLikesTable.outfitId, outfitId),
+          eq(outfitLikesTable.userId, req.user.id)
         )
       );
 
     if (existing.length > 0) {
       // Unlike
-      await db.delete(outfitLikes)
+      await db.delete(outfitLikesTable)
         .where(
           and(
-            eq(outfitLikes.outfitId, outfitId),
-            eq(outfitLikes.userId, req.user.id)
+            eq(outfitLikesTable.outfitId, outfitId),
+            eq(outfitLikesTable.userId, req.user.id)
           )
         );
       
       return res.json({ liked: false });
     } else {
       // Like
-      await db.insert(outfitLikes).values({
+      await db.insert(outfitLikesTable).values({
         outfitId,
         userId: req.user.id,
       });
@@ -179,7 +179,7 @@ router.post('/:id/comments', async (req, res) => {
       return res.status(400).json({ error: 'Commentaire vide' });
     }
 
-    const [comment] = await db.insert(outfitComments).values({
+    const [comment] = await db.insert(outfitCommentsTable).values({
       outfitId,
       userId: req.user.id,
       parentCommentId: parentCommentId || null,
@@ -199,9 +199,9 @@ router.get('/:id/comments', async (req, res) => {
     const outfitId = parseInt(req.params.id);
 
     const comments = await db.select()
-      .from(outfitComments)
-      .where(eq(outfitComments.outfitId, outfitId))
-      .orderBy(desc(outfitComments.createdAt));
+      .from(outfitCommentsTable)
+      .where(eq(outfitCommentsTable.outfitId, outfitId))
+      .orderBy(desc(outfitCommentsTable.createdAt));
 
     res.json(comments);
   } catch (error) {
