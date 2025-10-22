@@ -1092,6 +1092,39 @@ export const wardrobeItems = pgTable('wardrobe_items', {
   updatedAt: timestamp('updated_at').notNull().defaultNow()
 });
 
+export const wardrobeCollections = pgTable('wardrobe_collections', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id').references(() => users.id).notNull(),
+  name: text('name').notNull(),
+  description: text('description'),
+  coverImageUrl: text('cover_image_url'),
+  items: text('items').array(), // Array of wardrobe_item_ids as strings
+  isPublic: boolean('is_public').default(true),
+  sortOrder: integer('sort_order').default(0),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow()
+});
+
+export const feedPosts = pgTable('feed_posts', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id').references(() => users.id).notNull(),
+  postType: text('post_type').notNull(), // 'outfit', 'wardrobe_item', 'collection', 'question'
+  outfitId: integer('outfit_id').references(() => outfits.id),
+  wardrobeItemId: integer('wardrobe_item_id').references(() => wardrobeItems.id),
+  collectionId: integer('collection_id').references(() => wardrobeCollections.id),
+  caption: text('caption'),
+  tags: text('tags').array(),
+  qualityScore: decimal('quality_score', { precision: 3, scale: 2 }).default('0'),
+  engagementScore: decimal('engagement_score', { precision: 5, scale: 2 }).default('0'),
+  freshnessScore: decimal('freshness_score', { precision: 3, scale: 2 }).default('1'),
+  viewsCount: integer('views_count').default(0),
+  likesCount: integer('likes_count').default(0),
+  commentsCount: integer('comments_count').default(0),
+  savesCount: integer('saves_count').default(0),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow()
+});
+
 export const wardrobeItemsRelations = relations(wardrobeItems, ({ one }) => ({
   user: one(users, {
     fields: [wardrobeItems.userId],

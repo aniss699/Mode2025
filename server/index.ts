@@ -277,6 +277,9 @@ import authRoutes from './auth-routes.js';
 // Import des routes
 import wardrobeRoutes from './routes/wardrobe';
 import outfitsRoutes from './routes/outfits';
+import collectionsRoutes from './routes/collections';
+import searchRoutes from './routes/search';
+import statsRoutes from './routes/stats';
 
 // Auth routes avec logging amélioré
 app.use('/api/auth', (req, res, next) => {
@@ -411,6 +414,9 @@ app.use('/api/auth', authRoutes);
 app.use('/api', apiRoutes);
 app.use('/api/wardrobe', wardrobeRoutes);
 app.use('/api/outfits', outfitsRoutes);
+app.use('/api/collections', collectionsRoutes);
+app.use('/api/search', searchRoutes);
+app.use('/api/stats', statsRoutes);
 app.use('/api/social', socialRoutes);
 
 // Performance stats endpoint
