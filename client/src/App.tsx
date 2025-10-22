@@ -12,7 +12,7 @@ import { queryClient } from '@/lib/queryClient';
 
 // Lazy load pages for better performance
 const Home = React.lazy(() => import('@/pages/home'));
-const Marketplace (en pause) = React.lazy(() => import('@/pages/provider-profile'));
+const ProviderProfile = React.lazy(() => import('@/pages/provider-profile'));
 const Missions = React.lazy(() => import('@/pages/missions'));
 const CreateMissionPage = React.lazy(() => import('@/pages/create-mission'));
 const Profile = React.lazy(() => import('@/pages/profile'));
@@ -94,7 +94,7 @@ function App() {
                 <Suspense fallback={<LoadingSpinner />}>
                   <Switch>
                     <Route path="/" component={Home} />
-                    <Route path="/provider-profile" component={Marketplace (en pause)} />
+                    <Route path="/provider-profile" component={ProviderProfile} />
                     <Route path="/missions" component={Missions} />
                     <Route path="/missions/:id" component={MissionDetailPage} />
                     <Route path="/missions-simple/:id" component={MissionDetailSimple} />

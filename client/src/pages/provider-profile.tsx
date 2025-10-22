@@ -4,7 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from 'wouter';
 
 /**
  * Page remplacée : affichage de tous les profils utilisateurs avec aperçu de leur garde-robe.
