@@ -548,6 +548,80 @@ export const insertMessageSchema = createInsertSchema(messages).omit({
 });
 
 // ==========================================
+// MARKETPLACE LEGACY TABLES (Compatibility)
+// ==========================================
+
+export const openTeams = pgTable('open_teams', {
+  id: serial('id').primaryKey(),
+  mission_id: integer('mission_id').notNull(),
+  name: text('name').notNull(),
+  description: text('description'),
+  creator_id: integer('creator_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  estimated_budget: integer('estimated_budget'),
+  estimated_timeline_days: integer('estimated_timeline_days'),
+  members: jsonb('members'),
+  required_roles: jsonb('required_roles'),
+  max_members: integer('max_members').default(5),
+  status: text('status').default('recruiting'),
+  visibility: text('visibility').default('public'),
+  auto_accept: boolean('auto_accept').default(true),
+  created_at: timestamp('created_at').defaultNow(),
+  updated_at: timestamp('updated_at').defaultNow(),
+});
+
+export const feedFeedback = pgTable('feed_feedback', {
+  id: serial('id').primaryKey(),
+  announcement_id: integer('announcement_id').notNull(),
+  user_id: integer('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  action: text('action').notNull(), // 'view', 'like', 'skip', 'apply'
+  dwell_ms: integer('dwell_ms'),
+  created_at: timestamp('created_at').defaultNow(),
+});
+
+export const feedSeen = pgTable('feed_seen', {
+  id: serial('id').primaryKey(),
+  announcement_id: integer('announcement_id').notNull(),
+  user_id: integer('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  seen_at: timestamp('seen_at').defaultNow(),
+});
+
+export const favorites = pgTable('favorites', {
+  id: serial('id').primaryKey(),
+  user_id: integer('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  announcement_id: integer('announcement_id').notNull(),
+  created_at: timestamp('created_at').defaultNow(),
+});
+
+export const announcements = pgTable('announcements', {
+  id: serial('id').primaryKey(),
+  user_id: integer('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  title: text('title').notNull(),
+  description: text('description'),
+  category: text('category'),
+  budget_min: text('budget_min'),
+  budget_max: text('budget_max'),
+  status: text('status').default('active'),
+  sponsored: boolean('sponsored').default(false),
+  created_at: timestamp('created_at').defaultNow(),
+  updated_at: timestamp('updated_at').defaultNow(),
+});
+
+// ==========================================
+// ZOD SCHEMAS FOR MARKETPLACE
+// ==========================================
+
+export const insertOpenTeamSchema = createInsertSchema(openTeams).omit({
+  id: true,
+  created_at: true,
+  updated_at: true,
+});
+
+export const insertFeedFeedbackSchema = createInsertSchema(feedFeedback).omit({
+  id: true,
+  created_at: true,
+});
+
+// ==========================================
 // TYPES TYPESCRIPT
 // ==========================================
 
@@ -593,6 +667,15 @@ export type CollectionWithLooks = Collection & {
   user: User;
   looks: LookWithUser[];
 };
+
+// Marketplace types
+export type OpenTeam = typeof openTeams.$inferSelect;
+export type InsertOpenTeam = z.infer<typeof insertOpenTeamSchema>;
+export type FeedFeedback = typeof feedFeedback.$inferSelect;
+export type InsertFeedFeedback = z.infer<typeof insertFeedFeedbackSchema>;
+export type FeedSeen = typeof feedSeen.$inferSelect;
+export type Favorite = typeof favorites.$inferSelect;
+export type Announcement = typeof announcements.$inferSelect;
 
 // ==========================================
 // ALIASES DE COMPATIBILITÉ TEMPORAIRE
