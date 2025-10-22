@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { aiFashionService } from '../services/ai-fashion-service';
 import { db } from '../db';
-import { wardrobeItems, outfits, tags } from '../../shared/schema'; // Assuming 'tags' schema exists
+import { fashionItems, looks } from '../../shared/schema';
 import { eq, sql, InferSelectModel, relations } from 'drizzle-orm';
 import { Express, Request, Response } from 'express';
 
@@ -49,8 +49,8 @@ router.post('/recommend-outfits', async (req, res) => {
 
     // Récupérer la garde-robe de l'utilisateur
     const items = await db.select()
-      .from(wardrobeItems)
-      .where(eq(wardrobeItems.userId, userId));
+      .from(fashionItems)
+      .where(eq(fashionItems.user_id, userId));
 
     const recommendations = await aiFashionService.recommendOutfits(items, preferences);
 
@@ -170,10 +170,10 @@ router.post('/items/:itemId/tags', async (req: Request, res: Response) => {
     // For now, let's assume we are updating a 'tags' column directly on the item or outfit.
     // If 'tags' is a separate table, you'd need to handle insertion/linking logic.
 
-    // Example: Updating tags on an 'outfits' table (adjust if using 'wardrobeItems' or a dedicated 'tags' table)
-    await db.update(outfits)
-      .set({ tags: tagList }) // Assuming 'outfits' has a 'tags: String[]' column
-      .where(eq(outfits.id, itemId)); // Assuming 'outfits' has an 'id' column
+    // Example: Updating tags on a 'looks' table (adjust if using 'fashionItems' or a dedicated 'tags' table)
+    await db.update(looks)
+      .set({ style_tags: tagList }) // Using style_tags from looks schema
+      .where(eq(looks.id, itemId));
 
     res.json({
       success: true,
@@ -195,22 +195,22 @@ router.post('/items/:itemId/tags', async (req: Request, res: Response) => {
  */
 router.get('/explore/trending', async (req: Request, res: Response) => {
   try {
-    // Example: Fetching items/outfits with most likes or recent activity
-    // This is a placeholder query. Real implementation might involve more complex logic.
-    const trendingOutfits = await db.select()
-      .from(outfits)
-      .orderBy(sql`${outfits.likesCount} DESC`) // Assuming outfits have a 'likesCount' column
+    // Example: Fetching items/looks with most likes or recent activity
+    const trendingLooks = await db.select()
+      .from(looks)
+      .orderBy(sql`${looks.likes_count} DESC`)
       .limit(10);
 
     const trendingItems = await db.select()
-      .from(wardrobeItems)
-      .orderBy(sql`${wardrobeItems.likesCount} DESC`) // Assuming wardrobeItems also have 'likesCount'
+      .from(fashionItems)
+      .where(eq(fashionItems.is_public, true))
+      .orderBy(sql`${fashionItems.worn_count} DESC`)
       .limit(10);
 
     res.json({
       success: true,
       trending: {
-        outfits: trendingOutfits,
+        looks: trendingLooks,
         items: trendingItems
       }
     });
@@ -233,36 +233,30 @@ router.get('/explore/search', async (req: Request, res: Response) => {
     const { q, category, color, style, sortBy, limit = 10, page = 1 } = req.query;
 
     let query = db.select({
-        id: wardrobeItems.id,
-        name: wardrobeItems.name,
-        description: wardrobeItems.description,
-        imageUrl: wardrobeItems.imageUrl,
-        category: wardrobeItems.category,
-        tags: wardrobeItems.tags,
-        color: wardrobeItems.color, // Added color field for search results
-        // Add other relevant fields
+        id: fashionItems.id,
+        title: fashionItems.title,
+        description: fashionItems.description,
+        images: fashionItems.images,
+        category: fashionItems.category,
+        tags: fashionItems.tags,
+        color: fashionItems.color,
       })
-      .from(wardrobeItems)
-      .$dynamic(); // Use $dynamic for conditional clauses
+      .from(fashionItems)
+      .$dynamic();
 
     const filters: any[] = [];
 
     if (q) {
-      filters.push(sql`(${wardrobeItems.name} ILIKE ${`%${q}%`} OR ${wardrobeItems.description} ILIKE ${`%${q}%`})`);
+      filters.push(sql`(${fashionItems.title} ILIKE ${`%${q}%`} OR ${fashionItems.description} ILIKE ${`%${q}%`})`);
     }
     if (category) {
-      filters.push(eq(wardrobeItems.category, category as string));
+      filters.push(eq(fashionItems.category, category as string));
     }
     if (color) {
-       // Assuming 'color' is stored as a string or array in the schema
-       // This requires careful schema design. Example for string:
-       filters.push(eq(wardrobeItems.color, color as string)); // Assuming 'color' is a single string field
-       // Example for array:
-       // filters.push(sql`${wardrobeItems.colors} @> ARRAY[${color as string}]`);
+       filters.push(eq(fashionItems.color, color as string));
     }
      if (style) {
-       // Assuming 'style' is a tag or a dedicated field
-       filters.push(sql`${wardrobeItems.tags} @> ARRAY[${style as string}]`);
+       filters.push(sql`${fashionItems.tags} @> ARRAY[${style as string}]`);
     }
 
     if (filters.length > 0) {
@@ -270,11 +264,11 @@ router.get('/explore/search', async (req: Request, res: Response) => {
     }
 
     // Sorting
-    let orderBy: any = wardrobeItems.createdAt; // Default sort
+    let orderBy: any = fashionItems.created_at;
     if (sortBy === 'popular') {
-      orderBy = sql`${wardrobeItems.likesCount} DESC`; // Assuming likesCount
+      orderBy = sql`${fashionItems.worn_count} DESC`;
     } else if (sortBy === 'newest') {
-      orderBy = wardrobeItems.createdAt;
+      orderBy = fashionItems.created_at;
     }
     query = query.orderBy(orderBy);
 
@@ -284,7 +278,7 @@ router.get('/explore/search', async (req: Request, res: Response) => {
 
     const results = await query;
     const totalCount = await db.select({ count: sql`count(*)` })
-                             .from(wardrobeItems)
+                             .from(fashionItems)
                              .where(filters.length > 0 ? sql.and(...filters) : undefined)
                              .then(rows => rows[0]?.count || 0);
 
@@ -320,7 +314,7 @@ router.get('/trending-tags', async (req: Request, res: Response) => {
         tag: sql<string>`unnest(tags)`,
         count: sql<number>`count(*)`
       })
-      .from(wardrobeItems)
+      .from(fashionItems)
       .where(sql`tags IS NOT NULL AND array_length(tags, 1) > 0`)
       .groupBy(sql`unnest(tags)`)
       .orderBy(sql`count(*) DESC`)
@@ -343,39 +337,37 @@ router.get('/search', async (req: Request, res: Response) => {
 
     let query = db
       .select({
-        id: wardrobeItems.id,
-        name: wardrobeItems.name,
-        description: wardrobeItems.description,
-        imageUrl: wardrobeItems.imageUrl,
-        category: wardrobeItems.category,
-        tags: wardrobeItems.tags,
-        color: wardrobeItems.color, // Added color field for search results
-        likesCount: wardrobeItems.likesCount // Added likesCount for sorting by popular
+        id: fashionItems.id,
+        title: fashionItems.title,
+        description: fashionItems.description,
+        images: fashionItems.images,
+        category: fashionItems.category,
+        tags: fashionItems.tags,
+        color: fashionItems.color,
+        wornCount: fashionItems.worn_count
       })
-      .from(wardrobeItems)
-      .where(eq(wardrobeItems.isPublic, true))
+      .from(fashionItems)
+      .where(eq(fashionItems.is_public, true))
       .$dynamic();
 
-    const filters: any[] = [eq(wardrobeItems.isPublic, true)];
+    const filters: any[] = [eq(fashionItems.is_public, true)];
 
     if (q) {
       filters.push(
-        sql`(${wardrobeItems.name} ILIKE ${`%${q}%`} OR ${wardrobeItems.description} ILIKE ${`%${q}%`})`
+        sql`(${fashionItems.title} ILIKE ${`%${q}%`} OR ${fashionItems.description} ILIKE ${`%${q}%`})`
       );
     }
 
     if (category) {
-      filters.push(eq(wardrobeItems.category, category as string));
+      filters.push(eq(fashionItems.category, category as string));
     }
 
     if (color) {
-      // Assuming 'color' is a single string field in the schema
-      filters.push(eq(wardrobeItems.color, color as string));
+      filters.push(eq(fashionItems.color, color as string));
     }
 
     if (style) {
-      // Assuming 'tags' is an array of strings
-      filters.push(sql`${style} = ANY(${wardrobeItems.tags})`);
+      filters.push(sql`${style} = ANY(${fashionItems.tags})`);
     }
 
     if (filters.length > 0) {
@@ -384,9 +376,9 @@ router.get('/search', async (req: Request, res: Response) => {
 
     // Sorting
     if (sortBy === 'popular') {
-      query = query.orderBy(sql`${wardrobeItems.likesCount} DESC`);
+      query = query.orderBy(sql`${fashionItems.worn_count} DESC`);
     } else {
-      query = query.orderBy(sql`${wardrobeItems.createdAt} DESC`);
+      query = query.orderBy(sql`${fashionItems.created_at} DESC`);
     }
 
     // Pagination
@@ -398,7 +390,7 @@ router.get('/search', async (req: Request, res: Response) => {
     // Count total
     const [{ count: totalCount }] = await db
       .select({ count: sql<number>`count(*)` })
-      .from(wardrobeItems)
+      .from(fashionItems)
       .where(filters.length > 0 ? sql.and(...filters) : sql`true`);
 
     res.json({
