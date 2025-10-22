@@ -1,0 +1,1 @@
+import{r as t}from"./ui-D9tbKjPW.js";import{u as r}from"./index-BhnURYFB.js";import"./vendor-D3F3s8fL.js";function i(){const[,o]=r();return t.useEffect(()=>{o("/marketplace")},[o]),null}export{i as default};

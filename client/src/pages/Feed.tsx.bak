@@ -1,0 +1,305 @@
+
+import React, { useEffect, useState, useRef } from 'react';
+import { SwipeCard } from '@/components/SwipeCard';
+import { useFeedStore } from '@/store/feed';
+import { useFavoritesStore } from '@/store/favorites';
+import { AnnouncementDetailModal } from '@/components/feed/AnnouncementDetailModal';
+import { Button } from '@/components/ui/button';
+import { RefreshCw, AlertCircle, Sparkles } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useToast } from '@/hooks/use-toast';
+import { useResponsive } from '@/hooks/use-mobile';
+import { AnnouncementView } from '@shared/types';
+
+const Feed: React.FC = () => {
+  const { 
+    items, 
+    currentIndex, 
+    loading, 
+    error, 
+    hasMore,
+    loadFeed, 
+    handleAction, 
+    preloadNext 
+  } = useFeedStore();
+  
+  const { isMobile } = useResponsive();
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [selectedAnnouncement, setSelectedAnnouncement] = useState<AnnouncementView | null>(null);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [touchStart, setTouchStart] = useState<number>(0);
+  const [touchEnd, setTouchEnd] = useState<number>(0);
+  const [swipeCount, setSwipeCount] = useState<number>(0);
+  const [screenHeight, setScreenHeight] = useState<number>(0);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const { toast } = useToast();
+  
+  const { addToFavorites } = useFavoritesStore();
+
+  const MIN_SWIPE_DISTANCE = 50;
+
+  useEffect(() => {
+    let mounted = true;
+    const initFeed = async () => {
+      try {
+        await loadFeed(true);
+      } catch (err) {
+        console.error('❌ Erreur init feed:', err);
+      } finally {
+        if (mounted) {
+          setInitialLoading(false);
+        }
+      }
+    };
+    initFeed();
+    return () => { mounted = false; };
+  }, []);
+
+  useEffect(() => {
+    const updateScreenHeight = () => {
+      setScreenHeight(window.innerHeight);
+    };
+
+    updateScreenHeight();
+    window.addEventListener('resize', updateScreenHeight);
+    window.addEventListener('orientationchange', updateScreenHeight);
+
+    return () => {
+      window.removeEventListener('resize', updateScreenHeight);
+      window.removeEventListener('orientationchange', updateScreenHeight);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (currentIndex >= 0 && currentIndex < items.length - 2 && hasMore) {
+      preloadNext();
+    }
+  }, [currentIndex, items.length, hasMore, preloadNext]);
+
+  const handleRetry = () => {
+    setInitialLoading(true);
+    loadFeed(true).finally(() => setInitialLoading(false));
+  };
+
+  if (initialLoading) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50">
+        <div className="text-center space-y-6">
+          <div className="relative w-20 h-20 mx-auto">
+            <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl animate-pulse"></div>
+            <RefreshCw className="absolute inset-0 m-auto w-10 h-10 text-white animate-spin" />
+          </div>
+          <div>
+            <p className="text-xl font-semibold text-gray-900">Chargement des opportunités</p>
+            <p className="text-sm text-gray-500 mt-2">Un instant...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error && items.length === 0) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-gradient-to-br from-red-50 via-orange-50 to-yellow-50 p-4">
+        <Alert variant="destructive" className="max-w-md bg-white/90 backdrop-blur border-red-200 shadow-xl">
+          <AlertCircle className="h-5 w-5 text-red-600" />
+          <AlertDescription className="text-gray-900 mt-2">
+            {error}
+          </AlertDescription>
+          <Button onClick={handleRetry} className="mt-4 w-full bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white">
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Réessayer
+          </Button>
+        </Alert>
+      </div>
+    );
+  }
+
+  if (!loading && items.length === 0) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 p-4">
+        <div className="text-center max-w-md space-y-6">
+          <div className="relative w-24 h-24 mx-auto">
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-400 to-indigo-500 rounded-3xl shadow-2xl"></div>
+            <Sparkles className="absolute inset-0 m-auto w-12 h-12 text-white" />
+          </div>
+          <div className="space-y-3">
+            <h2 className="text-2xl font-bold text-gray-900">Aucune mission disponible</h2>
+            <p className="text-gray-600">
+              Revenez bientôt pour découvrir de nouvelles opportunités !
+            </p>
+          </div>
+          <Button onClick={handleRetry} className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white shadow-lg">
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Actualiser
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (currentIndex >= items.length) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 p-4">
+        <div className="text-center max-w-md space-y-6">
+          <div className="relative w-24 h-24 mx-auto">
+            <div className="absolute inset-0 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-3xl shadow-2xl"></div>
+            <span className="absolute inset-0 flex items-center justify-center text-4xl">🎉</span>
+          </div>
+          <div className="space-y-3">
+            <h2 className="text-2xl font-bold text-gray-900">Vous avez tout vu !</h2>
+            <p className="text-gray-600">
+              Bravo ! Vous avez parcouru toutes les missions disponibles.
+            </p>
+          </div>
+          <Button onClick={handleRetry} className="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white shadow-lg">
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Recharger
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  const currentAnnouncement = items[currentIndex];
+
+  const handleLike = () => {
+    handleAction('save', currentAnnouncement.id);
+    addToFavorites(currentAnnouncement);
+    toast({
+      title: "❤️ Ajouté aux favoris",
+      description: "La mission a été ajoutée à vos favoris"
+    });
+  };
+
+  const handleOffer = () => {
+    setSelectedAnnouncement(currentAnnouncement);
+    setShowDetailModal(true);
+    toast({
+      title: "📝 Faire une offre",
+      description: "Consultez les détails pour faire une offre"
+    });
+  };
+
+  const handleShare = () => {
+    if (navigator.share) {
+      navigator.share({
+        title: currentAnnouncement.title,
+        text: currentAnnouncement.description,
+        url: window.location.href
+      }).catch(() => {
+        toast({
+          title: "🔗 Lien copié",
+          description: "Le lien a été copié dans votre presse-papiers"
+        });
+      });
+    } else {
+      navigator.clipboard.writeText(window.location.href);
+      toast({
+        title: "🔗 Lien copié",
+        description: "Le lien a été copié dans votre presse-papiers"
+      });
+    }
+  };
+
+  const handleDetails = () => {
+    setSelectedAnnouncement(currentAnnouncement);
+    setShowDetailModal(true);
+  };
+
+  const handleSwipeUp = () => {
+    handleAction('skip', currentAnnouncement.id);
+  };
+
+  const handleSwipeDown = () => {
+    handleAction('skip', currentAnnouncement.id);
+  };
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(0);
+    setTouchStart(e.targetTouches[0].clientY);
+  };
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientY);
+  };
+
+  const onTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    
+    const distance = touchStart - touchEnd;
+    const isUpSwipe = distance > MIN_SWIPE_DISTANCE;
+    const isDownSwipe = distance < -MIN_SWIPE_DISTANCE;
+
+    if (isUpSwipe) {
+      handleSwipeUp();
+      setSwipeCount(prev => prev + 1);
+    } else if (isDownSwipe) {
+      if (currentIndex > 0) {
+        useFeedStore.setState({ currentIndex: currentIndex - 1 });
+        setSwipeCount(prev => prev + 1);
+      } else {
+        handleRetry();
+      }
+    }
+  };
+
+  return (
+    <div 
+      ref={containerRef}
+      className="bg-gradient-to-br from-slate-50 via-gray-50 to-slate-100 overflow-hidden relative touch-none select-none md:h-screen md:pt-0 md:pb-0" 
+      style={isMobile && screenHeight > 0 ? { height: `${screenHeight - 128}px` } : undefined}
+      data-testid="feed-container"
+      data-swipe-count={swipeCount >= 3 ? "3" : swipeCount.toString()}
+      onTouchStart={onTouchStart}
+      onTouchMove={onTouchMove}
+      onTouchEnd={onTouchEnd}
+    >
+      {/* Compteur de progression */}
+      <div className="absolute top-2 left-1/2 -translate-x-1/2 z-50 bg-white/90 backdrop-blur-sm rounded-full px-4 py-2 shadow-lg border border-gray-200">
+        <div className="flex items-center gap-2">
+          <div className="text-sm font-semibold text-gray-700">
+            {currentIndex + 1} / {items.length}
+          </div>
+          <div className="w-32 h-2 bg-gray-200 rounded-full overflow-hidden">
+            <div 
+              className="h-full bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-300 ease-out"
+              style={{ width: `${((currentIndex + 1) / items.length) * 100}%` }}
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className="h-full w-full">
+        {currentAnnouncement && (
+          <SwipeCard
+            key={currentAnnouncement.id}
+            announcement={currentAnnouncement}
+            onSwipeDown={handleSwipeDown}
+            onSwipeUp={handleSwipeUp}
+            onLike={handleLike}
+            onOffer={handleOffer}
+            onShare={handleShare}
+            onDetails={handleDetails}
+          />
+        )}
+      </div>
+      
+      <AnnouncementDetailModal
+        announcement={selectedAnnouncement}
+        isOpen={showDetailModal}
+        onClose={() => {
+          setShowDetailModal(false);
+          setSelectedAnnouncement(null);
+        }}
+        onSave={(announcementId) => {
+          if (selectedAnnouncement) {
+            addToFavorites(selectedAnnouncement);
+          }
+        }}
+      />
+    </div>
+  );
+};
+
+export default Feed;

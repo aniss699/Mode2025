@@ -1,0 +1,27 @@
+import React from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useNavigate } from 'react-router-dom';
+
+export default function MarketplacePaused() {
+  const navigate = useNavigate();
+  return (
+    <div className="max-w-4xl mx-auto p-6">
+      <Card className="border-gray-200 shadow-lg">
+        <CardHeader>
+          <CardTitle className="text-2xl">Marketplace — En pause</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="mb-4 text-gray-700">
+            La marketplace est temporairement mise en pause pour permettre la refonte du produit vers un réseau social de la mode.
+            Les fonctionnalités liées aux annonces restent désactivées pour le moment.
+          </p>
+          <div className="flex space-x-3">
+            <Button onClick={() => navigate('/Feed')}>Retour au feed</Button>
+            <Button onClick={() => navigate('/profile')}>Mon profil</Button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
