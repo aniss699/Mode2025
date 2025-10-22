@@ -38,7 +38,8 @@ import {
   Paintbrush,
   Microscope,
   GraduationCap,
-  Trash2
+  Trash2,
+  Users
 } from 'lucide-react';
 // Removed unused import * as LucideIcons from 'lucide-react';
 import { CATEGORIES, connectionCategories } from '@/lib/categories';
@@ -145,7 +146,7 @@ export function ProgressiveFlow({ onComplete, onSubmit, isLoading: externalLoadi
   const [showFeedbackButtons, setShowFeedbackButtons] = useState(false);
   const [textSuggestionFeedback, setTextSuggestionFeedback] = useState<{[key: string]: boolean}>({});
 
-  const progress = ((currentStep + 2) / 5) * 100; // 5 niveaux au total maintenant (niveau -1 + 4 étapes)
+  const progress = ((currentStep + 2) / 5) * 100; // 5 niveaux au total (niveau -1 + 4 étapes)
 
   // Function to create the mission via API
   const createMission = async () => {
@@ -435,8 +436,386 @@ export function ProgressiveFlow({ onComplete, onSubmit, isLoading: externalLoadi
   );
 
 
-  // Étape 0: Choix du type de service  
-  const renderStep0 = () => (
+  // Étape 0: Choix de la persona mode
+  const renderStep0 = () => {
+    const personas = [
+      {
+        id: 'fashionista' as StylePersona,
+        name: 'Fashionista',
+        icon: '🌟',
+        description: 'Je partage régulièrement mes outfits et suis les tendances',
+        color: 'from-pink-500 to-rose-500'
+      },
+      {
+        id: 'minimalist' as StylePersona,
+        name: 'Minimaliste',
+        icon: '🎨',
+        description: 'Garde-robe capsule, qualité > quantité',
+        color: 'from-gray-500 to-slate-500'
+      },
+      {
+        id: 'influencer' as StylePersona,
+        name: 'Influenceur',
+        icon: '💎',
+        description: 'Créateur de contenu avec une grande collection',
+        color: 'from-purple-500 to-indigo-500'
+      },
+      {
+        id: 'sustainable' as StylePersona,
+        name: 'Eco-responsable',
+        icon: '🌱',
+        description: 'Seconde main, vide-dressing et mode durable',
+        color: 'from-green-500 to-emerald-500'
+      }
+    ];
+
+    return (
+      <div className="text-center space-y-6">
+        <div className="space-y-3">
+          <h2 className="text-3xl font-bold text-gray-900">
+            Quel est votre style ?
+          </h2>
+          <p className="text-gray-600 text-lg">
+            Choisissez la persona qui vous correspond le mieux
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-3xl mx-auto">
+          {personas.map((p) => (
+            <Card
+              key={p.id}
+              className={`cursor-pointer transition-all duration-300 hover:shadow-xl hover:scale-105 hover:-translate-y-1 group ${
+                persona === p.id ? 'ring-4 ring-offset-2 ring-pink-500 bg-pink-50' : 'hover:bg-gray-50'
+              }`}
+              onClick={() => {
+                setPersona(p.id);
+                setFashionProfile(prev => ({ ...prev, persona: p.id }));
+                setTimeout(() => setCurrentStep(1), 400);
+              }}
+            >
+              <CardContent className="p-6 text-center">
+                <div className={`w-20 h-20 mx-auto mb-4 bg-gradient-to-br ${p.color} rounded-full flex items-center justify-center text-4xl shadow-lg group-hover:scale-110 transition-transform`}>
+                  {p.icon}
+                </div>
+                <h3 className="text-xl font-bold mb-2">{p.name}</h3>
+                <p className="text-gray-600 text-sm">{p.description}</p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        <Button 
+          variant="outline" 
+          onClick={() => setCurrentStep(-1)}
+          className="mt-4"
+        >
+          <ChevronLeft className="w-4 h-4 mr-2" />
+          Retour
+        </Button>
+      </div>
+    );
+  };
+
+  // Étape 1: Upload premiers looks
+  const renderStep1 = () => (
+    <div className="space-y-6">
+      <div className="text-center space-y-3">
+        <h2 className="text-3xl font-bold text-gray-900">
+          Partagez vos premiers looks
+        </h2>
+        <p className="text-gray-600 text-lg">
+          Uploadez 3 à 5 photos de vos tenues préférées pour commencer
+        </p>
+      </div>
+
+      <div className="max-w-2xl mx-auto">
+        <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-pink-500 transition-colors">
+          <input
+            type="file"
+            accept="image/*"
+            multiple
+            onChange={(e) => {
+              if (e.target.files) {
+                const files = Array.from(e.target.files).slice(0, 5);
+                setFashionProfile(prev => ({ ...prev, firstLooks: files }));
+              }
+            }}
+            className="hidden"
+            id="look-upload"
+          />
+          <label htmlFor="look-upload" className="cursor-pointer">
+            <div className="space-y-4">
+              <div className="w-16 h-16 mx-auto bg-gradient-to-br from-pink-500 to-purple-500 rounded-full flex items-center justify-center">
+                <PlusCircle className="w-8 h-8 text-white" />
+              </div>
+              <div>
+                <p className="text-lg font-semibold text-gray-900">
+                  Cliquez pour uploader vos photos
+                </p>
+                <p className="text-sm text-gray-500 mt-1">
+                  JPG, PNG jusqu'à 10MB chacune
+                </p>
+              </div>
+            </div>
+          </label>
+        </div>
+
+        {fashionProfile.firstLooks.length > 0 && (
+          <div className="mt-6 grid grid-cols-3 gap-4">
+            {fashionProfile.firstLooks.map((file, index) => (
+              <div key={index} className="relative aspect-square rounded-lg overflow-hidden bg-gray-100">
+                <img
+                  src={URL.createObjectURL(file)}
+                  alt={`Look ${index + 1}`}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="flex justify-between max-w-2xl mx-auto">
+        <Button 
+          variant="outline" 
+          onClick={() => setCurrentStep(0)}
+        >
+          <ChevronLeft className="w-4 h-4 mr-2" />
+          Retour
+        </Button>
+        <Button
+          onClick={() => setCurrentStep(2)}
+          disabled={fashionProfile.firstLooks.length < 1}
+          className="bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700"
+        >
+          Continuer
+          <ChevronRight className="w-4 h-4 ml-2" />
+        </Button>
+      </div>
+    </div>
+  );
+
+  // Étape 2: Style tags et marques favorites
+  const renderStep2 = () => {
+    const styleTags = [
+      'Vintage', 'Streetwear', 'Minimaliste', 'Bohème', 'Chic', 
+      'Sportswear', 'Casual', 'Elegant', 'Rock', 'Preppy',
+      'Grunge', 'Y2K', 'Cottagecore', 'Dark Academia'
+    ];
+
+    const popularBrands = [
+      'Zara', 'H&M', 'Nike', 'Adidas', 'Uniqlo',
+      'COS', 'Mango', 'Pull&Bear', 'Bershka', 'Massimo Dutti'
+    ];
+
+    return (
+      <div className="space-y-6">
+        <div className="text-center space-y-3">
+          <h2 className="text-3xl font-bold text-gray-900">
+            Définissez votre style
+          </h2>
+          <p className="text-gray-600 text-lg">
+            Sélectionnez vos tags et marques préférées
+          </p>
+        </div>
+
+        <div className="max-w-3xl mx-auto space-y-6">
+          {/* Style Tags */}
+          <div className="space-y-3">
+            <label className="block text-lg font-semibold text-gray-900">
+              Tags de style
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {styleTags.map((tag) => (
+                <Badge
+                  key={tag}
+                  variant={fashionProfile.styleTags.includes(tag) ? "default" : "outline"}
+                  className={`cursor-pointer px-4 py-2 text-sm transition-all ${
+                    fashionProfile.styleTags.includes(tag)
+                      ? 'bg-gradient-to-r from-pink-600 to-purple-600 text-white'
+                      : 'hover:bg-gray-100'
+                  }`}
+                  onClick={() => {
+                    setFashionProfile(prev => ({
+                      ...prev,
+                      styleTags: prev.styleTags.includes(tag)
+                        ? prev.styleTags.filter(t => t !== tag)
+                        : [...prev.styleTags, tag]
+                    }));
+                  }}
+                >
+                  {tag}
+                </Badge>
+              ))}
+            </div>
+          </div>
+
+          {/* Marques favorites */}
+          <div className="space-y-3">
+            <label className="block text-lg font-semibold text-gray-900">
+              Marques favorites
+            </label>
+            <div className="flex flex-wrap gap-2">
+              {popularBrands.map((brand) => (
+                <Badge
+                  key={brand}
+                  variant={fashionProfile.favoriteBrands.includes(brand) ? "default" : "outline"}
+                  className={`cursor-pointer px-4 py-2 text-sm transition-all ${
+                    fashionProfile.favoriteBrands.includes(brand)
+                      ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white'
+                      : 'hover:bg-gray-100'
+                  }`}
+                  onClick={() => {
+                    setFashionProfile(prev => ({
+                      ...prev,
+                      favoriteBrands: prev.favoriteBrands.includes(brand)
+                        ? prev.favoriteBrands.filter(b => b !== brand)
+                        : [...prev.favoriteBrands, brand]
+                    }));
+                  }}
+                >
+                  {brand}
+                </Badge>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="flex justify-between max-w-3xl mx-auto">
+          <Button 
+            variant="outline" 
+            onClick={() => setCurrentStep(1)}
+          >
+            <ChevronLeft className="w-4 h-4 mr-2" />
+            Retour
+          </Button>
+          <Button
+            onClick={() => setCurrentStep(3)}
+            disabled={fashionProfile.styleTags.length === 0}
+            className="bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700"
+          >
+            Continuer
+            <ChevronRight className="w-4 h-4 ml-2" />
+          </Button>
+        </div>
+      </div>
+    );
+  };
+
+  // Étape 3: Création profil complet
+  const renderStep3 = () => (
+    <div className="space-y-6">
+      <div className="text-center space-y-3">
+        <h2 className="text-3xl font-bold text-gray-900">
+          Finalisez votre profil
+        </h2>
+        <p className="text-gray-600 text-lg">
+          Ajoutez une bio pour vous présenter à la communauté
+        </p>
+      </div>
+
+      <div className="max-w-2xl mx-auto space-y-6">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Bio (optionnel)
+          </label>
+          <Textarea
+            placeholder="Parlez de votre style, vos inspirations, ce qui vous passionne dans la mode..."
+            rows={4}
+            value={fashionProfile.bio}
+            onChange={(e) => setFashionProfile(prev => ({ ...prev, bio: e.target.value }))}
+            className="resize-none"
+          />
+        </div>
+
+        {/* Récapitulatif */}
+        <Card className="bg-gradient-to-br from-pink-50 to-purple-50 border-pink-200">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Star className="w-5 h-5 text-pink-600" />
+              Récapitulatif de votre profil
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div>
+              <p className="text-sm font-medium text-gray-600">Persona</p>
+              <p className="text-lg font-semibold capitalize">{persona}</p>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-600">Looks uploadés</p>
+              <p className="text-lg font-semibold">{fashionProfile.firstLooks.length} photo(s)</p>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-600">Tags de style</p>
+              <div className="flex flex-wrap gap-1 mt-1">
+                {fashionProfile.styleTags.slice(0, 5).map(tag => (
+                  <Badge key={tag} variant="secondary" className="text-xs">
+                    {tag}
+                  </Badge>
+                ))}
+                {fashionProfile.styleTags.length > 5 && (
+                  <Badge variant="secondary" className="text-xs">
+                    +{fashionProfile.styleTags.length - 5}
+                  </Badge>
+                )}
+              </div>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-600">Marques favorites</p>
+              <div className="flex flex-wrap gap-1 mt-1">
+                {fashionProfile.favoriteBrands.slice(0, 5).map(brand => (
+                  <Badge key={brand} variant="outline" className="text-xs">
+                    {brand}
+                  </Badge>
+                ))}
+                {fashionProfile.favoriteBrands.length > 5 && (
+                  <Badge variant="outline" className="text-xs">
+                    +{fashionProfile.favoriteBrands.length - 5}
+                  </Badge>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="flex justify-between max-w-2xl mx-auto">
+        <Button 
+          variant="outline" 
+          onClick={() => setCurrentStep(2)}
+        >
+          <ChevronLeft className="w-4 h-4 mr-2" />
+          Retour
+        </Button>
+        <Button
+          onClick={() => {
+            toast({
+              title: "Profil créé ! 🎉",
+              description: "Bienvenue dans la communauté mode !",
+            });
+            setLocation('/explore');
+          }}
+          disabled={isCreating}
+          className="bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 transform transition-all duration-300 hover:scale-105 hover:shadow-xl"
+        >
+          {isCreating ? (
+            <>
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+              Création...
+            </>
+          ) : (
+            <>
+              Créer mon profil
+              <Star className="w-4 h-4 ml-2" />
+            </>
+          )}
+        </Button>
+      </div>
+    </div>
+  );
+
+  // Ancien renderStep0 devient renderStepOld0 (conservé mais non utilisé)
+  const renderStepOld0 = () => (
     <div className="text-center space-y-3">
       <div className="space-y-2">
         <h2 className="text-2xl font-bold text-gray-900 progressive-flow-title">
@@ -516,72 +895,8 @@ export function ProgressiveFlow({ onComplete, onSubmit, isLoading: externalLoadi
     </div>
   );
 
-  // Étape 1: Choix de catégorie
-  const renderStep1 = () => {
-    // Choisir les catégories appropriées selon le type de service
-    const categoriesToShow = serviceType === 'mise-en-relation' ? connectionCategories : CATEGORIES;
-    const categoryLabel = serviceType === 'mise-en-relation' ? 'expert' : 'projet';
-
-    return (
-      <div className="space-y-3">
-        <div className="text-center space-y-2 animate-fade-in">
-          <h2 className="text-2xl font-bold text-gray-900 animate-bounce-in progressive-flow-title">
-            Dans quel domaine ?
-          </h2>
-          <p className="text-gray-600 animate-slide-up progressive-flow-description">
-            Sélectionnez la catégorie qui correspond à votre {categoryLabel}
-          </p>
-        </div>
-
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 category-grid">
-          {categoriesToShow.map((category) => (
-          <Card
-            key={category.id}
-            className={`cursor-pointer transition-all duration-300 hover:shadow-lg hover:scale-105 hover:-translate-y-1 group card-shine ${
-              selectedCategory === category.id ? 'ring-2 ring-blue-500 bg-blue-50' : 'hover:bg-blue-50/20'
-            } ${clickedCard === category.id ? 'scale-95 ring-4 ring-blue-400 bg-blue-100 animate-pulse-glow' : ''}`}
-            onClick={() => {
-              setSelectedCategory(category.id);
-              setClickedCard(category.id);
-              setTimeout(() => {
-                setCurrentStep(2);
-                setClickedCard(null);
-              }, 400);
-            }}
-          >
-            <CardContent className="p-4 text-center category-card">
-              <div className="mb-3">
-                {(() => {
-                  const IconComponent = getIcon(category.icon);
-                  return <IconComponent className={`w-8 h-8 mx-auto ${category.color} transition-all duration-300 group-hover:scale-110 group-hover:rotate-6 ${
-                    clickedCard === category.id ? 'scale-125 animate-pulse' : ''
-                  }`} />;
-                })()}
-              </div>
-              <h3 className="font-medium text-sm leading-tight">{category.name}</h3>
-              {category.description && (
-                <p className="text-xs text-gray-500 mt-1">{category.description}</p>
-              )}
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      <div className="flex justify-center">
-        <Button 
-          variant="outline" 
-          onClick={() => setCurrentStep(0)}
-        >
-          <ChevronLeft className="w-4 h-4 mr-2" />
-          Retour
-        </Button>
-      </div>
-    </div>
-    );
-  };
-
-  // Étape 2: Complétude d'annonce
-  const renderStep2 = () => {
+  // Étape 2 old (complétude annonce) - Non utilisée dans le flow mode
+  const renderStepOld2 = () => {
     const categoriesToSearch = serviceType === 'mise-en-relation' ? connectionCategories : CATEGORIES;
     const selectedCat = categoriesToSearch.find(cat => cat.id === selectedCategory);
     const projectLabel = serviceType === 'mise-en-relation' ? 'demande de contact' : 'projet';
@@ -1032,7 +1347,7 @@ export function ProgressiveFlow({ onComplete, onSubmit, isLoading: externalLoadi
   };
 
 
-  const steps = [renderStepMinus1, renderStep0, renderStep1, renderStep2];
+  const steps = [renderStepMinus1, renderStep0, renderStep1, renderStep2, renderStep3];
 
   return (
     <div className="w-full max-w-6xl mx-auto progressive-flow-container">
@@ -1046,7 +1361,7 @@ export function ProgressiveFlow({ onComplete, onSubmit, isLoading: externalLoadi
           <div className="bg-gradient-to-r from-blue-50/5 via-indigo-50/5 to-purple-50/5 p-4 rounded-xl mt-6 mb-6 border border-blue-200/20 backdrop-blur-sm progressive-flow-progress">
             <div className="mb-3">
               <span className="text-sm font-medium text-gray-700">
-                Étape {currentStep + 1} sur 3
+                Étape {currentStep + 1} sur 4
               </span>
             </div>
 
@@ -1054,7 +1369,7 @@ export function ProgressiveFlow({ onComplete, onSubmit, isLoading: externalLoadi
             <div className="w-full h-2 bg-gradient-to-r from-gray-100 to-gray-200 rounded-full overflow-hidden shadow-inner">
               <div 
                 className="h-full bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 rounded-full transition-all duration-700 ease-out shadow-sm relative"
-                style={{ width: `${((currentStep + 1) / 3) * 100}%` }}
+                style={{ width: `${((currentStep + 1) / 4) * 100}%` }}
               >
                 {/* Effet de brillance */}
                 <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent rounded-full"></div>
