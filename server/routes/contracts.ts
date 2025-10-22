@@ -198,6 +198,6 @@ router.post('/deliverables/:id/review', async (req, res) => {
 });
 
 */
-}
+});
 
 export default router;

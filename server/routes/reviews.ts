@@ -207,6 +207,6 @@ async function updateUserRating(userId: number) {
 }
 
 */
-}
+});
 
 export default router;
