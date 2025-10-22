@@ -593,3 +593,24 @@ export type CollectionWithLooks = Collection & {
   user: User;
   looks: LookWithUser[];
 };
+
+// ==========================================
+// ALIASES DE COMPATIBILITÉ TEMPORAIRE
+// (Pour le code backend existant pendant la transition)
+// ==========================================
+
+// Ancien nom -> Nouveau nom
+export const wardrobeItems = fashionItems;
+export const missions = looks; // Les "missions" sont maintenant des "looks"
+export const announcements = looks; // Les "announcements" sont maintenant des "looks"
+export const bids = comments; // Les "bids" (offres) sont maintenant des "comments"
+export const outfitsTable = looks; // Les "outfits" sont maintenant des "looks"
+export const outfitLikesTable = likes; // Les "outfit likes" sont maintenant des "likes"
+export const outfitCommentsTable = comments; // Les "outfit comments" sont maintenant des "comments"
+
+// Types d'alias
+export type WardrobeItem = FashionItem;
+export type Mission = Look;
+export type Announcement = Look;
+export type Bid = Comment;
+export type Outfit = Look;

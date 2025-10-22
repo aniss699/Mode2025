@@ -4,7 +4,8 @@ import { fileURLToPath } from 'url';
 import { createServer } from 'http';
 // Vite imports will be dynamic to avoid side effects
 import { Mission } from './types/mission.js';
-import { MissionSyncService } from './services/mission-sync.js';
+// Temporarily disabled for fashion social network transformation
+// import { MissionSyncService } from './services/mission-sync.js';
 import { validateEnvironment } from './environment-check.js';
 import { Pool } from 'pg';
 import cors from 'cors'; // Import cors
@@ -151,7 +152,8 @@ if (!databaseUrl) {
 
 console.log('🔗 Using Replit PostgreSQL connection');
 
-const missionSyncService = new MissionSyncService(databaseUrl);
+// Temporarily disabled for fashion social network transformation
+// const missionSyncService = new MissionSyncService(databaseUrl);
 
 // Create a pool instance for health checks with timeout
 const pool = new Pool({
@@ -276,10 +278,10 @@ app.use('/api', limitRequestSize, validateRequest, performanceMonitor, express.j
 import authRoutes from './auth-routes.js';
 // Import des routes
 import wardrobeRoutes from './routes/wardrobe';
-import outfitsRoutes from './routes/outfits';
-import collectionsRoutes from './routes/collections';
-import searchRoutes from './routes/search';
-import statsRoutes from './routes/stats';
+// import outfitsRoutes from './routes/outfits';
+// import collectionsRoutes from './routes/collections';
+// import searchRoutes from './routes/search';
+// import statsRoutes from './routes/stats';
 
 // Auth routes avec logging amélioré
 app.use('/api/auth', (req, res, next) => {
@@ -287,26 +289,26 @@ app.use('/api/auth', (req, res, next) => {
   next();
 }, authRoutes);
 // Import missions routes here
-import missionsRoutes from './routes/missions.js';
+// import missionsRoutes from './routes/missions.js';
 // Import projects supprimé - remplacé par missions
 import apiRoutes from './api-routes.js';
-import aiMonitoringRoutes from './routes/ai-monitoring-routes.js';
-import aiSuggestionsRoutes from './routes/ai-suggestions-routes.js';
-import aiMissionsRoutes from './routes/ai-missions-routes.js';
+// import aiMonitoringRoutes from './routes/ai-monitoring-routes.js';
+// import aiSuggestionsRoutes from './routes/ai-suggestions-routes.js';
+// import aiMissionsRoutes from './routes/ai-missions-routes.js';
 // AI orchestrator routes will be imported dynamically
-import feedRoutes from './routes/feed-routes.js';
-import favoritesRoutes from './routes/favorites-routes.js';
+// import feedRoutes from './routes/feed-routes.js';
+// import favoritesRoutes from './routes/favorites-routes.js';
 // import missionDemoRoutes from './routes/mission-demo.js'; // Supprimé - mode démo retiré
-import aiQuickAnalysisRoutes from './routes/ai-quick-analysis.js';
-import aiDiagnosticRoutes from './routes/ai-diagnostic-routes.js';
-import aiLearningRoutes from './routes/ai-learning-routes.js';
-import teamRoutes from './routes/team-routes.js';
-import openTeamsRoutes from './routes/open-teams.js';
-import bidsRoutes from './routes/bids.js';
-import messagingRoutes from './routes/messaging.js';
-import notificationsRoutes from './routes/notifications.js';
-import servicesRoutes from './routes/services-routes.js';
-import availabilityRoutes from './routes/availability-routes';
+// import aiQuickAnalysisRoutes from './routes/ai-quick-analysis.js';
+// import aiDiagnosticRoutes from './routes/ai-diagnostic-routes.js';
+// import aiLearningRoutes from './routes/ai-learning-routes.js';
+// import teamRoutes from './routes/team-routes.js';
+// import openTeamsRoutes from './routes/open-teams.js';
+// import bidsRoutes from './routes/bids.js';
+// import messagingRoutes from './routes/messaging.js';
+// import notificationsRoutes from './routes/notifications.js';
+// import servicesRoutes from './routes/services-routes.js';
+// import availabilityRoutes from './routes/availability-routes';
 import { websocketManager } from './websocket.js';
 import profileRoutes from './routes/profile-routes.js';
 import debugRoutes from './routes/debug-routes.js'; // Import debug routes
@@ -349,29 +351,29 @@ app.use('/api/projects', (req, res, next) => {
 }, missionsRoutes);
 
 // Apply rate limiting to AI routes
-app.use('/api/ai/monitoring', monitoringRateLimit, aiMonitoringRoutes);
+// app.use('/api/ai/monitoring', monitoringRateLimit, aiMonitoringRoutes);
 app.use('/api/ai/suggest-pricing', strictAiRateLimit);  // Endpoint coûteux
 app.use('/api/ai/enhance-description', strictAiRateLimit);  // Endpoint coûteux
 app.use('/api/ai/analyze-quality', strictAiRateLimit);  // Endpoint coûteux
 app.use('/api/ai/enhance-text', strictAiRateLimit);  // Endpoint coûteux
 // aiRoutes supprimés - routes IA gérées par modules spécialisés
-app.use('/api/ai', aiRateLimit, aiSuggestionsRoutes);
-app.use('/api/ai/missions', aiRateLimit, aiMissionsRoutes);
+// app.use('/api/ai', aiRateLimit, aiSuggestionsRoutes);
+// app.use('/api/ai/missions', aiRateLimit, aiMissionsRoutes);
 // AI orchestrator routes will be mounted after server starts
-app.use('/api', aiRateLimit, aiQuickAnalysisRoutes);  // Analyses IA rapides
+// app.use('/api', aiRateLimit, aiQuickAnalysisRoutes);  // Analyses IA rapides
 
 // Register AI diagnostic and learning routes
-app.use('/api/ai/diagnostic', aiDiagnosticRoutes);
-app.use('/api/ai/suggestions', aiSuggestionsRoutes);
-app.use('/api/ai/learning', aiLearningRoutes);
+// app.use('/api/ai/diagnostic', aiDiagnosticRoutes);
+// app.use('/api/ai/suggestions', aiSuggestionsRoutes);
+// app.use('/api/ai/learning', aiLearningRoutes);
 
-app.use('/api', feedRoutes);
-app.use('/api', favoritesRoutes);
+// app.use('/api', feedRoutes);
+// app.use('/api', favoritesRoutes);
 // app.use('/api', missionDemoRoutes); // Supprimé - mode démo retiré
-app.use('/api/services', servicesRoutes);
-app.use('/api/open-teams', openTeamsRoutes);
-app.use('/api/teams', teamRoutes);
-app.use('/api/availability', availabilityRoutes);
+// app.use('/api/services', servicesRoutes);
+// app.use('/api/open-teams', openTeamsRoutes);
+// app.use('/api/teams', teamRoutes);
+// app.use('/api/availability', availabilityRoutes);
 console.log('📅 Registering availability routes...');
 
 console.log('🤝 Registering open teams routes...');
@@ -427,7 +429,7 @@ app.use('/api', apiRoutes);
 app.use('/api/ai-fashion', aiFashionRoutes); // Alias pour cohérence
 app.use('/api/fashion', aiFashionRoutes); // Alias pour cohérence
 app.use('/api/wardrobe', wardrobeRoutes);
-app.use('/api/outfits', outfitsRoutes);
+// app.use('/api/outfits', outfitsRoutes);
 app.use('/api/social', socialRoutes);
 
 // Performance stats endpoint
