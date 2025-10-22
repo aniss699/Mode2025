@@ -1,7 +1,8 @@
 import { Router, Request, Response, Express } from 'express';
 import { socialService } from '../services/social-service';
-import { db, sql } from '../db'; // Assuming db and sql are imported from your db configuration
-import { users } from '../db/schema'; // Assuming users schema is imported
+import { db } from '../db';
+import { users } from '../../shared/schema';
+import { sql } from 'drizzle-orm';
 
 const router = Router();
 

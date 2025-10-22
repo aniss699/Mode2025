@@ -12,6 +12,7 @@ import {
   uniqueIndex,
   date,
   unique,
+  primaryKey,
 } from 'drizzle-orm/pg-core';
 import { z } from 'zod';
 
@@ -861,18 +862,9 @@ export const outfits = pgTable('outfits', {
 export const outfitItems = pgTable('outfit_items', {
   outfit_id: integer('outfit_id').references(() => outfits.id).notNull(),
   item_id: integer('item_id').references(() => fashionItems.id).notNull(),
-  primaryKey({ outfit_id, item_id }) // Clé primaire composite
-});
-
-// Table pour les posts dans le feed
-export const feedPosts = pgTable('feed_posts', {
-  id: serial('id').primaryKey(),
-  user_id: integer('user_id').references(() => users.id).notNull(),
-  content: text('content'), // Texte du post
-  outfit_id: integer('outfit_id').references(() => outfits.id), // Outfit partagé
-  created_at: timestamp('created_at').defaultNow(),
-  updated_at: timestamp('updated_at').defaultNow()
-});
+}, (table) => ({
+  pk: primaryKey({ columns: [table.outfit_id, table.item_id] })
+}));
 
 // Table pour les likes sur les posts
 export const postLikes = pgTable('post_likes', {
@@ -897,8 +889,9 @@ export const follows = pgTable('follows', {
   follower_id: integer('follower_id').references(() => users.id).notNull(),
   following_id: integer('following_id').references(() => users.id).notNull(),
   created_at: timestamp('created_at').defaultNow(),
-  primaryKey({ follower_id, following_id }) // Clé primaire composite
-});
+}, (table) => ({
+  pk: primaryKey({ columns: [table.follower_id, table.following_id] })
+}));
 
 // Ajout des relations pour les nouvelles tables
 export const fashionProfilesRelations = relations(fashionProfiles, ({ one }) => ({
@@ -935,40 +928,6 @@ export const outfitItemsRelations = relations(outfitItems, ({ one }) => ({
   })
 }));
 
-export const feedPostsRelations = relations(feedPosts, ({ one, many }) => ({
-  user: one(users, {
-    fields: [feedPosts.user_id],
-    references: [users.id]
-  }),
-  outfit: one(outfits, {
-    fields: [feedPosts.outfit_id],
-    references: [outfits.id]
-  }),
-  likes: many(postLikes),
-  comments: many(postComments)
-}));
-
-export const postLikesRelations = relations(postLikes, ({ one }) => ({
-  post: one(feedPosts, {
-    fields: [postLikes.post_id],
-    references: [feedPosts.id]
-  }),
-  user: one(users, {
-    fields: [postLikes.user_id],
-    references: [users.id]
-  })
-}));
-
-export const postCommentsRelations = relations(postComments, ({ one }) => ({
-  post: one(feedPosts, {
-    fields: [postComments.post_id],
-    references: [feedPosts.id]
-  }),
-  user: one(users, {
-    fields: [postComments.user_id],
-    references: [users.id]
-  })
-}));
 
 export const followsRelations = relations(follows, ({ one }) => ({
   follower: one(users, {
@@ -1124,6 +1083,41 @@ export const feedPosts = pgTable('feed_posts', {
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow()
 });
+
+export const feedPostsRelations = relations(feedPosts, ({ one, many }) => ({
+  user: one(users, {
+    fields: [feedPosts.userId],
+    references: [users.id]
+  }),
+  outfit: one(outfits, {
+    fields: [feedPosts.outfitId],
+    references: [outfits.id]
+  }),
+  likes: many(postLikes),
+  comments: many(postComments)
+}));
+
+export const postLikesRelations = relations(postLikes, ({ one }) => ({
+  post: one(feedPosts, {
+    fields: [postLikes.post_id],
+    references: [feedPosts.id]
+  }),
+  user: one(users, {
+    fields: [postLikes.user_id],
+    references: [users.id]
+  })
+}));
+
+export const postCommentsRelations = relations(postComments, ({ one }) => ({
+  post: one(feedPosts, {
+    fields: [postComments.post_id],
+    references: [feedPosts.id]
+  }),
+  user: one(users, {
+    fields: [postComments.user_id],
+    references: [users.id]
+  })
+}));
 
 export const wardrobeItemsRelations = relations(wardrobeItems, ({ one }) => ({
   user: one(users, {
