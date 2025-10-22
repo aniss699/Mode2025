@@ -1,8 +1,26 @@
-
-import { Router } from 'express';
+import { Router, Request, Response, Express } from 'express';
 import { socialService } from '../services/social-service';
+import { db, sql } from '../db'; // Assuming db and sql are imported from your db configuration
+import { users } from '../db/schema'; // Assuming users schema is imported
 
 const router = Router();
+
+// Get popular users
+router.get('/popular-users', async (req: Request, res: Response) => {
+  try {
+    const popularUsers = await db
+      .select()
+      .from(users)
+      .orderBy(sql`followers_count DESC`)
+      .limit(12);
+
+    res.json(popularUsers);
+  } catch (error) {
+    console.error('Error fetching popular users:', error);
+    res.status(500).json({ error: 'Failed to fetch popular users' });
+  }
+});
+
 
 // POST /api/social/follow/:userId - Follow un utilisateur
 router.post('/follow/:userId', async (req, res) => {

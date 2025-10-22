@@ -1,8 +1,7 @@
-
 import { Router } from 'express';
 import { db } from '../db';
 import { outfitsTable, outfitLikesTable, outfitCommentsTable, users } from '../../shared/schema';
-import { eq, desc, and } from 'drizzle-orm';
+import { eq, desc, and, sql } from 'drizzle-orm'; // Added sql for trending query
 import multer from 'multer';
 import path from 'path';
 
@@ -17,10 +16,28 @@ const storage = multer.diskStorage({
   }
 });
 
-const upload = multer({ 
+const upload = multer({
   storage,
   limits: { fileSize: 10 * 1024 * 1024 }
 });
+
+// GET /api/outfits/trending - Tendance outfits
+router.get('/trending', async (req, res) => {
+  try {
+    const trendingOutfits = await db
+      .select()
+      .from(outfitsTable)
+      .where(sql`created_at > NOW() - INTERVAL '7 days'`)
+      .orderBy(desc(outfitsTable.engagementScore), desc(outfitLikesTable.likesCount)) // Assuming likesCount is in outfitsTable, adjust if not
+      .limit(12);
+
+    res.json(trendingOutfits);
+  } catch (error) {
+    console.error('Erreur récupération outfits tendance:', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
 
 // GET /api/outfits - Liste outfits (feed)
 router.get('/', async (req, res) => {
@@ -46,7 +63,7 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const outfitId = parseInt(req.params.id);
-    
+
     const [outfit] = await db.select()
       .from(outfitsTable)
       .where(eq(outfitsTable.id, outfitId));
@@ -148,7 +165,12 @@ router.post('/:id/like', async (req, res) => {
             eq(outfitLikesTable.userId, req.user.id)
           )
         );
-      
+
+      // Decrement engagement score and likes count
+      await db.update(outfitsTable)
+        .set({ engagementScore: db.raw('engagement_score - 1'), likesCount: db.raw('likes_count - 1') }) // Assuming likesCount exists
+        .where(eq(outfitsTable.id, outfitId));
+
       return res.json({ liked: false });
     } else {
       // Like
@@ -156,6 +178,11 @@ router.post('/:id/like', async (req, res) => {
         outfitId,
         userId: req.user.id,
       });
+
+      // Increment engagement score and likes count
+      await db.update(outfitsTable)
+        .set({ engagementScore: db.raw('engagement_score + 1'), likesCount: db.raw('likes_count + 1') }) // Assuming likesCount exists
+        .where(eq(outfitsTable.id, outfitId));
 
       return res.json({ liked: true });
     }
@@ -185,6 +212,11 @@ router.post('/:id/comments', async (req, res) => {
       parentCommentId: parentCommentId || null,
       content: content.trim(),
     }).returning();
+
+    // Increment engagement score
+    await db.update(outfitsTable)
+      .set({ engagementScore: db.raw('engagement_score + 1') })
+      .where(eq(outfitsTable.id, outfitId));
 
     res.status(201).json(comment);
   } catch (error) {

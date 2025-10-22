@@ -59,6 +59,8 @@ const MesDemandes = React.lazy(() => import('@/pages/mes-demandes'));
 // Lazy load the advanced create mission page
 const AdvancedCreateMissionPage = React.lazy(() => import('@/pages/progressive-flow'));
 
+// Lazy load the explore page
+const Explore = React.lazy(() => import('@/pages/explore'));
 
 // Loading component
 const LoadingSpinner = () => (
@@ -124,6 +126,7 @@ function App() {
                     <Route path="/demo/missions" component={DemoMissions} />
                     <Route path="/monitoring" component={AIMonitoring} />
                     <Route path="/feed" component={Feed} />
+                    <Route path="/explore" component={Explore} />
                     <Route path="/admin/feed-metrics" component={AdminFeedMetrics} />
                     <Route path="/test-feedback" component={FeedbackButtonsTest} />
                     <Route path="/login" component={LoginPage} />
