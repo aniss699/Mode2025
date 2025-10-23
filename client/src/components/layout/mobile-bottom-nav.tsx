@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useLocation } from 'wouter';
-import { Briefcase, Users, Plus, Menu, Lightbulb, Rocket, User, LogIn } from 'lucide-react';
+import { Bookmark, Users, Plus, Menu, Lightbulb, Rocket, User, LogIn, Compass } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { useLanguage } from '@/hooks/use-language';
 import { ROUTES } from '@/routes/paths';
@@ -20,22 +20,22 @@ export default function MobileBottomNav() {
 
   const mainNavItems = [
     {
-      icon: Briefcase,
-      label: 'Missions',
-      path: '/provider-profile',
-      testId: 'nav-marketplace'
+      icon: Bookmark,
+      label: 'Collections',
+      path: '/collections',
+      testId: 'nav-collections'
     },
     {
       icon: Rocket,
-      label: 'Flux',
+      label: 'Feed',
       path: '/feed',
       testId: 'nav-feed'
     },
     {
       icon: Users,
-      label: 'Prestataires',
-      path: '/available-providers',
-      testId: 'nav-providers'
+      label: 'Créateurs',
+      path: '/creators',
+      testId: 'nav-creators'
     }
   ];
 
@@ -47,10 +47,10 @@ export default function MobileBottomNav() {
       testId: 'menu-concept'
     },
     {
-      icon: Rocket,
-      label: 'Services',
-      path: '/services',
-      testId: 'menu-services'
+      icon: Compass,
+      label: 'Explorer',
+      path: '/explore',
+      testId: 'menu-explore'
     },
     ...(user ? [{
       icon: User,
@@ -70,8 +70,8 @@ export default function MobileBottomNav() {
     setMenuOpen(false);
   };
 
-  const handleNewMission = () => {
-    setLocation('/?step=0');
+  const handleNewLook = () => {
+    setLocation('/profile');
   };
 
   return (
@@ -101,15 +101,15 @@ export default function MobileBottomNav() {
         })}
 
         <button
-          onClick={handleNewMission}
+          onClick={handleNewLook}
           className="flex flex-col items-center justify-center -mt-6 transition-transform duration-200 active:scale-95"
-          data-testid="button-new-mission-central"
+          data-testid="button-new-look-central"
         >
-          <div className="bg-gradient-to-br from-pink-500 to-fuchsia-500 rounded-full p-4 shadow-lg">
+          <div className="bg-gradient-to-br from-pink-500 to-purple-600 rounded-full p-4 shadow-lg">
             <Plus className="w-8 h-8 text-white" strokeWidth={2.5} />
           </div>
           <span className="text-[0.65rem] font-semibold text-gray-700 mt-1">
-            Nouvelle
+            Nouveau
           </span>
         </button>
 
