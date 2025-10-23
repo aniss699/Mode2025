@@ -7,6 +7,7 @@ export type Article = {
   isPublic?: boolean;
   createdAt: string;
   likes?: string[];
+  bookmarks?: string[];
 };
 
 export type Profile = {
@@ -45,8 +46,8 @@ function seedState() {
     { id: 'me', name: 'Toi (moi)', avatar: '', bio: 'Mon dressing' }
   ];
   const articles: Article[] = [
-    { id: 'a1', userId: '1', title: 'Veste en cuir', images: ['https://images.unsplash.com/photo-1520975698510-1d0aebd3b286?w=800&h=800&fit=crop'], isPublic: true, createdAt: new Date().toISOString(), likes: [] },
-    { id: 'a2', userId: '2', title: 'Manteau long', images: ['https://images.unsplash.com/photo-1514995669114-4f0b8b1d1f3a?w=800&h=800&fit=crop'], isPublic: true, createdAt: new Date().toISOString(), likes: [] }
+    { id: 'a1', userId: '1', title: 'Veste en cuir', images: ['https://images.unsplash.com/photo-1520975698510-1d0aebd3b286?w=800&h=800&fit=crop'], isPublic: true, createdAt: new Date().toISOString(), likes: [], bookmarks: [] },
+    { id: 'a2', userId: '2', title: 'Manteau long', images: ['https://images.unsplash.com/photo-1514995669114-4f0b8b1d1f3a?w=800&h=800&fit=crop'], isPublic: true, createdAt: new Date().toISOString(), likes: [], bookmarks: [] }
   ];
   return { profiles, articles, following: [] };
 }
@@ -67,6 +68,16 @@ export const mvpStore = {
     a.likes = a.likes || [];
     const idx = a.likes.indexOf(userId);
     if (idx === -1) a.likes.push(userId); else a.likes.splice(idx,1);
+    writeState(s);
+    return a;
+  },
+  toggleBookmark(articleId: string, userId: string) {
+    const s = readState();
+    const a = s.articles.find((x: any) => x.id === articleId);
+    if (!a) return;
+    a.bookmarks = a.bookmarks || [];
+    const idx = a.bookmarks.indexOf(userId);
+    if (idx === -1) a.bookmarks.push(userId); else a.bookmarks.splice(idx,1);
     writeState(s);
     return a;
   },

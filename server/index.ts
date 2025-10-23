@@ -413,6 +413,7 @@ import socialRoutes from './routes/social-routes';
 import aiFashionRoutes from './routes/ai-fashion-routes';
 import collectionsRoutes from './routes/collections';
 import outfitsRoutes from './routes/outfits';
+import creatorsRoutes from './routes/creators-routes';
 // import analyticsRoutes from './routes/analytics-routes'; // This import was commented out in the original, keeping it that way.
 
 // Routes
@@ -428,6 +429,7 @@ app.use('/api/outfits', outfitsRoutes);
 app.use('/api/looks', outfitsRoutes); // Alias for outfits
 app.use('/api/collections', collectionsRoutes);
 app.use('/api/social', socialRoutes);
+app.use('/api/creators', creatorsRoutes);
 console.log('✅ All fashion routes registered');
 
 // Performance stats endpoint

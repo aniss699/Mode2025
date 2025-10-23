@@ -43,6 +43,16 @@ export default function FeedPage() {
     refresh();
   };
 
+  const handleComment = (articleId: string) => {
+    // Navigate to look detail page where comments can be added
+    setLocation(`/feed/${articleId}`);
+  };
+
+  const handleBookmark = (articleId: string) => {
+    mvpStore.toggleBookmark(articleId, user?.id?.toString() || 'me');
+    refresh();
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-purple-50">
       {/* Header avec recherche et filtres */}
@@ -172,6 +182,8 @@ export default function FeedPage() {
                         size="sm" 
                         variant="secondary"
                         className="flex-1 bg-white/90 hover:bg-white"
+                        onClick={(e) => { e.stopPropagation(); handleComment(article.id); }}
+                        data-testid={`button-comment-${article.id}`}
                       >
                         <MessageCircle className="w-4 h-4" />
                       </Button>
@@ -179,6 +191,8 @@ export default function FeedPage() {
                         size="sm" 
                         variant="secondary"
                         className="flex-1 bg-white/90 hover:bg-white"
+                        onClick={(e) => { e.stopPropagation(); handleBookmark(article.id); }}
+                        data-testid={`button-bookmark-${article.id}`}
                       >
                         <Bookmark className="w-4 h-4" />
                       </Button>
