@@ -1161,14 +1161,14 @@ var ai_exports = {};
 __export(ai_exports, {
   default: () => ai_default
 });
-import { Router as Router15 } from "express";
-var router20, ai_default;
+import { Router as Router16 } from "express";
+var router21, ai_default;
 var init_ai = __esm({
   "apps/api/src/routes/ai.ts"() {
     "use strict";
     init_AIOrchestrator();
-    router20 = Router15();
-    router20.post("/pricing", async (req, res) => {
+    router21 = Router16();
+    router21.post("/pricing", async (req, res) => {
       try {
         const result = await getPricingSuggestion(req.body);
         res.json(result);
@@ -1177,7 +1177,7 @@ var init_ai = __esm({
         res.status(500).json({ error: "Erreur lors du calcul de prix" });
       }
     });
-    router20.post("/brief", async (req, res) => {
+    router21.post("/brief", async (req, res) => {
       try {
         const result = await enhanceBrief(req.body);
         res.json(result);
@@ -1186,7 +1186,7 @@ var init_ai = __esm({
         res.status(500).json({ error: "Erreur lors de l'am\xE9lioration du brief" });
       }
     });
-    router20.post("/feedback", async (req, res) => {
+    router21.post("/feedback", async (req, res) => {
       try {
         const { phase, prompt, feedback } = req.body;
         await logUserFeedback(phase, prompt, feedback);
@@ -1196,7 +1196,7 @@ var init_ai = __esm({
         res.status(500).json({ error: "Erreur lors de l'enregistrement du feedback" });
       }
     });
-    ai_default = router20;
+    ai_default = router21;
   }
 });
 
@@ -6760,6 +6760,78 @@ router19.get("/:id/comments", async (req, res) => {
 });
 var outfits_default = router19;
 
+// server/routes/creators-routes.ts
+import { Router as Router15 } from "express";
+init_schema();
+import { desc as desc11, sql as sql9 } from "drizzle-orm";
+var router20 = Router15();
+router20.get("/", async (req, res) => {
+  try {
+    const creators = await db2.select({
+      id: users.id,
+      name: users.name,
+      username: users.username,
+      avatar: users.avatar_url,
+      bio: users.bio,
+      styleTags: users.style_tags,
+      followersCount: users.followers_count,
+      postsCount: users.posts_count,
+      isVerified: users.is_verified,
+      featuredLooks: sql9`
+          ARRAY(
+            SELECT photo_url 
+            FROM ${looks} 
+            WHERE ${looks.user_id} = ${users.id} 
+              AND ${looks.is_public} = true 
+            ORDER BY ${looks.created_at} DESC 
+            LIMIT 3
+          )
+        `
+    }).from(users).where(sql9`${users.posts_count} > 0`).orderBy(desc11(users.followers_count)).limit(50);
+    const formattedCreators = creators.map((creator) => ({
+      id: creator.id.toString(),
+      name: creator.name,
+      username: creator.username || `@${creator.name.toLowerCase().replace(/\s+/g, "")}`,
+      avatar: creator.avatar,
+      bio: creator.bio || "",
+      location: "France",
+      // Default location as the column doesn't exist
+      styleTags: creator.styleTags || [],
+      followersCount: creator.followersCount || 0,
+      postsCount: creator.postsCount || 0,
+      rating: 4.5 + Math.random() * 0.5,
+      // Temporary rating
+      isFollowing: false,
+      // TODO: Check actual follow status
+      featuredLooks: creator.featuredLooks || [],
+      isVerified: creator.isVerified || false
+    }));
+    res.json(formattedCreators);
+  } catch (error) {
+    console.error("Error fetching creators:", error);
+    res.status(500).json({ error: "Failed to fetch creators" });
+  }
+});
+router20.get("/top", async (req, res) => {
+  try {
+    const topCreators = await db2.select({
+      id: users.id,
+      name: users.name,
+      username: users.username,
+      avatar: users.avatar_url,
+      bio: users.bio,
+      followersCount: users.followers_count,
+      postsCount: users.posts_count,
+      styleTags: users.style_tags
+    }).from(users).where(sql9`${users.followers_count} > 100`).orderBy(desc11(users.followers_count)).limit(10);
+    res.json(topCreators);
+  } catch (error) {
+    console.error("Error fetching top creators:", error);
+    res.status(500).json({ error: "Failed to fetch top creators" });
+  }
+});
+var creators_routes_default = router20;
+
 // server/index.ts
 var __filename = fileURLToPath(import.meta.url);
 var __dirname = path6.dirname(__filename);
@@ -7019,6 +7091,7 @@ app.use("/api/outfits", outfits_default);
 app.use("/api/looks", outfits_default);
 app.use("/api/collections", collections_default);
 app.use("/api/social", social_routes_default);
+app.use("/api/creators", creators_routes_default);
 console.log("\u2705 All fashion routes registered");
 app.get("/api/performance", (req, res) => {
   try {
