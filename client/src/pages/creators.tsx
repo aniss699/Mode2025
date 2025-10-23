@@ -1,0 +1,431 @@
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { 
+  Star, 
+  MapPin, 
+  Filter,
+  Search,
+  Heart,
+  UserPlus,
+  Sparkles,
+  TrendingUp,
+  Users,
+  Shirt,
+  Eye
+} from 'lucide-react';
+import { useAuth } from '@/hooks/use-auth';
+import { useLocation } from 'wouter';
+
+interface FashionCreator {
+  id: string;
+  name: string;
+  username: string;
+  avatar?: string;
+  bio?: string;
+  location: string;
+  styleTags: string[];
+  followersCount: number;
+  postsCount: number;
+  rating: number;
+  isFollowing?: boolean;
+  featuredLooks: string[];
+  isVerified?: boolean;
+}
+
+export default function CreatorsPage() {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filters, setFilters] = useState({
+    style: 'all',
+    location: '',
+    followers: 'all'
+  });
+  const { user } = useAuth();
+  const [, setLocation] = useLocation();
+
+  const { data: creators = [], isLoading } = useQuery<FashionCreator[]>({
+    queryKey: ['/api/creators'],
+  });
+
+  // Mock data for demonstration
+  const mockCreators: FashionCreator[] = [
+    {
+      id: '1',
+      name: 'Sophie Martin',
+      username: '@sophiestyle',
+      avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop&crop=face',
+      bio: 'Passionnée de mode minimaliste et sustainable fashion 🌿',
+      location: 'Paris, France',
+      styleTags: ['Minimaliste', 'Sustainable', 'Chic'],
+      followersCount: 12500,
+      postsCount: 347,
+      rating: 4.9,
+      isFollowing: false,
+      featuredLooks: [
+        'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=300&h=400&fit=crop',
+        'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=300&h=400&fit=crop',
+        'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=300&h=400&fit=crop',
+      ],
+      isVerified: true
+    },
+    {
+      id: '2',
+      name: 'Emma Dubois',
+      username: '@emmafashion',
+      avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200&h=200&fit=crop&crop=face',
+      bio: 'Streetwear lover & vintage collector 🎨',
+      location: 'Lyon, France',
+      styleTags: ['Streetwear', 'Vintage', 'Urban'],
+      followersCount: 8900,
+      postsCount: 256,
+      rating: 4.8,
+      isFollowing: true,
+      featuredLooks: [
+        'https://images.unsplash.com/photo-1469334031218-e382a71b716b?w=300&h=400&fit=crop',
+        'https://images.unsplash.com/photo-1509631179647-0177331693ae?w=300&h=400&fit=crop',
+        'https://images.unsplash.com/photo-1445205170230-053b83016050?w=300&h=400&fit=crop',
+      ],
+      isVerified: true
+    },
+    {
+      id: '3',
+      name: 'Marie Leroy',
+      username: '@marieelegance',
+      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&h=200&fit=crop&crop=face',
+      bio: 'Élégance classique et mode intemporelle ✨',
+      location: 'Bordeaux, France',
+      styleTags: ['Classique', 'Élégant', 'Timeless'],
+      followersCount: 15600,
+      postsCount: 412,
+      rating: 4.9,
+      isFollowing: false,
+      featuredLooks: [
+        'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=300&h=400&fit=crop',
+        'https://images.unsplash.com/photo-1496747611176-843222e1e57c?w=300&h=400&fit=crop',
+        'https://images.unsplash.com/photo-1502716119720-b23a93e5fe1b?w=300&h=400&fit=crop',
+      ],
+      isVerified: true
+    },
+    {
+      id: '4',
+      name: 'Léa Bernard',
+      username: '@leaboheme',
+      avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=200&h=200&fit=crop&crop=face',
+      bio: 'Bohème chic & free spirit 🌸',
+      location: 'Marseille, France',
+      styleTags: ['Bohème', 'Colorful', 'Artistic'],
+      followersCount: 6800,
+      postsCount: 189,
+      rating: 4.7,
+      isFollowing: false,
+      featuredLooks: [
+        'https://images.unsplash.com/photo-1506629082955-511b1aa562c8?w=300&h=400&fit=crop',
+        'https://images.unsplash.com/photo-1523359346063-d879354b2db5?w=300&h=400&fit=crop',
+        'https://images.unsplash.com/photo-1529139574466-a303027c1d8b?w=300&h=400&fit=crop',
+      ],
+      isVerified: false
+    }
+  ];
+
+  const creatorsToUse = creators.length > 0 ? creators : mockCreators;
+
+  const filteredCreators = creatorsToUse.filter(creator => {
+    if (searchTerm && !creator.name.toLowerCase().includes(searchTerm.toLowerCase()) && 
+        !creator.username.toLowerCase().includes(searchTerm.toLowerCase())) {
+      return false;
+    }
+    if (filters.style !== 'all' && !creator.styleTags.some(tag => tag.toLowerCase() === filters.style.toLowerCase())) {
+      return false;
+    }
+    if (filters.location && !creator.location.toLowerCase().includes(filters.location.toLowerCase())) {
+      return false;
+    }
+    if (filters.followers === 'popular' && creator.followersCount < 10000) {
+      return false;
+    }
+    return true;
+  });
+
+  const handleFollow = (creatorId: string) => {
+    console.log('Follow creator:', creatorId);
+    // TODO: Implement follow mutation
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-purple-50">
+      {/* Header */}
+      <div className="bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="text-center mb-6">
+            <div className="inline-flex items-center gap-2 bg-gradient-to-r from-pink-100 to-purple-100 rounded-full px-4 py-2 mb-4">
+              <Sparkles className="w-5 h-5 text-pink-600" />
+              <span className="text-sm font-semibold text-purple-700">
+                Découvre les fashionistas
+              </span>
+            </div>
+            <h1 className="text-4xl font-bold mb-3 bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
+              Créateurs Mode
+            </h1>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              Suis les passionnés de mode, inspire-toi de leurs looks et construis ta communauté style
+            </p>
+          </div>
+
+          {/* Search Bar */}
+          <div className="max-w-2xl mx-auto">
+            <div className="relative">
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <Input
+                data-testid="input-search-creators"
+                placeholder="Rechercher un créateur ou un style..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-12 pr-4 py-6 text-lg rounded-full border-2 border-gray-200 focus:border-pink-400"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="grid lg:grid-cols-4 gap-8">
+          {/* Filters Sidebar */}
+          <div className="lg:col-span-1">
+            <Card className="sticky top-6">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-2 mb-6">
+                  <Filter className="w-5 h-5 text-pink-600" />
+                  <h3 className="font-semibold text-lg">Filtres</h3>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-sm font-medium text-gray-700 mb-2 block">
+                      Style
+                    </label>
+                    <Select value={filters.style} onValueChange={(value) => setFilters(prev => ({...prev, style: value}))}>
+                      <SelectTrigger data-testid="select-style-filter">
+                        <SelectValue placeholder="Tous les styles" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Tous les styles</SelectItem>
+                        <SelectItem value="minimaliste">Minimaliste</SelectItem>
+                        <SelectItem value="streetwear">Streetwear</SelectItem>
+                        <SelectItem value="classique">Classique</SelectItem>
+                        <SelectItem value="bohème">Bohème</SelectItem>
+                        <SelectItem value="vintage">Vintage</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium text-gray-700 mb-2 block">
+                      Localisation
+                    </label>
+                    <div className="relative">
+                      <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                      <Input
+                        data-testid="input-location-filter"
+                        placeholder="Ville, pays..."
+                        value={filters.location}
+                        onChange={(e) => setFilters(prev => ({...prev, location: e.target.value}))}
+                        className="pl-10"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium text-gray-700 mb-2 block">
+                      Popularité
+                    </label>
+                    <Select value={filters.followers} onValueChange={(value) => setFilters(prev => ({...prev, followers: value}))}>
+                      <SelectTrigger data-testid="select-popularity-filter">
+                        <SelectValue placeholder="Tous" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Tous</SelectItem>
+                        <SelectItem value="popular">Populaires (10k+)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <Button 
+                    data-testid="button-reset-filters"
+                    variant="outline" 
+                    size="sm"
+                    className="w-full mt-4"
+                    onClick={() => setFilters({style: 'all', location: '', followers: 'all'})}
+                  >
+                    Réinitialiser
+                  </Button>
+                </div>
+
+                {/* Stats */}
+                <div className="mt-8 pt-6 border-t border-gray-200">
+                  <div className="space-y-3 text-sm">
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-600">Créateurs</span>
+                      <span className="font-semibold">{filteredCreators.length}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-600">Tendances</span>
+                      <TrendingUp className="w-4 h-4 text-green-600" />
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Creators Grid */}
+          <div className="lg:col-span-3">
+            <div className="mb-6 flex justify-between items-center">
+              <h2 className="text-2xl font-bold" data-testid="text-creators-count">
+                {filteredCreators.length} créateurs trouvés
+              </h2>
+            </div>
+
+            {isLoading ? (
+              <div className="text-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-600 mx-auto"></div>
+                <p className="text-gray-500 mt-4">Chargement...</p>
+              </div>
+            ) : (
+              <div className="grid md:grid-cols-2 gap-6">
+                {filteredCreators.map((creator) => (
+                  <Card key={creator.id} className="overflow-hidden hover:shadow-xl transition-shadow" data-testid={`card-creator-${creator.id}`}>
+                    <CardContent className="p-0">
+                      {/* Featured Looks Grid */}
+                      <div className="grid grid-cols-3 gap-0.5 bg-gray-100">
+                        {creator.featuredLooks.map((look, idx) => (
+                          <div key={idx} className="aspect-square relative overflow-hidden group">
+                            <img 
+                              src={look} 
+                              alt={`Look ${idx + 1}`}
+                              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                            />
+                            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Creator Info */}
+                      <div className="p-6">
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="flex items-center gap-3">
+                            <Avatar className="w-16 h-16 ring-4 ring-pink-100">
+                              <AvatarImage src={creator.avatar} alt={creator.name} />
+                              <AvatarFallback>{creator.name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <h3 className="font-bold text-lg" data-testid={`text-creator-name-${creator.id}`}>{creator.name}</h3>
+                                {creator.isVerified && (
+                                  <div className="bg-blue-500 rounded-full p-0.5">
+                                    <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                    </svg>
+                                  </div>
+                                )}
+                              </div>
+                              <p className="text-sm text-gray-500">{creator.username}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Star className="w-4 h-4 text-yellow-400 fill-current" />
+                            <span className="text-sm font-medium">{creator.rating}</span>
+                          </div>
+                        </div>
+
+                        <p className="text-gray-600 text-sm mb-4 line-clamp-2">{creator.bio}</p>
+
+                        {/* Location */}
+                        <div className="flex items-center gap-2 text-sm text-gray-500 mb-4">
+                          <MapPin className="w-4 h-4" />
+                          <span>{creator.location}</span>
+                        </div>
+
+                        {/* Style Tags */}
+                        <div className="flex flex-wrap gap-2 mb-4">
+                          {creator.styleTags.map((tag) => (
+                            <Badge key={tag} variant="secondary" className="text-xs bg-pink-100 text-pink-700">
+                              {tag}
+                            </Badge>
+                          ))}
+                        </div>
+
+                        {/* Stats */}
+                        <div className="flex items-center gap-6 mb-4 text-sm">
+                          <div className="flex items-center gap-1">
+                            <Users className="w-4 h-4 text-gray-400" />
+                            <span className="font-semibold">{creator.followersCount.toLocaleString()}</span>
+                            <span className="text-gray-500">followers</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Shirt className="w-4 h-4 text-gray-400" />
+                            <span className="font-semibold">{creator.postsCount}</span>
+                            <span className="text-gray-500">looks</span>
+                          </div>
+                        </div>
+
+                        {/* Actions */}
+                        <div className="flex gap-2">
+                          <Button 
+                            data-testid={`button-follow-${creator.id}`}
+                            onClick={() => handleFollow(creator.id)}
+                            className={`flex-1 ${creator.isFollowing 
+                              ? 'bg-gray-200 text-gray-700 hover:bg-gray-300' 
+                              : 'bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white'
+                            }`}
+                          >
+                            {creator.isFollowing ? (
+                              <>
+                                <UserPlus className="w-4 h-4 mr-2" />
+                                Abonné
+                              </>
+                            ) : (
+                              <>
+                                <UserPlus className="w-4 h-4 mr-2" />
+                                Suivre
+                              </>
+                            )}
+                          </Button>
+                          <Button 
+                            data-testid={`button-view-profile-${creator.id}`}
+                            variant="outline"
+                            onClick={() => setLocation(`/profile/${creator.id}`)}
+                          >
+                            <Eye className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+
+            {filteredCreators.length === 0 && !isLoading && (
+              <div className="text-center py-12">
+                <Sparkles className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                <p className="text-gray-500 text-lg mb-2">Aucun créateur trouvé</p>
+                <p className="text-gray-400">Essayez d'ajuster vos filtres</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
