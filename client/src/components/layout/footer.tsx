@@ -9,11 +9,11 @@ export default function Footer() {
   const { t } = useLanguage();
 
   return (
-    <footer className="bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900 text-white relative overflow-hidden">
+    <footer className="bg-gradient-to-br from-gray-900 via-pink-900 to-gray-900 text-white relative overflow-hidden">
       {/* Subtle background decoration */}
       <div className="absolute inset-0 opacity-5">
-        <div className="absolute top-10 left-1/4 w-32 h-32 bg-blue-400 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-10 right-1/4 w-40 h-40 bg-purple-400 rounded-full blur-3xl"></div>
+        <div className="absolute top-10 left-1/4 w-32 h-32 bg-pink-400 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-10 right-1/4 w-40 h-40 bg-fuchsia-400 rounded-full blur-3xl"></div>
       </div>
       
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -24,12 +24,12 @@ export default function Footer() {
             {/* Brand Section */}
             <div className="lg:col-span-1">
               <div className="flex items-center mb-4">
-                <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg flex items-center justify-center mr-3 relative">
+                <div className="w-10 h-10 bg-gradient-to-r from-pink-500 to-fuchsia-500 rounded-lg flex items-center justify-center mr-3 relative">
                   <span className="text-white font-bold text-lg">S</span>
                   <div className="absolute top-1 right-2 w-1 h-1 bg-white rounded-full"></div>
                   <div className="absolute bottom-1 left-2 w-1 h-1 bg-white rounded-full"></div>
                 </div>
-                <h3 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                <h3 className="text-2xl font-bold bg-gradient-to-r from-pink-400 to-fuchsia-400 bg-clip-text text-transparent">
                   {t('brand.name')}
                 </h3>
               </div>
@@ -46,41 +46,41 @@ export default function Footer() {
 
             {/* Navigation rapide */}
             <div>
-              <h4 className="text-lg font-semibold mb-4 text-blue-200">{t('footer.navigation')}</h4>
+              <h4 className="text-lg font-semibold mb-4 text-pink-200">{t('footer.navigation')}</h4>
               <ul className="space-y-3">
                 <li>
                   <button 
                     onClick={() => setLocation(ROUTES.MARKETPLACE)} 
-                    className="text-gray-300 hover:text-blue-300 transition-colors duration-200 text-sm flex items-center group"
+                    className="text-gray-300 hover:text-pink-300 transition-colors duration-200 text-sm flex items-center group"
                   >
-                    <span className="w-1 h-1 bg-blue-400 rounded-full mr-2 opacity-0 group-hover:opacity-100 transition-opacity"></span>
+                    <span className="w-1 h-1 bg-pink-400 rounded-full mr-2 opacity-0 group-hover:opacity-100 transition-opacity"></span>
                     {t('footer.discoverMissions')}
                   </button>
                 </li>
                 <li>
                   <button 
                     onClick={() => setLocation('/available-providers')} 
-                    className="text-gray-300 hover:text-blue-300 transition-colors duration-200 text-sm flex items-center group"
+                    className="text-gray-300 hover:text-pink-300 transition-colors duration-200 text-sm flex items-center group"
                   >
-                    <span className="w-1 h-1 bg-blue-400 rounded-full mr-2 opacity-0 group-hover:opacity-100 transition-opacity"></span>
+                    <span className="w-1 h-1 bg-pink-400 rounded-full mr-2 opacity-0 group-hover:opacity-100 transition-opacity"></span>
                     {t('footer.findExperts')}
                   </button>
                 </li>
                 <li>
                   <button 
                     onClick={() => setLocation(ROUTES.CREATE_MISSION)} 
-                    className="text-gray-300 hover:text-blue-300 transition-colors duration-200 text-sm flex items-center group"
+                    className="text-gray-300 hover:text-pink-300 transition-colors duration-200 text-sm flex items-center group"
                   >
-                    <span className="w-1 h-1 bg-blue-400 rounded-full mr-2 opacity-0 group-hover:opacity-100 transition-opacity"></span>
+                    <span className="w-1 h-1 bg-pink-400 rounded-full mr-2 opacity-0 group-hover:opacity-100 transition-opacity"></span>
                     {t('footer.publishMission')}
                   </button>
                 </li>
                 <li>
                   <button 
                     onClick={() => setLocation('/notre-concept')} 
-                    className="text-gray-300 hover:text-blue-300 transition-colors duration-200 text-sm flex items-center group"
+                    className="text-gray-300 hover:text-pink-300 transition-colors duration-200 text-sm flex items-center group"
                   >
-                    <span className="w-1 h-1 bg-blue-400 rounded-full mr-2 opacity-0 group-hover:opacity-100 transition-opacity"></span>
+                    <span className="w-1 h-1 bg-pink-400 rounded-full mr-2 opacity-0 group-hover:opacity-100 transition-opacity"></span>
                     {t('footer.ourConcept')}
                   </button>
                 </li>
@@ -89,41 +89,41 @@ export default function Footer() {
 
             {/* Mon espace */}
             <div>
-              <h4 className="text-lg font-semibold mb-4 text-blue-200">{t('footer.mySpace')}</h4>
+              <h4 className="text-lg font-semibold mb-4 text-pink-200">{t('footer.mySpace')}</h4>
               <ul className="space-y-3">
                 <li>
                   <button 
                     onClick={() => setLocation('/login')} 
-                    className="text-gray-300 hover:text-blue-300 transition-colors duration-200 text-sm flex items-center group"
+                    className="text-gray-300 hover:text-pink-300 transition-colors duration-200 text-sm flex items-center group"
                   >
-                    <span className="w-1 h-1 bg-purple-400 rounded-full mr-2 opacity-0 group-hover:opacity-100 transition-opacity"></span>
+                    <span className="w-1 h-1 bg-fuchsia-400 rounded-full mr-2 opacity-0 group-hover:opacity-100 transition-opacity"></span>
                     {t('navbar.login')}
                   </button>
                 </li>
                 <li>
                   <button 
                     onClick={() => setLocation(ROUTES.DASHBOARD)} 
-                    className="text-gray-300 hover:text-blue-300 transition-colors duration-200 text-sm flex items-center group"
+                    className="text-gray-300 hover:text-pink-300 transition-colors duration-200 text-sm flex items-center group"
                   >
-                    <span className="w-1 h-1 bg-purple-400 rounded-full mr-2 opacity-0 group-hover:opacity-100 transition-opacity"></span>
+                    <span className="w-1 h-1 bg-fuchsia-400 rounded-full mr-2 opacity-0 group-hover:opacity-100 transition-opacity"></span>
                     {t('navbar.dashboard')}
                   </button>
                 </li>
                 <li>
                   <button 
                     onClick={() => setLocation(ROUTES.PROFILE)} 
-                    className="text-gray-300 hover:text-blue-300 transition-colors duration-200 text-sm flex items-center group"
+                    className="text-gray-300 hover:text-pink-300 transition-colors duration-200 text-sm flex items-center group"
                   >
-                    <span className="w-1 h-1 bg-purple-400 rounded-full mr-2 opacity-0 group-hover:opacity-100 transition-opacity"></span>
+                    <span className="w-1 h-1 bg-fuchsia-400 rounded-full mr-2 opacity-0 group-hover:opacity-100 transition-opacity"></span>
                     {t('navbar.profile')}
                   </button>
                 </li>
                 <li>
                   <button 
                     onClick={() => setLocation('/messages')} 
-                    className="text-gray-300 hover:text-blue-300 transition-colors duration-200 text-sm flex items-center group"
+                    className="text-gray-300 hover:text-pink-300 transition-colors duration-200 text-sm flex items-center group"
                   >
-                    <span className="w-1 h-1 bg-purple-400 rounded-full mr-2 opacity-0 group-hover:opacity-100 transition-opacity"></span>
+                    <span className="w-1 h-1 bg-fuchsia-400 rounded-full mr-2 opacity-0 group-hover:opacity-100 transition-opacity"></span>
                     {t('navbar.messages')}
                   </button>
                 </li>
@@ -132,23 +132,23 @@ export default function Footer() {
 
             {/* Support et contact */}
             <div>
-              <h4 className="text-lg font-semibold mb-4 text-blue-200">{t('footer.support')}</h4>
+              <h4 className="text-lg font-semibold mb-4 text-pink-200">{t('footer.support')}</h4>
               <ul className="space-y-3 mb-6">
                 <li>
                   <button 
                     onClick={() => setLocation(ROUTES.LEGAL)} 
-                    className="text-gray-300 hover:text-blue-300 transition-colors duration-200 text-sm flex items-center group"
+                    className="text-gray-300 hover:text-pink-300 transition-colors duration-200 text-sm flex items-center group"
                   >
-                    <span className="w-1 h-1 bg-green-400 rounded-full mr-2 opacity-0 group-hover:opacity-100 transition-opacity"></span>
+                    <span className="w-1 h-1 bg-rose-400 rounded-full mr-2 opacity-0 group-hover:opacity-100 transition-opacity"></span>
                     {t('footer.legalNotices')}
                   </button>
                 </li>
                 <li>
                   <button 
                     onClick={() => setLocation('/sitemap')} 
-                    className="text-gray-300 hover:text-blue-300 transition-colors duration-200 text-sm flex items-center group"
+                    className="text-gray-300 hover:text-pink-300 transition-colors duration-200 text-sm flex items-center group"
                   >
-                    <span className="w-1 h-1 bg-green-400 rounded-full mr-2 opacity-0 group-hover:opacity-100 transition-opacity"></span>
+                    <span className="w-1 h-1 bg-rose-400 rounded-full mr-2 opacity-0 group-hover:opacity-100 transition-opacity"></span>
                     {t('footer.sitemap')}
                   </button>
                 </li>
@@ -157,11 +157,11 @@ export default function Footer() {
               {/* Contact info */}
               <div className="space-y-2">
                 <div className="flex items-center text-xs text-gray-400">
-                  <Mail className="w-3 h-3 mr-2 text-blue-400" />
+                  <Mail className="w-3 h-3 mr-2 text-pink-400" />
                   contact@swideal.com
                 </div>
                 <div className="flex items-center text-xs text-gray-400">
-                  <Globe className="w-3 h-3 mr-2 text-blue-400" />
+                  <Globe className="w-3 h-3 mr-2 text-pink-400" />
                   www.swideal.com
                 </div>
               </div>
