@@ -68,8 +68,8 @@ export default function Navbar() {
   const NavLink = ({ href, children, className = "" }: { href: string, children: React.ReactNode, className?: string }) => (
     <button
       onClick={() => handleNavigation(href)}
-      className={`text-gray-700 hover:text-blue-600 transition-colors cursor-pointer px-2 xl:px-3 py-2 rounded-md text-sm font-medium whitespace-nowrap ${className} ${
-        location === href ? 'text-blue-600 bg-blue-50' : ''
+      className={`text-gray-700 hover:text-pink-600 transition-colors cursor-pointer px-2 xl:px-3 py-2 rounded-md text-sm font-medium whitespace-nowrap ${className} ${
+        location === href ? 'text-pink-600 bg-pink-50' : ''
       }`}
     >
       {children}
@@ -80,16 +80,16 @@ export default function Navbar() {
     <button
       onClick={() => handleNavigation(href)}
       className={`flex items-center space-x-3 w-full px-4 py-3 text-left hover:bg-gray-50 transition-all duration-200 cursor-pointer rounded-md ${
-        location === href ? 'text-blue-600 bg-blue-50 border-l-4 border-blue-600 font-medium' : 'text-gray-700 hover:text-gray-900 hover:bg-blue-50'
+        location === href ? 'text-pink-600 bg-pink-50 border-l-4 border-pink-600 font-medium' : 'text-gray-700 hover:text-gray-900 hover:bg-pink-50'
       }`}
     >
-      <Icon className={`w-5 h-5 ${location === href ? 'text-blue-600' : 'text-gray-500'}`} />
+      <Icon className={`w-5 h-5 ${location === href ? 'text-pink-600' : 'text-gray-500'}`} />
       <span>{children}</span>
     </button>
   );
 
   return (
-    <nav className="sticky top-0 z-50 bg-gradient-to-br from-white via-blue-50 to-purple-50 shadow-sm border-b border-gray-200">
+    <nav className="sticky top-0 z-50 bg-gradient-to-br from-white via-pink-50 to-purple-50 shadow-sm border-b border-pink-100">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
@@ -99,12 +99,12 @@ export default function Navbar() {
               className="group flex items-center space-x-3 sm:space-x-4 hover:scale-105 transition-all duration-300 ease-out mobile-logo-container"
               data-testid="button-logo-navbar"
             >
-              <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-300 relative">
+              <div className="w-10 h-10 bg-gradient-to-r from-pink-500 to-fuchsia-500 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-300 relative">
                 <span className="text-white font-bold text-lg">S</span>
                 <div className="absolute top-1 right-2 w-1 h-1 bg-white rounded-full"></div>
                 <div className="absolute bottom-1 left-2 w-1 h-1 bg-white rounded-full"></div>
               </div>
-              <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent" data-testid="text-brand-navbar">
+              <span className="text-2xl font-bold bg-gradient-to-r from-pink-600 to-fuchsia-600 bg-clip-text text-transparent" data-testid="text-brand-navbar">
                 {t('brand.name')}
               </span>
             </button>
@@ -118,7 +118,7 @@ export default function Navbar() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="flex items-center space-x-1 px-2 sm:px-3 text-gray-600 hover:text-blue-600 hover:bg-blue-100"
+                  className="flex items-center space-x-1 px-2 sm:px-3 text-gray-600 hover:text-pink-600 hover:bg-pink-100"
                 >
                   <span className="text-xs sm:text-sm font-medium">
                     {language === 'fr' && '🇫🇷 FR'}
@@ -160,15 +160,15 @@ export default function Navbar() {
               <div className="flex items-center space-x-2 sm:space-x-4">
                 {/* Desktop User Menu - Nettoyé */}
                 <div className="hidden xl:flex items-center space-x-3">
-                  <Button variant="ghost" onClick={() => setLocation('/provider-profile')} className="text-gray-700 hover:text-blue-600">
+                  <Button variant="ghost" onClick={() => setLocation('/provider-profile')} className="text-gray-700 hover:text-pink-600">
                     {t('navbar.marketplace')}
                   </Button>
-                  <Button variant="ghost" onClick={() => setLocation('/missions')} className="text-gray-700 hover:text-blue-600">
+                  <Button variant="ghost" onClick={() => setLocation('/missions')} className="text-gray-700 hover:text-pink-600">
                     {t('navbar.myMissions')}
                   </Button>
                   <button
                     onClick={() => handleNavigation('/messages')}
-                    className="text-gray-700 hover:text-blue-600 transition-colors relative px-2 py-2 text-sm"
+                    className="text-gray-700 hover:text-pink-600 transition-colors relative px-2 py-2 text-sm"
                   >
                     {t('navbar.messages')}
                   </button>
@@ -177,8 +177,8 @@ export default function Navbar() {
                 {/* User Dropdown */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="flex items-center space-x-1 sm:space-x-2 hover:bg-blue-100 px-2 sm:px-3">
-                      <div className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                    <Button variant="ghost" className="flex items-center space-x-1 sm:space-x-2 hover:bg-pink-100 px-2 sm:px-3">
+                      <div className="w-7 h-7 sm:w-8 sm:h-8 bg-gradient-to-r from-pink-500 to-fuchsia-600 rounded-full flex items-center justify-center">
                         <span className="text-white font-medium text-xs sm:text-sm">
                           {user.email.charAt(0).toUpperCase()}
                         </span>
@@ -260,13 +260,13 @@ export default function Navbar() {
                 <Button
                   variant="ghost"
                   onClick={() => handleNavigation('/login')}
-                  className="hidden sm:flex text-sm px-3 text-gray-700 hover:text-blue-600 hover:bg-blue-100"
+                  className="hidden sm:flex text-sm px-3 text-gray-700 hover:text-pink-600 hover:bg-pink-100"
                 >
                   {t('navbar.login')}
                 </Button>
                 <Button
                   onClick={() => handleAuthClick('register')}
-                  className="bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm px-2 sm:px-4 py-2 whitespace-nowrap min-w-fit"
+                  className="bg-gradient-to-r from-pink-500 to-fuchsia-500 hover:from-pink-600 hover:to-fuchsia-600 text-white text-xs sm:text-sm px-2 sm:px-4 py-2 whitespace-nowrap min-w-fit"
                 >
                   <span className="hidden xs:inline sm:inline">{t('navbar.register')}</span>
                   <span className="xs:hidden sm:hidden text-xs">{t('navbar.registerShort')}</span>
@@ -276,7 +276,7 @@ export default function Navbar() {
 
             {/* Menu Burger - Maintenant masqué sur mobile, la barre de navigation est en bas */}
             <div className="hidden md:flex">
-              <Button variant="ghost" size="sm" className="p-2 hover:bg-blue-100" onClick={() => setIsMobileMenuOpen(true)}>
+              <Button variant="ghost" size="sm" className="p-2 hover:bg-pink-100" onClick={() => setIsMobileMenuOpen(true)}>
                 <Menu className="w-6 h-6 text-gray-700" />
               </Button>
             </div>
@@ -300,15 +300,15 @@ export default function Navbar() {
           <div className="mobile-nav-swipe-indicator"></div>
 
           {/* Header avec recherche */}
-          <div className="px-4 py-3 border-b bg-gradient-to-r from-blue-50 to-purple-50">
+          <div className="px-4 py-3 border-b bg-gradient-to-r from-pink-50 to-purple-50">
             <div className="flex items-center space-x-3 mb-3">
-              <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-300 relative">
+              <div className="w-12 h-12 bg-gradient-to-r from-pink-500 to-fuchsia-500 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-300 relative">
                 <span className="text-white font-bold text-lg">S</span>
                 <div className="absolute top-1 right-2 w-1 h-1 bg-white rounded-full"></div>
                 <div className="absolute bottom-1 left-2 w-1 h-1 bg-white rounded-full"></div>
               </div>
               <div className="flex flex-col">
-                <span className="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent" data-testid="text-brand-mobile">
+                <span className="text-xl font-bold bg-gradient-to-r from-pink-500 to-fuchsia-500 bg-clip-text text-transparent" data-testid="text-brand-mobile">
                   {t('brand.name')}
                 </span>
                 <span className="text-xs font-bold tracking-wide leading-none mt-1">
@@ -332,7 +332,7 @@ export default function Navbar() {
                 }}
                 className="mobile-quick-action flex items-center space-x-2.5 bg-white rounded-lg p-2.5 shadow-sm hover:shadow-md transition-shadow"
               >
-                <Smartphone className="w-4 h-4 text-blue-600" />
+                <Smartphone className="w-4 h-4 text-pink-600" />
                 <span className="text-sm font-medium text-left">{t('mobile.feed')}</span>
               </button>
               <button
@@ -342,7 +342,7 @@ export default function Navbar() {
                 }}
                 className="mobile-quick-action flex items-center space-x-2.5 bg-white rounded-lg p-2.5 shadow-sm hover:shadow-md transition-shadow"
               >
-                <Users className="w-4 h-4 text-blue-600" />
+                <Users className="w-4 h-4 text-pink-600" />
                 <span className="text-sm font-medium text-left">{t('mobile.providers')}</span>
               </button>
               <button
@@ -352,7 +352,7 @@ export default function Navbar() {
                 }}
                 className="mobile-quick-action flex items-center space-x-2.5 bg-white rounded-lg p-2.5 shadow-sm hover:shadow-md transition-shadow"
               >
-                <Briefcase className="w-4 h-4 text-blue-600" />
+                <Briefcase className="w-4 h-4 text-pink-600" />
                 <span className="text-sm font-medium text-left">{t('mobile.services')}</span>
               </button>
 
@@ -363,7 +363,7 @@ export default function Navbar() {
                 }}
                 className="mobile-quick-action flex items-center space-x-2.5 bg-white rounded-lg p-2.5 shadow-sm hover:shadow-md transition-shadow"
               >
-                <Sparkles className="w-4 h-4 text-blue-600" />
+                <Sparkles className="w-4 h-4 text-pink-600" />
                 <span className="text-sm font-medium text-left">{t('mobile.concept')}</span>
               </button>
               <button
@@ -373,7 +373,7 @@ export default function Navbar() {
                 }}
                 className="mobile-quick-action flex items-center space-x-2.5 bg-white rounded-lg p-2.5 shadow-sm hover:shadow-md transition-shadow"
               >
-                <Target className="w-4 h-4 text-blue-600" />
+                <Target className="w-4 h-4 text-pink-600" />
                 <span className="text-sm font-medium text-left">{t('mobile.missions')}</span>
               </button>
               
@@ -415,7 +415,7 @@ export default function Navbar() {
                 setIsMobileMenuOpen(false);
               }}
               size="sm"
-              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+              className="w-full bg-gradient-to-r from-pink-500 to-fuchsia-500 hover:from-pink-600 hover:to-fuchsia-600"
             >
               <Plus className="w-4 h-4 mr-2" />
               {t('navbar.newMission')}
@@ -441,7 +441,7 @@ export default function Navbar() {
                     handleAuthClick('register');
                     setIsMobileMenuOpen(false);
                   }}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                  className="w-full bg-gradient-to-r from-pink-500 to-fuchsia-500 hover:from-pink-600 hover:to-fuchsia-600 text-white"
                 >
                   {t('navbar.register')}
                 </Button>
