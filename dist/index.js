@@ -2204,13 +2204,54 @@ router2.delete("/items/:id", async (req, res) => {
 router2.get("/users/:userId", async (req, res) => {
   try {
     const userId2 = parseInt(req.params.userId);
+    const [user] = await db2.select().from(users).where(eq2(users.id, userId2));
+    if (!user) {
+      return res.status(404).json({ error: "Utilisateur non trouv\xE9" });
+    }
     const items = await db2.select().from(fashionItems).where(
       and(
         eq2(fashionItems.user_id, userId2),
         eq2(fashionItems.is_public, true)
       )
     ).orderBy(desc(fashionItems.created_at));
-    res.json(items);
+    const { collections: collections2 } = await Promise.resolve().then(() => (init_schema(), schema_exports));
+    const userCollections = await db2.select().from(collections2).where(
+      and(
+        eq2(collections2.user_id, userId2),
+        eq2(collections2.is_public, true)
+      )
+    ).orderBy(desc(collections2.created_at));
+    res.json({
+      user: {
+        id: user.id,
+        name: user.name,
+        username: user.username || `@${user.name.toLowerCase().replace(/\s+/g, "")}`,
+        avatar: user.avatar_url,
+        bio: user.bio,
+        location: user.location,
+        styleTags: user.style_tags || [],
+        followersCount: user.followers_count || 0,
+        postsCount: user.posts_count || 0,
+        rating: 4.8,
+        isFollowing: false,
+        isVerified: user.is_verified || false
+      },
+      items: items.map((item) => ({
+        id: item.id,
+        name: item.name,
+        imageUrl: item.image_url,
+        category: item.category,
+        brand: item.brand,
+        color: item.color,
+        tags: item.tags
+      })),
+      collections: userCollections.map((col) => ({
+        id: col.id,
+        title: col.title,
+        coverImage: col.cover_image,
+        itemsCount: col.items?.length || 0
+      }))
+    });
   } catch (error) {
     console.error("Erreur r\xE9cup\xE9ration garde-robe publique:", error);
     res.status(500).json({ error: "Erreur serveur" });
