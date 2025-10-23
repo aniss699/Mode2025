@@ -14,7 +14,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Briefcase, Users, CheckCircle, ArrowRight, ArrowLeft, Sparkles, Target, Zap } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Users, Briefcase, Target, CheckCircle, Eye, Sparkles, Camera } from 'lucide-react';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -33,6 +34,11 @@ interface OnboardingData {
   experience?: string;
   budget?: string;
   goals?: string[];
+  style_preferences?: string[];
+  fashion_interests?: string[];
+  favorite_brands?: string[];
+  size_info?: { [key: string]: string };
+  bio?: string;
 }
 
 export function AuthModal({ isOpen, onClose, mode, onSwitchMode }: AuthModalProps) {
@@ -41,7 +47,7 @@ export function AuthModal({ isOpen, onClose, mode, onSwitchMode }: AuthModalProp
     email: '',
     password: '',
   });
-  
+
   // État pour l'onboarding
   const [onboardingStep, setOnboardingStep] = useState(0);
   const [onboardingData, setOnboardingData] = useState<OnboardingData>({
@@ -92,42 +98,44 @@ export function AuthModal({ isOpen, onClose, mode, onSwitchMode }: AuthModalProp
     setOnboardingStep(0);
   };
 
-  const nextStep = () => {
-    if (onboardingStep < getMaxSteps() - 1) {
+  const nextOnboardingStep = () => {
+    if (onboardingStep < totalOnboardingSteps() - 1) {
       setOnboardingStep(onboardingStep + 1);
     }
   };
 
-  const prevStep = () => {
+  const prevOnboardingStep = () => {
     if (onboardingStep > 0) {
       setOnboardingStep(onboardingStep - 1);
     }
   };
 
-  const getMaxSteps = () => {
-    return 3; // Simplifié : Rôle, Infos de base, Spécialisations/Entreprise
-  };
+  const totalOnboardingSteps = () => 3;
 
-  const updateOnboardingData = (field: keyof OnboardingData, value: any) => {
-    setOnboardingData(prev => ({ ...prev, [field]: value }));
+  const updateOnboardingData = (field: string, value: any) => {
+    setOnboardingData(prev => ({
+      ...prev,
+      [field]: value
+    }));
   };
 
   const completeOnboarding = () => {
-    const payload = {
+    const userData = {
       name: onboardingData.name,
       email: onboardingData.email,
       password: onboardingData.password,
-      role: onboardingData.role,
+      role: onboardingData.role === 'CLIENT' ? 'CLIENT' : 'PRO',
       profile_data: {
-        company: onboardingData.company,
-        specialties: onboardingData.specialties,
-        experience: onboardingData.experience,
-        budget: onboardingData.budget,
-        goals: onboardingData.goals,
+        style_preferences: onboardingData.style_preferences || [],
+        fashion_interests: onboardingData.fashion_interests || [],
+        favorite_brands: onboardingData.favorite_brands || [],
+        size_info: onboardingData.size_info || {},
+        bio: onboardingData.bio || '',
         onboarding_completed: true
       }
     };
-    registerMutation.mutate(payload);
+
+    registerMutation.mutate(userData);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -182,59 +190,76 @@ export function AuthModal({ isOpen, onClose, mode, onSwitchMode }: AuthModalProp
         return (
           <div className="space-y-6">
             <div className="text-center">
-              <Sparkles className="w-12 h-12 text-blue-600 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Bienvenue sur Swideal !</h3>
-              <p className="text-gray-600">Choisissez votre profil pour personnaliser votre expérience</p>
+              <Users className="w-12 h-12 text-pink-600 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                ✨ Bienvenue dans l'univers Swideal !
+              </h3>
+              <p className="text-gray-600">
+                Choisissez votre profil pour rejoindre la communauté mode
+              </p>
             </div>
-            
+
             <div className="grid grid-cols-1 gap-4">
-              <Card 
-                className={`cursor-pointer transition-all hover:shadow-lg ${onboardingData.role === 'CLIENT' ? 'ring-2 ring-blue-500 bg-blue-50' : ''}`}
+              <Card
+                className={`cursor-pointer transition-all hover:shadow-lg ${
+                  onboardingData.role === 'CLIENT' ? 'ring-2 ring-pink-500 bg-pink-50' : ''
+                }`}
                 onClick={() => updateOnboardingData('role', 'CLIENT')}
                 data-testid="role-client-card"
               >
                 <CardContent className="p-6 text-center">
-                  <Target className="w-8 h-8 text-blue-600 mx-auto mb-3" />
-                  <h4 className="font-semibold text-gray-900 mb-2">Je suis Client</h4>
-                  <p className="text-sm text-gray-600">Je cherche des prestataires pour mes projets</p>
+                  <Eye className="w-8 h-8 text-pink-600 mx-auto mb-3" />
+                  <h4 className="font-semibold text-gray-900 mb-2">🌟 Fashionista</h4>
+                  <p className="text-sm text-gray-600">
+                    Je veux découvrir et partager des looks incroyables
+                  </p>
                 </CardContent>
               </Card>
-              
-              <Card 
-                className={`cursor-pointer transition-all hover:shadow-lg ${onboardingData.role === 'PRO' ? 'ring-2 ring-purple-500 bg-purple-50' : ''}`}
+
+              <Card
+                className={`cursor-pointer transition-all hover:shadow-lg ${
+                  onboardingData.role === 'PRO' ? 'ring-2 ring-purple-500 bg-purple-50' : ''
+                }`}
                 onClick={() => updateOnboardingData('role', 'PRO')}
                 data-testid="role-pro-card"
               >
                 <CardContent className="p-6 text-center">
-                  <Zap className="w-8 h-8 text-purple-600 mx-auto mb-3" />
-                  <h4 className="font-semibold text-gray-900 mb-2">Je suis Prestataire</h4>
-                  <p className="text-sm text-gray-600">Je propose mes services aux clients</p>
+                  <Sparkles className="w-8 h-8 text-purple-600 mx-auto mb-3" />
+                  <h4 className="font-semibold text-gray-900 mb-2">👗 Créateur Mode</h4>
+                  <p className="text-sm text-gray-600">
+                    Je crée et partage mes inspirations mode
+                  </p>
                 </CardContent>
               </Card>
             </div>
           </div>
         );
-      
+
       case 1: // Informations de base
         return (
           <div className="space-y-6">
             <div className="text-center">
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Informations de base</h3>
-              <p className="text-gray-600">Créons votre profil {onboardingData.role === 'CLIENT' ? 'client' : 'prestataire'}</p>
+              <Camera className="w-12 h-12 text-pink-600 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                ✨ Créons ton profil mode
+              </h3>
+              <p className="text-gray-600">
+                {onboardingData.role === 'CLIENT' ? 'Deviens une fashionista connectée' : 'Partage ton style unique'}
+              </p>
             </div>
-            
+
             <div className="space-y-4">
               <div>
-                <Label htmlFor="name">Nom complet</Label>
+                <Label htmlFor="name">Ton nom ou pseudo</Label>
                 <Input
                   id="name"
                   value={onboardingData.name}
                   onChange={(e) => updateOnboardingData('name', e.target.value)}
-                  placeholder="Votre nom complet"
+                  placeholder="Comment veux-tu être appelé(e) ?"
                   data-testid="input-onboarding-name"
                 />
               </div>
-              
+
               <div>
                 <Label htmlFor="email">Email</Label>
                 <Input
@@ -242,11 +267,11 @@ export function AuthModal({ isOpen, onClose, mode, onSwitchMode }: AuthModalProp
                   type="email"
                   value={onboardingData.email}
                   onChange={(e) => updateOnboardingData('email', e.target.value)}
-                  placeholder="votre@email.com"
+                  placeholder="ton@email.com"
                   data-testid="input-onboarding-email"
                 />
               </div>
-              
+
               <div>
                 <Label htmlFor="password">Mot de passe</Label>
                 <Input
@@ -258,28 +283,74 @@ export function AuthModal({ isOpen, onClose, mode, onSwitchMode }: AuthModalProp
                   data-testid="input-onboarding-password"
                 />
               </div>
+
+              <div>
+                <Label htmlFor="bio">Bio (optionnel)</Label>
+                <Input
+                  id="bio"
+                  value={onboardingData.bio || ''}
+                  onChange={(e) => updateOnboardingData('bio', e.target.value)}
+                  placeholder="Décris ton style en quelques mots ✨"
+                  data-testid="input-onboarding-bio"
+                />
+              </div>
             </div>
           </div>
         );
-        
+
       case 2: // Finalisation
         return (
           <div className="space-y-6">
             <div className="text-center">
-              <CheckCircle className="w-12 h-12 text-green-600 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">Presque fini !</h3>
-              <p className="text-gray-600">Confirmez vos informations pour créer votre compte</p>
+              <Sparkles className="w-12 h-12 text-pink-600 mx-auto mb-4 animate-pulse" />
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                🎉 C'est presque fini !
+              </h3>
+              <p className="text-gray-600">
+                Tu vas rejoindre des milliers de passionnés de mode
+              </p>
             </div>
-            
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <h4 className="font-semibold mb-2">Récapitulatif</h4>
-              <p><strong>Nom :</strong> {onboardingData.name}</p>
-              <p><strong>Email :</strong> {onboardingData.email}</p>
-              <p><strong>Rôle :</strong> {onboardingData.role === 'CLIENT' ? 'Client' : 'Prestataire'}</p>
+
+            <div className="bg-gradient-to-br from-pink-50 to-purple-50 p-6 rounded-2xl border border-pink-200">
+              <h4 className="font-semibold mb-4 text-gray-900">✨ Récapitulatif de ton profil</h4>
+              <div className="space-y-2 text-sm">
+                <p className="flex items-center gap-2">
+                  <span className="font-medium">👤 Nom :</span> 
+                  <span className="text-gray-700">{onboardingData.name}</span>
+                </p>
+                <p className="flex items-center gap-2">
+                  <span className="font-medium">📧 Email :</span> 
+                  <span className="text-gray-700">{onboardingData.email}</span>
+                </p>
+                <p className="flex items-center gap-2">
+                  <span className="font-medium">✨ Type :</span> 
+                  <Badge className={onboardingData.role === 'CLIENT' ? 'bg-pink-500' : 'bg-purple-500'}>
+                    {onboardingData.role === 'CLIENT' ? '🌟 Fashionista' : '👗 Créateur Mode'}
+                  </Badge>
+                </p>
+                {onboardingData.bio && (
+                  <p className="flex items-start gap-2 mt-3 pt-3 border-t border-pink-200">
+                    <span className="font-medium">💭 Bio :</span> 
+                    <span className="text-gray-700 italic">{onboardingData.bio}</span>
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+              <p className="text-sm text-blue-800">
+                🎁 En créant ton compte, tu pourras :
+              </p>
+              <ul className="text-xs text-blue-700 mt-2 space-y-1 ml-4">
+                <li>✓ Créer et partager tes looks</li>
+                <li>✓ Suivre tes créateurs préférés</li>
+                <li>✓ Sauvegarder tes inspirations</li>
+                <li>✓ Rejoindre une communauté passionnée</li>
+              </ul>
             </div>
           </div>
         );
-        
+
       default:
         return null;
     }
@@ -293,35 +364,33 @@ export function AuthModal({ isOpen, onClose, mode, onSwitchMode }: AuthModalProp
           <DialogHeader>
             <DialogTitle>Créer un compte</DialogTitle>
             <DialogDescription>
-              Étape {onboardingStep + 1} sur {getMaxSteps()}
+              Étape {onboardingStep + 1} sur {totalOnboardingSteps()}
             </DialogDescription>
           </DialogHeader>
-          
-          <Progress value={(onboardingStep + 1) / getMaxSteps() * 100} className="mb-4" />
-          
+
+          <Progress value={(onboardingStep + 1) / totalOnboardingSteps() * 100} className="mb-4" />
+
           {renderOnboardingStep()}
-          
+
           <div className="flex justify-between pt-4">
-            <Button 
-              variant="outline" 
-              onClick={prevStep}
+            <Button
+              variant="outline"
+              onClick={prevOnboardingStep}
               disabled={onboardingStep === 0}
               data-testid="button-onboarding-prev"
             >
-              <ArrowLeft className="w-4 h-4 mr-2" />
               Précédent
             </Button>
-            
-            {onboardingStep < getMaxSteps() - 1 ? (
-              <Button 
-                onClick={nextStep}
+
+            {onboardingStep < totalOnboardingSteps() - 1 ? (
+              <Button
+                onClick={nextOnboardingStep}
                 data-testid="button-onboarding-next"
               >
                 Suivant
-                <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
             ) : (
-              <Button 
+              <Button
                 onClick={completeOnboarding}
                 disabled={registerMutation.isPending}
                 data-testid="button-onboarding-complete"
@@ -344,8 +413,8 @@ export function AuthModal({ isOpen, onClose, mode, onSwitchMode }: AuthModalProp
             {mode === 'login' ? 'Connexion' : 'Créer un compte'}
           </DialogTitle>
           <DialogDescription>
-            {mode === 'login' 
-              ? 'Connectez-vous à votre compte Swideal' 
+            {mode === 'login'
+              ? 'Connectez-vous à votre compte Swideal'
               : 'Rejoignez la communauté Swideal'
             }
           </DialogDescription>
@@ -378,8 +447,8 @@ export function AuthModal({ isOpen, onClose, mode, onSwitchMode }: AuthModalProp
             />
           </div>
 
-          <Button 
-            type="submit" 
+          <Button
+            type="submit"
             className="w-full"
             disabled={loginSubmit.isSubmitting}
             data-testid="button-auth-submit"
