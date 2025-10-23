@@ -172,102 +172,42 @@ router.get('/demo-providers', async (req, res) => {
   }
 });
 
-// Get all demo projects
+// LEGACY ROUTES - Désactivées pour la transition vers réseau social mode
+// Ces routes utilisent l'ancien schéma missions/bids qui n'existe plus
+
+// Get all demo projects - DISABLED (legacy)
 router.get('/demo-projects', async (req, res) => {
   try {
-    const projectsWithClients = await db
-      .select({
-        id: users.id,
-        title: users.name,
-        description: users.email,
-        budget: users.role,
-        category: users.rating_mean,
-        quality_target: users.rating_count,
-        status: users.profile_data,
-        created_at: users.created_at,
-        client_name: users.name,
-        client_email: users.email
-      })
-      .from(users)
-      .leftJoin(users, eq(users.id, users.id));
-
-    res.json({ projects: projectsWithClients });
+    res.json({ projects: [], message: 'Legacy route - use /api/feed for looks instead' });
   } catch (error) {
     console.error('Erreur get demo projects:', error);
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
 
-// Get all demo bids with project and provider info
+// Get all demo bids - DISABLED (legacy)
 router.get('/demo-bids', async (req, res) => {
   try {
-    const bidsWithInfo = await db
-      .select({
-        id: bids.id,
-        amount: bids.amount,
-        timeline_days: bids.timeline_days,
-        message: bids.message,
-        score_breakdown: bids.score_breakdown,
-        is_leading: bids.is_leading,
-        created_at: bids.created_at,
-        project_title: users.name,
-        project_budget: users.email,
-        provider_name: users.name,
-        provider_email: users.email,
-        provider_profile: users.profile_data
-      })
-      .from(bids)
-      .leftJoin(users, eq(bids.project_id, users.id))
-      .leftJoin(users, eq(bids.provider_id, users.id));
-
-    res.json({ bids: bidsWithInfo });
+    res.json({ bids: [], message: 'Legacy route - use /api/social/comments for comments instead' });
   } catch (error) {
     console.error('Erreur get demo bids:', error);
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
 
-// Get provider profile by ID
+// Get provider profile - DISABLED (legacy)
 router.get('/provider/:id', async (req, res) => {
   try {
     const providerId = parseInt(req.params.id);
-
     const provider = await db.select().from(users).where(eq(users.id, providerId)).limit(1);
 
     if (provider.length === 0) {
-      return res.status(404).json({ error: 'Prestataire non trouvé' });
+      return res.status(404).json({ error: 'Utilisateur non trouvé' });
     }
 
-    const providerData = provider[0];
-
-    // Get provider's bids
-    const providerBids = await db
-      .select({
-        id: bids.id,
-        amount: bids.amount,
-        timeline_days: bids.timeline_days,
-        message: bids.message,
-        is_leading: bids.is_leading,
-        created_at: bids.created_at,
-        project_title: users.name,
-        project_budget: users.email
-      })
-      .from(bids)
-      .leftJoin(users, eq(bids.project_id, users.id))
-      .where(eq(bids.provider_id, providerId));
-
     res.json({ 
-      provider: {
-        id: providerData.id,
-        email: providerData.email,
-        name: providerData.name,
-        role: providerData.role,
-        rating_mean: providerData.rating_mean,
-        rating_count: providerData.rating_count,
-        profile_data: providerData.profile_data,
-        created_at: providerData.created_at,
-        bids: providerBids
-      }
+      provider: provider[0],
+      message: 'Legacy route - use /api/profile/:id instead'
     });
 
   } catch (error) {
@@ -276,51 +216,16 @@ router.get('/provider/:id', async (req, res) => {
   }
 });
 
-// Get AI analysis demo data
+// Get AI analysis - DISABLED (legacy)
 router.get('/ai-analysis-demo', async (req, res) => {
   try {
-    const recentProjects = await db.select({
-      id: users.id,
-      title: users.name,
-      description: users.email,
-      budget: users.role,
-      category: users.rating_mean,
-      created_at: users.created_at
-    })
-    .from(users)
-    .limit(3);
-
-    const recentBids = await db.select({
-      id: bids.id,
-      amount: bids.amount,
-      timeline_days: bids.timeline_days,
-      score_breakdown: bids.score_breakdown,
-      created_at: bids.created_at
-    })
-    .from(bids)
-    .limit(5);
-
-    // Generate AI analysis data based on real projects
-    const aiAnalysis = {
-      totalProjects: recentProjects.length,
-      totalBids: recentBids.length,
-      averageProjectBudget: recentProjects.reduce((sum, p) => {
-        const budgetRange = p.budget?.split('-') || ['0'];
-        const avgBudget = budgetRange.length > 1 
-          ? (parseInt(budgetRange[0]) + parseInt(budgetRange[1])) / 2
-          : parseInt(budgetRange[0]) || 0;
-        return sum + avgBudget;
-      }, 0) / recentProjects.length || 0,
-      popularCategories: Array.from(new Set(recentProjects.map(p => p.category))),
-      averageBidAmount: recentBids.reduce((sum, b) => sum + parseFloat(b.amount || '0'), 0) / recentBids.length || 0,
-      successRate: 0.87,
-      timeToMatch: 2.3, // days
-      projects: recentProjects,
-      bids: recentBids
-    };
-
-    res.json({ analysis: aiAnalysis });
-
+    res.json({ 
+      analysis: {
+        message: 'Legacy route disabled',
+        totalProjects: 0,
+        totalBids: 0
+      } 
+    });
   } catch (error) {
     console.error('Erreur get AI analysis:', error);
     res.status(500).json({ error: 'Erreur serveur' });

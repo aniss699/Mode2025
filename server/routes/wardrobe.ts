@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { db } from '../db';
-import { wardrobeItems, users } from '../../shared/schema';
+import { fashionItems as wardrobeItems, users } from '../../shared/schema';
 import { eq, and, desc } from 'drizzle-orm';
 import multer from 'multer';
 import path from 'path';
@@ -41,8 +41,8 @@ router.get('/items', async (req, res) => {
 
     const items = await db.select()
       .from(wardrobeItems)
-      .where(eq(wardrobeItems.userId, req.user.id))
-      .orderBy(desc(wardrobeItems.createdAt));
+      .where(eq(wardrobeItems.user_id, req.user.id))
+      .orderBy(desc(wardrobeItems.created_at));
 
     res.json(items);
   } catch (error) {
@@ -65,16 +65,11 @@ router.get('/items/:id', async (req, res) => {
     }
 
     // Vérifier visibilité
-    if (!item.isPublic && item.userId !== req.user?.id) {
+    if (!item.is_public && item.user_id !== req.user?.id) {
       return res.status(403).json({ error: 'Accès interdit' });
     }
 
-    // Incrémenter vues
-    await db.update(wardrobeItems)
-      .set({ viewsCount: item.viewsCount + 1 })
-      .where(eq(wardrobeItems.id, itemId));
-
-    res.json({ ...item, viewsCount: item.viewsCount + 1 });
+    res.json(item);
   } catch (error) {
     console.error('Erreur détails item:', error);
     res.status(500).json({ error: 'Erreur serveur' });
@@ -93,49 +88,40 @@ router.post('/items', upload.single('image'), async (req, res) => {
     }
 
     const {
-      name,
+      title,
       description,
       category,
-      subcategory,
+      sub_category,
       brand,
       color,
       size,
-      material,
       season,
-      purchaseDate,
-      purchasePrice,
-      purchaseLocation,
+      occasion,
+      purchase_date,
+      price,
       tags,
-      condition,
-      isPublic
+      is_public
     } = req.body;
 
     const imageUrl = `/uploads/wardrobe/${req.file.filename}`;
 
     const [item] = await db.insert(wardrobeItems).values({
-      userId: req.user.id,
-      name,
-      description,
+      user_id: req.user.id,
+      title: title || 'Nouvel article',
+      description: description || null,
+      images: [imageUrl],
       category,
-      subcategory,
-      brand,
-      color: color ? JSON.parse(color) : null,
-      size,
-      material,
-      season,
-      imageUrl,
-      purchaseDate: purchaseDate ? new Date(purchaseDate) : null,
-      purchasePrice,
-      purchaseLocation,
-      tags: tags ? JSON.parse(tags) : null,
-      condition: condition || 'good',
-      isPublic: isPublic !== 'false',
+      sub_category: sub_category || null,
+      brand: brand || null,
+      color: color || null,
+      size: size || null,
+      season: season || null,
+      occasion: occasion || null,
+      purchase_date: purchase_date ? new Date(purchase_date) : null,
+      price: price ? parseInt(price) : null,
+      tags: tags ? (typeof tags === 'string' ? JSON.parse(tags) : tags) : [],
+      is_public: is_public !== 'false' && is_public !== false,
     }).returning();
-
-    // Incrémenter compteur user
-    await db.update(users)
-      .set({ wardrobeItemsCount: db.raw('wardrobe_items_count + 1') })
-      .where(eq(users.id, req.user.id));
 
     res.status(201).json(item);
   } catch (error) {
@@ -161,22 +147,33 @@ router.put('/items/:id', upload.single('image'), async (req, res) => {
       return res.status(404).json({ error: 'Item non trouvé' });
     }
 
-    if (existingItem.userId !== req.user.id) {
+    if (existingItem.user_id !== req.user.id) {
       return res.status(403).json({ error: 'Non autorisé' });
     }
 
     const updates: any = {
-      ...req.body,
-      updatedAt: new Date(),
+      updated_at: new Date(),
     };
 
-    if (req.file) {
-      updates.imageUrl = `/uploads/wardrobe/${req.file.filename}`;
+    // Update fields if provided
+    if (req.body.title !== undefined) updates.title = req.body.title;
+    if (req.body.description !== undefined) updates.description = req.body.description;
+    if (req.body.category !== undefined) updates.category = req.body.category;
+    if (req.body.sub_category !== undefined) updates.sub_category = req.body.sub_category;
+    if (req.body.brand !== undefined) updates.brand = req.body.brand;
+    if (req.body.color !== undefined) updates.color = req.body.color;
+    if (req.body.size !== undefined) updates.size = req.body.size;
+    if (req.body.season !== undefined) updates.season = req.body.season;
+    if (req.body.occasion !== undefined) updates.occasion = req.body.occasion;
+    if (req.body.is_public !== undefined) updates.is_public = req.body.is_public;
+    if (req.body.tags !== undefined) {
+      updates.tags = typeof req.body.tags === 'string' ? JSON.parse(req.body.tags) : req.body.tags;
     }
 
-    // Parser JSON fields
-    if (updates.color) updates.color = JSON.parse(updates.color);
-    if (updates.tags) updates.tags = JSON.parse(updates.tags);
+    if (req.file) {
+      const imageUrl = `/uploads/wardrobe/${req.file.filename}`;
+      updates.images = [...(existingItem.images || []), imageUrl];
+    }
 
     const [updatedItem] = await db.update(wardrobeItems)
       .set(updates)
@@ -207,17 +204,12 @@ router.delete('/items/:id', async (req, res) => {
       return res.status(404).json({ error: 'Item non trouvé' });
     }
 
-    if (item.userId !== req.user.id) {
+    if (item.user_id !== req.user.id) {
       return res.status(403).json({ error: 'Non autorisé' });
     }
 
     await db.delete(wardrobeItems)
       .where(eq(wardrobeItems.id, itemId));
-
-    // Décrémenter compteur user
-    await db.update(users)
-      .set({ wardrobeItemsCount: db.raw('wardrobe_items_count - 1') })
-      .where(eq(users.id, req.user.id));
 
     res.json({ success: true });
   } catch (error) {
@@ -235,11 +227,11 @@ router.get('/users/:userId', async (req, res) => {
       .from(wardrobeItems)
       .where(
         and(
-          eq(wardrobeItems.userId, userId),
-          eq(wardrobeItems.isPublic, true)
+          eq(wardrobeItems.user_id, userId),
+          eq(wardrobeItems.is_public, true)
         )
       )
-      .orderBy(desc(wardrobeItems.createdAt));
+      .orderBy(desc(wardrobeItems.created_at));
 
     res.json(items);
   } catch (error) {
