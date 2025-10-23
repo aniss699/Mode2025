@@ -79,7 +79,11 @@ import {
   jsonb,
   unique
 } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
+function numeric(name, config) {
+  return decimal(name, config);
+}
 var users, follows, fashionItems, looks, lookItems, collections, collectionLooks, likes, comments, savedLooks, notifications, conversations, messages, files, userSettings, usersRelations, fashionItemsRelations, looksRelations, lookItemsRelations, collectionsRelations, collectionLooksRelations, likesRelations, commentsRelations, savedLooksRelations, followsRelations, notificationsRelations, conversationsRelations, messagesRelations, filesRelations, userSettingsRelations, insertUserSchema, insertFashionItemSchema, insertLookSchema, insertCollectionSchema, insertCommentSchema, insertMessageSchema, openTeams, feedFeedback, feedSeen, favorites, announcements, insertOpenTeamSchema, insertFeedFeedbackSchema, wardrobeItems, missions, bids, outfitsTable, outfitLikesTable, outfitCommentsTable;
 var init_schema = __esm({
   "shared/schema.ts"() {
@@ -89,19 +93,26 @@ var init_schema = __esm({
       email: text("email").notNull().unique(),
       name: text("name").notNull(),
       password: text("password").notNull(),
+      role: text("role").notNull().default("CLIENT"),
+      // CLIENT ou PRO
       username: text("username").unique(),
       // Nom d'utilisateur unique pour le réseau social
       avatar_url: text("avatar_url"),
       bio: text("bio"),
       // Style et préférences mode
-      style_tags: text("style_tags").array().default([]),
+      style_tags: text("style_tags").array().default(sql`ARRAY[]::text[]`),
       // ["minimalist", "vintage", "streetwear"]
-      favorite_colors: text("favorite_colors").array().default([]),
-      favorite_brands: text("favorite_brands").array().default([]),
+      favorite_colors: text("favorite_colors").array().default(sql`ARRAY[]::text[]`),
+      favorite_brands: text("favorite_brands").array().default(sql`ARRAY[]::text[]`),
       // Statistiques
       followers_count: integer("followers_count").default(0),
       following_count: integer("following_count").default(0),
       posts_count: integer("posts_count").default(0),
+      // Données de profil JSON
+      profile_data: jsonb("profile_data").default(sql`'{}'::jsonb`),
+      // Reputation (pour compatibilité)
+      rating_mean: numeric("rating_mean", { precision: 3, scale: 2 }),
+      rating_count: integer("rating_count").default(0),
       // Paramètres
       is_private: boolean("is_private").default(false),
       // Profil privé
@@ -464,7 +475,10 @@ var init_schema = __esm({
       updated_at: true,
       followers_count: true,
       following_count: true,
-      posts_count: true
+      posts_count: true,
+      profile_data: true,
+      rating_mean: true,
+      rating_count: true
     });
     insertFashionItemSchema = createInsertSchema(fashionItems).omit({
       id: true,
@@ -587,10 +601,21 @@ async function initializeDatabase() {
         email TEXT NOT NULL UNIQUE,
         name TEXT NOT NULL,
         password TEXT NOT NULL,
-        role TEXT NOT NULL,
+        role TEXT NOT NULL DEFAULT 'CLIENT',
+        username TEXT UNIQUE,
+        avatar_url TEXT,
+        bio TEXT,
+        style_tags TEXT[] DEFAULT ARRAY[]::TEXT[],
+        favorite_colors TEXT[] DEFAULT ARRAY[]::TEXT[],
+        favorite_brands TEXT[] DEFAULT ARRAY[]::TEXT[],
+        followers_count INTEGER DEFAULT 0,
+        following_count INTEGER DEFAULT 0,
+        posts_count INTEGER DEFAULT 0,
+        profile_data JSONB DEFAULT '{}'::jsonb,
         rating_mean DECIMAL(3, 2),
         rating_count INTEGER DEFAULT 0,
-        profile_data JSONB,
+        is_private BOOLEAN DEFAULT false,
+        is_verified BOOLEAN DEFAULT false,
         created_at TIMESTAMP DEFAULT NOW(),
         updated_at TIMESTAMP DEFAULT NOW()
       );
@@ -805,7 +830,7 @@ var init_database = __esm({
 // vite.config.ts
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
-import path3 from "path";
+import path4 from "path";
 var vite_config_default;
 var init_vite_config = __esm({
   "vite.config.ts"() {
@@ -817,14 +842,14 @@ var init_vite_config = __esm({
       base: "/",
       resolve: {
         alias: {
-          "@": path3.resolve(import.meta.dirname, "client", "src"),
-          "@shared": path3.resolve(import.meta.dirname, "shared"),
-          "@assets": path3.resolve(import.meta.dirname, "attached_assets")
+          "@": path4.resolve(import.meta.dirname, "client", "src"),
+          "@shared": path4.resolve(import.meta.dirname, "shared"),
+          "@assets": path4.resolve(import.meta.dirname, "attached_assets")
         }
       },
-      root: path3.resolve(import.meta.dirname, "client"),
+      root: path4.resolve(import.meta.dirname, "client"),
       build: {
-        outDir: path3.resolve(import.meta.dirname, "dist"),
+        outDir: path4.resolve(import.meta.dirname, "dist"),
         emptyOutDir: true,
         sourcemap: false,
         rollupOptions: {
@@ -863,7 +888,7 @@ __export(vite_exports, {
 });
 import express6 from "express";
 import fs2 from "fs";
-import path4 from "path";
+import path5 from "path";
 import { createServer as createViteServer, createLogger } from "vite";
 import { nanoid } from "nanoid";
 function log(message, source = "express") {
@@ -902,7 +927,7 @@ async function setupVite(app2, server) {
       return next();
     }
     try {
-      const clientTemplate = path4.resolve(
+      const clientTemplate = path5.resolve(
         import.meta.dirname,
         "..",
         "client",
@@ -927,7 +952,7 @@ async function setupVite(app2, server) {
   });
 }
 function serveStatic(app2) {
-  const distPath = path4.resolve(import.meta.dirname, "..", "dist");
+  const distPath = path5.resolve(import.meta.dirname, "..", "dist");
   if (!fs2.existsSync(distPath)) {
     throw new Error(
       `Could not find the build directory: ${distPath}, make sure to build the client first`
@@ -935,7 +960,7 @@ function serveStatic(app2) {
   }
   app2.use(express6.static(distPath));
   app2.use("*", (_req, res) => {
-    res.sendFile(path4.resolve(distPath, "index.html"));
+    res.sendFile(path5.resolve(distPath, "index.html"));
   });
 }
 var viteLogger;
@@ -1136,14 +1161,14 @@ var ai_exports = {};
 __export(ai_exports, {
   default: () => ai_default
 });
-import { Router as Router13 } from "express";
-var router18, ai_default;
+import { Router as Router15 } from "express";
+var router20, ai_default;
 var init_ai = __esm({
   "apps/api/src/routes/ai.ts"() {
     "use strict";
     init_AIOrchestrator();
-    router18 = Router13();
-    router18.post("/pricing", async (req, res) => {
+    router20 = Router15();
+    router20.post("/pricing", async (req, res) => {
       try {
         const result = await getPricingSuggestion(req.body);
         res.json(result);
@@ -1152,7 +1177,7 @@ var init_ai = __esm({
         res.status(500).json({ error: "Erreur lors du calcul de prix" });
       }
     });
-    router18.post("/brief", async (req, res) => {
+    router20.post("/brief", async (req, res) => {
       try {
         const result = await enhanceBrief(req.body);
         res.json(result);
@@ -1161,7 +1186,7 @@ var init_ai = __esm({
         res.status(500).json({ error: "Erreur lors de l'am\xE9lioration du brief" });
       }
     });
-    router18.post("/feedback", async (req, res) => {
+    router20.post("/feedback", async (req, res) => {
       try {
         const { phase, prompt, feedback } = req.body;
         await logUserFeedback(phase, prompt, feedback);
@@ -1171,7 +1196,7 @@ var init_ai = __esm({
         res.status(500).json({ error: "Erreur lors de l'enregistrement du feedback" });
       }
     });
-    ai_default = router18;
+    ai_default = router20;
   }
 });
 
@@ -1496,7 +1521,7 @@ var init_event_logger = __esm({
 
 // server/index.ts
 import express7 from "express";
-import path5 from "path";
+import path6 from "path";
 import { fileURLToPath } from "url";
 import { createServer } from "http";
 
@@ -1642,7 +1667,7 @@ init_schema();
 import express from "express";
 import { Pool } from "pg";
 import { drizzle } from "drizzle-orm/node-postgres";
-import { eq, sql } from "drizzle-orm";
+import { eq, sql as sql2 } from "drizzle-orm";
 var pool = new Pool({ connectionString: process.env.DATABASE_URL });
 var db = drizzle(pool);
 var router = express.Router();
@@ -1695,12 +1720,20 @@ router.post("/login", async (req, res) => {
 });
 router.post("/register", async (req, res) => {
   try {
-    console.log("\u{1F4DD} Tentative de cr\xE9ation de compte:", { email: req.body.email, name: req.body.name });
-    const { email, password, name, role = "CLIENT" } = req.body;
+    console.log("\u{1F4DD} Tentative de cr\xE9ation de compte:", { email: req.body.email, name: req.body.name, role: req.body.role });
+    const { email, password, name, role = "CLIENT", profile_data = {} } = req.body;
     if (!email || !password) {
       console.log("\u274C Email ou mot de passe manquant");
       return res.status(400).json({
         error: "Email et mot de passe requis",
+        success: false
+      });
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      console.log("\u274C Format email invalide:", email);
+      return res.status(400).json({
+        error: "Format email invalide",
         success: false
       });
     }
@@ -1718,7 +1751,16 @@ router.post("/register", async (req, res) => {
         success: false
       });
     }
-    const existingUser = await db.select().from(users).where(eq(users.email, email)).limit(1);
+    const validRoles = ["CLIENT", "PRO", "ADMIN"];
+    const normalizedRole = role.toUpperCase();
+    if (!validRoles.includes(normalizedRole)) {
+      console.log("\u274C R\xF4le invalide:", role);
+      return res.status(400).json({
+        error: "R\xF4le invalide. Doit \xEAtre CLIENT, PRO ou ADMIN",
+        success: false
+      });
+    }
+    const existingUser = await db.select().from(users).where(eq(users.email, email.toLowerCase().trim())).limit(1);
     if (existingUser.length > 0) {
       console.log("\u274C Email d\xE9j\xE0 utilis\xE9:", email);
       return res.status(409).json({
@@ -1726,13 +1768,39 @@ router.post("/register", async (req, res) => {
         success: false
       });
     }
+    const defaultProfileData = normalizedRole === "PRO" ? {
+      bio: profile_data.bio || "",
+      created_via: "onboarding_flow",
+      onboarding_completed: true,
+      ...profile_data
+    } : {
+      bio: profile_data.bio || "",
+      style_preferences: profile_data.style_preferences || [],
+      fashion_interests: profile_data.fashion_interests || [],
+      favorite_brands: profile_data.favorite_brands || [],
+      size_info: profile_data.size_info || {},
+      created_via: "onboarding_flow",
+      onboarding_completed: true,
+      ...profile_data
+    };
     const [newUser] = await db.insert(users).values({
       email: email.toLowerCase().trim(),
       password,
       // En production, hasher avec bcrypt
       name: name.trim(),
-      role: role.toUpperCase(),
-      profile_data: {},
+      role: normalizedRole,
+      bio: defaultProfileData.bio,
+      profile_data: defaultProfileData,
+      rating_mean: null,
+      rating_count: 0,
+      style_tags: [],
+      favorite_colors: [],
+      favorite_brands: profile_data.favorite_brands || [],
+      followers_count: 0,
+      following_count: 0,
+      posts_count: 0,
+      is_private: false,
+      is_verified: false,
       created_at: /* @__PURE__ */ new Date(),
       updated_at: /* @__PURE__ */ new Date()
     }).returning();
@@ -1807,7 +1875,7 @@ router.get("/demo-accounts/verify", async (req, res) => {
       name: users.name,
       role: users.role,
       created_at: users.created_at
-    }).from(users).where(sql`${users.email} = ANY(${demoEmails})`);
+    }).from(users).where(sql2`${users.email} = ANY(${demoEmails})`);
     const accountsStatus = {
       client: demoAccounts.find((u) => u.email === "demo@swideal.com"),
       provider: demoAccounts.find((u) => u.email === "prestataire@swideal.com"),
@@ -1837,7 +1905,7 @@ router.get("/debug/demo-accounts", async (req, res) => {
       role: users.role,
       created_at: users.created_at
     }).from(users);
-    const demoUsers = await db.select().from(users).where(sql`${users.email} IN ('demo@swideal.com', 'prestataire@swideal.com', 'admin@swideal.com')`);
+    const demoUsers = await db.select().from(users).where(sql2`${users.email} IN ('demo@swideal.com', 'prestataire@swideal.com', 'admin@swideal.com')`);
     res.json({
       debug: true,
       timestamp: (/* @__PURE__ */ new Date()).toISOString(),
@@ -2003,7 +2071,7 @@ router2.get("/items", async (req, res) => {
     if (!req.user?.id) {
       return res.status(401).json({ error: "Non authentifi\xE9" });
     }
-    const items = await db2.select().from(wardrobeItems).where(eq2(wardrobeItems.userId, req.user.id)).orderBy(desc(wardrobeItems.createdAt));
+    const items = await db2.select().from(fashionItems).where(eq2(fashionItems.user_id, req.user.id)).orderBy(desc(fashionItems.created_at));
     res.json(items);
   } catch (error) {
     console.error("Erreur r\xE9cup\xE9ration garde-robe:", error);
@@ -2013,15 +2081,14 @@ router2.get("/items", async (req, res) => {
 router2.get("/items/:id", async (req, res) => {
   try {
     const itemId = parseInt(req.params.id);
-    const [item] = await db2.select().from(wardrobeItems).where(eq2(wardrobeItems.id, itemId));
+    const [item] = await db2.select().from(fashionItems).where(eq2(fashionItems.id, itemId));
     if (!item) {
       return res.status(404).json({ error: "Item non trouv\xE9" });
     }
-    if (!item.isPublic && item.userId !== req.user?.id) {
+    if (!item.is_public && item.user_id !== req.user?.id) {
       return res.status(403).json({ error: "Acc\xE8s interdit" });
     }
-    await db2.update(wardrobeItems).set({ viewsCount: item.viewsCount + 1 }).where(eq2(wardrobeItems.id, itemId));
-    res.json({ ...item, viewsCount: item.viewsCount + 1 });
+    res.json(item);
   } catch (error) {
     console.error("Erreur d\xE9tails item:", error);
     res.status(500).json({ error: "Erreur serveur" });
@@ -2036,43 +2103,38 @@ router2.post("/items", upload.single("image"), async (req, res) => {
       return res.status(400).json({ error: "Image requise" });
     }
     const {
-      name,
+      title,
       description,
       category,
-      subcategory,
+      sub_category,
       brand,
       color,
       size,
-      material,
       season,
-      purchaseDate,
-      purchasePrice,
-      purchaseLocation,
+      occasion,
+      purchase_date,
+      price,
       tags,
-      condition,
-      isPublic
+      is_public
     } = req.body;
     const imageUrl = `/uploads/wardrobe/${req.file.filename}`;
-    const [item] = await db2.insert(wardrobeItems).values({
-      userId: req.user.id,
-      name,
-      description,
+    const [item] = await db2.insert(fashionItems).values({
+      user_id: req.user.id,
+      title: title || "Nouvel article",
+      description: description || null,
+      images: [imageUrl],
       category,
-      subcategory,
-      brand,
-      color: color ? JSON.parse(color) : null,
-      size,
-      material,
-      season,
-      imageUrl,
-      purchaseDate: purchaseDate ? new Date(purchaseDate) : null,
-      purchasePrice,
-      purchaseLocation,
-      tags: tags ? JSON.parse(tags) : null,
-      condition: condition || "good",
-      isPublic: isPublic !== "false"
+      sub_category: sub_category || null,
+      brand: brand || null,
+      color: color || null,
+      size: size || null,
+      season: season || null,
+      occasion: occasion || null,
+      purchase_date: purchase_date ? new Date(purchase_date) : null,
+      price: price ? parseInt(price) : null,
+      tags: tags ? typeof tags === "string" ? JSON.parse(tags) : tags : [],
+      is_public: is_public !== "false" && is_public !== false
     }).returning();
-    await db2.update(users).set({ wardrobeItemsCount: db2.raw("wardrobe_items_count + 1") }).where(eq2(users.id, req.user.id));
     res.status(201).json(item);
   } catch (error) {
     console.error("Erreur cr\xE9ation item:", error);
@@ -2085,23 +2147,34 @@ router2.put("/items/:id", upload.single("image"), async (req, res) => {
       return res.status(401).json({ error: "Non authentifi\xE9" });
     }
     const itemId = parseInt(req.params.id);
-    const [existingItem] = await db2.select().from(wardrobeItems).where(eq2(wardrobeItems.id, itemId));
+    const [existingItem] = await db2.select().from(fashionItems).where(eq2(fashionItems.id, itemId));
     if (!existingItem) {
       return res.status(404).json({ error: "Item non trouv\xE9" });
     }
-    if (existingItem.userId !== req.user.id) {
+    if (existingItem.user_id !== req.user.id) {
       return res.status(403).json({ error: "Non autoris\xE9" });
     }
     const updates = {
-      ...req.body,
-      updatedAt: /* @__PURE__ */ new Date()
+      updated_at: /* @__PURE__ */ new Date()
     };
-    if (req.file) {
-      updates.imageUrl = `/uploads/wardrobe/${req.file.filename}`;
+    if (req.body.title !== void 0) updates.title = req.body.title;
+    if (req.body.description !== void 0) updates.description = req.body.description;
+    if (req.body.category !== void 0) updates.category = req.body.category;
+    if (req.body.sub_category !== void 0) updates.sub_category = req.body.sub_category;
+    if (req.body.brand !== void 0) updates.brand = req.body.brand;
+    if (req.body.color !== void 0) updates.color = req.body.color;
+    if (req.body.size !== void 0) updates.size = req.body.size;
+    if (req.body.season !== void 0) updates.season = req.body.season;
+    if (req.body.occasion !== void 0) updates.occasion = req.body.occasion;
+    if (req.body.is_public !== void 0) updates.is_public = req.body.is_public;
+    if (req.body.tags !== void 0) {
+      updates.tags = typeof req.body.tags === "string" ? JSON.parse(req.body.tags) : req.body.tags;
     }
-    if (updates.color) updates.color = JSON.parse(updates.color);
-    if (updates.tags) updates.tags = JSON.parse(updates.tags);
-    const [updatedItem] = await db2.update(wardrobeItems).set(updates).where(eq2(wardrobeItems.id, itemId)).returning();
+    if (req.file) {
+      const imageUrl = `/uploads/wardrobe/${req.file.filename}`;
+      updates.images = [...existingItem.images || [], imageUrl];
+    }
+    const [updatedItem] = await db2.update(fashionItems).set(updates).where(eq2(fashionItems.id, itemId)).returning();
     res.json(updatedItem);
   } catch (error) {
     console.error("Erreur modification item:", error);
@@ -2114,15 +2187,14 @@ router2.delete("/items/:id", async (req, res) => {
       return res.status(401).json({ error: "Non authentifi\xE9" });
     }
     const itemId = parseInt(req.params.id);
-    const [item] = await db2.select().from(wardrobeItems).where(eq2(wardrobeItems.id, itemId));
+    const [item] = await db2.select().from(fashionItems).where(eq2(fashionItems.id, itemId));
     if (!item) {
       return res.status(404).json({ error: "Item non trouv\xE9" });
     }
-    if (item.userId !== req.user.id) {
+    if (item.user_id !== req.user.id) {
       return res.status(403).json({ error: "Non autoris\xE9" });
     }
-    await db2.delete(wardrobeItems).where(eq2(wardrobeItems.id, itemId));
-    await db2.update(users).set({ wardrobeItemsCount: db2.raw("wardrobe_items_count - 1") }).where(eq2(users.id, req.user.id));
+    await db2.delete(fashionItems).where(eq2(fashionItems.id, itemId));
     res.json({ success: true });
   } catch (error) {
     console.error("Erreur suppression item:", error);
@@ -2132,12 +2204,12 @@ router2.delete("/items/:id", async (req, res) => {
 router2.get("/users/:userId", async (req, res) => {
   try {
     const userId2 = parseInt(req.params.userId);
-    const items = await db2.select().from(wardrobeItems).where(
+    const items = await db2.select().from(fashionItems).where(
       and(
-        eq2(wardrobeItems.userId, userId2),
-        eq2(wardrobeItems.isPublic, true)
+        eq2(fashionItems.user_id, userId2),
+        eq2(fashionItems.is_public, true)
       )
-    ).orderBy(desc(wardrobeItems.createdAt));
+    ).orderBy(desc(fashionItems.created_at));
     res.json(items);
   } catch (error) {
     console.error("Erreur r\xE9cup\xE9ration garde-robe publique:", error);
@@ -2150,7 +2222,7 @@ var wardrobe_default = router2;
 init_database();
 init_schema();
 import { Router as Router2 } from "express";
-import { eq as eq3, desc as desc2, sql as sql2 } from "drizzle-orm";
+import { eq as eq3, desc as desc2, sql as sql3 } from "drizzle-orm";
 import { randomUUID } from "crypto";
 
 // server/dto/mission-dto.ts
@@ -2739,7 +2811,7 @@ router3.get("/health", asyncHandler(async (req, res) => {
   const startTime = Date.now();
   console.log("\u{1F3E5} Mission health check endpoint called");
   try {
-    const dbTest = await db2.select({ count: sql2`COUNT(*)` }).from(missions).limit(1);
+    const dbTest = await db2.select({ count: sql3`COUNT(*)` }).from(missions).limit(1);
     const dbConnected = dbTest.length > 0;
     const responseTime = Date.now() - startTime;
     const healthInfo = {
@@ -2786,14 +2858,14 @@ router3.get("/debug", asyncHandler(async (req, res) => {
 router3.get("/verify-sync", asyncHandler(async (req, res) => {
   console.log("\u{1F50D} V\xE9rification de la synchronisation missions/feed");
   try {
-    const missionCount = await db2.select({ count: sql2`COUNT(*)` }).from(missions);
+    const missionCount = await db2.select({ count: sql3`COUNT(*)` }).from(missions);
     const recentMissions = await db2.select({
       id: missions.id,
       title: missions.title,
       status: missions.status,
       created_at: missions.created_at
     }).from(missions).orderBy(desc2(missions.created_at)).limit(5);
-    const announcementCount = await db2.select({ count: sql2`COUNT(*)` }).from(announcements);
+    const announcementCount = await db2.select({ count: sql3`COUNT(*)` }).from(announcements);
     const syncStatus = {
       totalMissions: missionCount[0]?.count || 0,
       totalFeedItems: announcementCount[0]?.count || 0,
@@ -3926,7 +3998,7 @@ var open_teams_default = router5;
 // server/routes/feed-routes.ts
 init_schema();
 import express2 from "express";
-import { desc as desc5, eq as eq7, and as and4, not, inArray as inArray2, sql as sql3 } from "drizzle-orm";
+import { desc as desc5, eq as eq7, and as and4, not, inArray as inArray2, sql as sql4 } from "drizzle-orm";
 
 // server/services/feedRanker.ts
 var FeedRanker = class {
@@ -4231,14 +4303,14 @@ router6.get("/feed", async (req, res) => {
     }) : [];
     const seenIds = seenAnnouncements.map((s) => s.announcement_id);
     let whereConditions = [
-      announcements.status ? inArray2(announcements.status, ["active", "published", "open"]) : sql3`1=1`
+      announcements.status ? inArray2(announcements.status, ["active", "published", "open"]) : sql4`1=1`
     ];
     if (seenIds.length > 0) {
       whereConditions.push(not(inArray2(announcements.id, seenIds)));
     }
     if (cursor) {
       const cursorId = parseInt(cursor);
-      whereConditions.push(sql3`${announcements.id} < ${cursorId}`);
+      whereConditions.push(sql4`${announcements.id} < ${cursorId}`);
     }
     const rawAnnouncements = await db2.select().from(announcements).where(and4(...whereConditions)).orderBy(desc5(announcements.created_at)).limit(limitNum + 5).catch((err) => {
       console.error("\u274C Database query failed:", err);
@@ -4359,8 +4431,8 @@ import { Router as Router5 } from "express";
 import { drizzle as drizzle3 } from "drizzle-orm/neon-http";
 import { neon } from "@neondatabase/serverless";
 import { eq as eq8, and as and5 } from "drizzle-orm";
-var sql4 = neon(process.env.DATABASE_URL);
-var db3 = drizzle3(sql4);
+var sql5 = neon(process.env.DATABASE_URL);
+var db3 = drizzle3(sql5);
 var router7 = Router5();
 router7.get("/favorites", async (req, res) => {
   try {
@@ -5161,12 +5233,12 @@ router12.get("/notifications", async (req, res) => {
     if (!userId2) {
       return res.status(400).json({ error: "userId required" });
     }
-    const notifications2 = await notificationService.getUserNotifications(userId2, limit, offset);
+    const notifications3 = await notificationService.getUserNotifications(userId2, limit, offset);
     const unreadCount = await notificationService.getUnreadCount(userId2);
     res.json({
-      notifications: notifications2,
+      notifications: notifications3,
       unreadCount,
-      total: notifications2.length
+      total: notifications3.length
     });
   } catch (error) {
     console.error("Error fetching notifications:", error);
@@ -5288,14 +5360,14 @@ router13.get("/user-settings", async (req, res) => {
 router13.put("/user-settings", async (req, res) => {
   try {
     const userId2 = req.headers["x-user-id"];
-    const { notifications: notifications2, privacy, appearance } = req.body;
+    const { notifications: notifications3, privacy, appearance } = req.body;
     if (!userId2) {
       return res.status(401).json({ error: "Utilisateur non authentifi\xE9" });
     }
     const existingSettings = await db2.select().from(userSettings).where(eq13(userSettings.user_id, parseInt(userId2))).limit(1);
     const settingsData = {
       user_id: parseInt(userId2),
-      notifications: notifications2,
+      notifications: notifications3,
       privacy,
       appearance,
       updated_at: /* @__PURE__ */ new Date()
@@ -5434,19 +5506,7 @@ router14.get("/demo-providers", async (req, res) => {
 });
 router14.get("/demo-projects", async (req, res) => {
   try {
-    const projectsWithClients = await db4.select({
-      id: users.id,
-      title: users.name,
-      description: users.email,
-      budget: users.role,
-      category: users.rating_mean,
-      quality_target: users.rating_count,
-      status: users.profile_data,
-      created_at: users.created_at,
-      client_name: users.name,
-      client_email: users.email
-    }).from(users).leftJoin(users, eq14(users.id, users.id));
-    res.json({ projects: projectsWithClients });
+    res.json({ projects: [], message: "Legacy route - use /api/feed for looks instead" });
   } catch (error) {
     console.error("Erreur get demo projects:", error);
     res.status(500).json({ error: "Erreur serveur" });
@@ -5454,21 +5514,7 @@ router14.get("/demo-projects", async (req, res) => {
 });
 router14.get("/demo-bids", async (req, res) => {
   try {
-    const bidsWithInfo = await db4.select({
-      id: bids.id,
-      amount: bids.amount,
-      timeline_days: bids.timeline_days,
-      message: bids.message,
-      score_breakdown: bids.score_breakdown,
-      is_leading: bids.is_leading,
-      created_at: bids.created_at,
-      project_title: users.name,
-      project_budget: users.email,
-      provider_name: users.name,
-      provider_email: users.email,
-      provider_profile: users.profile_data
-    }).from(bids).leftJoin(users, eq14(bids.project_id, users.id)).leftJoin(users, eq14(bids.provider_id, users.id));
-    res.json({ bids: bidsWithInfo });
+    res.json({ bids: [], message: "Legacy route - use /api/social/comments for comments instead" });
   } catch (error) {
     console.error("Erreur get demo bids:", error);
     res.status(500).json({ error: "Erreur serveur" });
@@ -5479,31 +5525,11 @@ router14.get("/provider/:id", async (req, res) => {
     const providerId = parseInt(req.params.id);
     const provider = await db4.select().from(users).where(eq14(users.id, providerId)).limit(1);
     if (provider.length === 0) {
-      return res.status(404).json({ error: "Prestataire non trouv\xE9" });
+      return res.status(404).json({ error: "Utilisateur non trouv\xE9" });
     }
-    const providerData = provider[0];
-    const providerBids = await db4.select({
-      id: bids.id,
-      amount: bids.amount,
-      timeline_days: bids.timeline_days,
-      message: bids.message,
-      is_leading: bids.is_leading,
-      created_at: bids.created_at,
-      project_title: users.name,
-      project_budget: users.email
-    }).from(bids).leftJoin(users, eq14(bids.project_id, users.id)).where(eq14(bids.provider_id, providerId));
     res.json({
-      provider: {
-        id: providerData.id,
-        email: providerData.email,
-        name: providerData.name,
-        role: providerData.role,
-        rating_mean: providerData.rating_mean,
-        rating_count: providerData.rating_count,
-        profile_data: providerData.profile_data,
-        created_at: providerData.created_at,
-        bids: providerBids
-      }
+      provider: provider[0],
+      message: "Legacy route - use /api/profile/:id instead"
     });
   } catch (error) {
     console.error("Erreur get provider:", error);
@@ -5512,38 +5538,13 @@ router14.get("/provider/:id", async (req, res) => {
 });
 router14.get("/ai-analysis-demo", async (req, res) => {
   try {
-    const recentProjects = await db4.select({
-      id: users.id,
-      title: users.name,
-      description: users.email,
-      budget: users.role,
-      category: users.rating_mean,
-      created_at: users.created_at
-    }).from(users).limit(3);
-    const recentBids = await db4.select({
-      id: bids.id,
-      amount: bids.amount,
-      timeline_days: bids.timeline_days,
-      score_breakdown: bids.score_breakdown,
-      created_at: bids.created_at
-    }).from(bids).limit(5);
-    const aiAnalysis = {
-      totalProjects: recentProjects.length,
-      totalBids: recentBids.length,
-      averageProjectBudget: recentProjects.reduce((sum, p) => {
-        const budgetRange = p.budget?.split("-") || ["0"];
-        const avgBudget = budgetRange.length > 1 ? (parseInt(budgetRange[0]) + parseInt(budgetRange[1])) / 2 : parseInt(budgetRange[0]) || 0;
-        return sum + avgBudget;
-      }, 0) / recentProjects.length || 0,
-      popularCategories: Array.from(new Set(recentProjects.map((p) => p.category))),
-      averageBidAmount: recentBids.reduce((sum, b) => sum + parseFloat(b.amount || "0"), 0) / recentBids.length || 0,
-      successRate: 0.87,
-      timeToMatch: 2.3,
-      // days
-      projects: recentProjects,
-      bids: recentBids
-    };
-    res.json({ analysis: aiAnalysis });
+    res.json({
+      analysis: {
+        message: "Legacy route disabled",
+        totalProjects: 0,
+        totalBids: 0
+      }
+    });
   } catch (error) {
     console.error("Erreur get AI analysis:", error);
     res.status(500).json({ error: "Erreur serveur" });
@@ -5878,68 +5879,14 @@ var monitoringRateLimit = rateLimit({
 });
 
 // server/routes/social-routes.ts
+init_database();
+init_schema();
 import { Router as Router11 } from "express";
-
-// server/services/social-service.ts
-init_schema();
-import { eq as eq16, and as and10 } from "drizzle-orm";
-var SocialService = class {
-  // Follow/Unfollow
-  async followUser(followerId, followingId) {
-    if (followerId === followingId) {
-      throw new Error("Cannot follow yourself");
-    }
-    const existing = await db2.select().from(follows).where(
-      and10(
-        eq16(follows.follower_id, followerId),
-        eq16(follows.following_id, followingId)
-      )
-    );
-    if (existing.length > 0) {
-      throw new Error("Already following");
-    }
-    await db2.insert(follows).values({
-      follower_id: followerId,
-      following_id: followingId
-    });
-    return { success: true };
-  }
-  async unfollowUser(followerId, followingId) {
-    await db2.delete(follows).where(
-      and10(
-        eq16(follows.follower_id, followerId),
-        eq16(follows.following_id, followingId)
-      )
-    );
-    return { success: true };
-  }
-  async isFollowing(followerId, followingId) {
-    const result = await db2.select().from(follows).where(
-      and10(
-        eq16(follows.follower_id, followerId),
-        eq16(follows.following_id, followingId)
-      )
-    );
-    return result.length > 0;
-  }
-  async getFollowers(userId2, limit = 50) {
-    const followers = await db2.select().from(follows).innerJoin(users, eq16(follows.follower_id, users.id)).where(eq16(follows.following_id, userId2)).limit(limit);
-    return followers.map((f) => f.users);
-  }
-  async getFollowing(userId2, limit = 50) {
-    const following = await db2.select().from(follows).innerJoin(users, eq16(follows.following_id, users.id)).where(eq16(follows.follower_id, userId2)).limit(limit);
-    return following.map((f) => f.users);
-  }
-};
-var socialService = new SocialService();
-
-// server/routes/social-routes.ts
-init_schema();
-import { sql as sql5 } from "drizzle-orm";
+import { sql as sql6 } from "drizzle-orm";
 var router16 = Router11();
 router16.get("/popular-users", async (req, res) => {
   try {
-    const popularUsers = await db2.select().from(users).orderBy(sql5`followers_count DESC`).limit(12);
+    const popularUsers = await db2.select().from(users).orderBy(sql6`followers_count DESC`).limit(12);
     res.json(popularUsers);
   } catch (error) {
     console.error("Error fetching popular users:", error);
@@ -6198,7 +6145,7 @@ var aiFashionService = new AIFashionService();
 
 // server/routes/ai-fashion-routes.ts
 init_schema();
-import { eq as eq17, sql as sql6 } from "drizzle-orm";
+import { eq as eq17, sql as sql7 } from "drizzle-orm";
 var router17 = Router12();
 router17.post("/analyze-item", async (req, res) => {
   try {
@@ -6323,8 +6270,8 @@ router17.post("/items/:itemId/tags", async (req, res) => {
 });
 router17.get("/explore/trending", async (req, res) => {
   try {
-    const trendingLooks = await db2.select().from(looks).orderBy(sql6`${looks.likes_count} DESC`).limit(10);
-    const trendingItems = await db2.select().from(fashionItems).where(eq17(fashionItems.is_public, true)).orderBy(sql6`${fashionItems.worn_count} DESC`).limit(10);
+    const trendingLooks = await db2.select().from(looks).orderBy(sql7`${looks.likes_count} DESC`).limit(10);
+    const trendingItems = await db2.select().from(fashionItems).where(eq17(fashionItems.is_public, true)).orderBy(sql7`${fashionItems.worn_count} DESC`).limit(10);
     res.json({
       success: true,
       trending: {
@@ -6354,7 +6301,7 @@ router17.get("/explore/search", async (req, res) => {
     }).from(fashionItems).$dynamic();
     const filters = [];
     if (q) {
-      filters.push(sql6`(${fashionItems.title} ILIKE ${`%${q}%`} OR ${fashionItems.description} ILIKE ${`%${q}%`})`);
+      filters.push(sql7`(${fashionItems.title} ILIKE ${`%${q}%`} OR ${fashionItems.description} ILIKE ${`%${q}%`})`);
     }
     if (category) {
       filters.push(eq17(fashionItems.category, category));
@@ -6363,14 +6310,14 @@ router17.get("/explore/search", async (req, res) => {
       filters.push(eq17(fashionItems.color, color));
     }
     if (style) {
-      filters.push(sql6`${fashionItems.tags} @> ARRAY[${style}]`);
+      filters.push(sql7`${fashionItems.tags} @> ARRAY[${style}]`);
     }
     if (filters.length > 0) {
-      query = query.where(sql6.and(...filters));
+      query = query.where(sql7.and(...filters));
     }
     let orderBy = fashionItems.created_at;
     if (sortBy === "popular") {
-      orderBy = sql6`${fashionItems.worn_count} DESC`;
+      orderBy = sql7`${fashionItems.worn_count} DESC`;
     } else if (sortBy === "newest") {
       orderBy = fashionItems.created_at;
     }
@@ -6378,7 +6325,7 @@ router17.get("/explore/search", async (req, res) => {
     const offset = (parseInt(page) - 1) * parseInt(limit);
     query = query.limit(parseInt(limit)).offset(offset);
     const results = await query;
-    const totalCount = await db2.select({ count: sql6`count(*)` }).from(fashionItems).where(filters.length > 0 ? sql6.and(...filters) : void 0).then((rows) => rows[0]?.count || 0);
+    const totalCount = await db2.select({ count: sql7`count(*)` }).from(fashionItems).where(filters.length > 0 ? sql7.and(...filters) : void 0).then((rows) => rows[0]?.count || 0);
     res.json({
       success: true,
       results,
@@ -6400,9 +6347,9 @@ router17.get("/explore/search", async (req, res) => {
 router17.get("/trending-tags", async (req, res) => {
   try {
     const trendingTags = await db2.select({
-      tag: sql6`unnest(tags)`,
-      count: sql6`count(*)`
-    }).from(fashionItems).where(sql6`tags IS NOT NULL AND array_length(tags, 1) > 0`).groupBy(sql6`unnest(tags)`).orderBy(sql6`count(*) DESC`).limit(20);
+      tag: sql7`unnest(tags)`,
+      count: sql7`count(*)`
+    }).from(fashionItems).where(sql7`tags IS NOT NULL AND array_length(tags, 1) > 0`).groupBy(sql7`unnest(tags)`).orderBy(sql7`count(*) DESC`).limit(20);
     res.json(trendingTags);
   } catch (error) {
     console.error("Error fetching trending tags:", error);
@@ -6425,7 +6372,7 @@ router17.get("/search", async (req, res) => {
     const filters = [eq17(fashionItems.is_public, true)];
     if (q) {
       filters.push(
-        sql6`(${fashionItems.title} ILIKE ${`%${q}%`} OR ${fashionItems.description} ILIKE ${`%${q}%`})`
+        sql7`(${fashionItems.title} ILIKE ${`%${q}%`} OR ${fashionItems.description} ILIKE ${`%${q}%`})`
       );
     }
     if (category) {
@@ -6435,20 +6382,20 @@ router17.get("/search", async (req, res) => {
       filters.push(eq17(fashionItems.color, color));
     }
     if (style) {
-      filters.push(sql6`${style} = ANY(${fashionItems.tags})`);
+      filters.push(sql7`${style} = ANY(${fashionItems.tags})`);
     }
     if (filters.length > 0) {
-      query = query.where(sql6.and(...filters));
+      query = query.where(sql7.and(...filters));
     }
     if (sortBy === "popular") {
-      query = query.orderBy(sql6`${fashionItems.worn_count} DESC`);
+      query = query.orderBy(sql7`${fashionItems.worn_count} DESC`);
     } else {
-      query = query.orderBy(sql6`${fashionItems.created_at} DESC`);
+      query = query.orderBy(sql7`${fashionItems.created_at} DESC`);
     }
     const offset = (parseInt(page) - 1) * parseInt(limit);
     query = query.limit(parseInt(limit)).offset(offset);
     const results = await query;
-    const [{ count: totalCount }] = await db2.select({ count: sql6`count(*)` }).from(fashionItems).where(filters.length > 0 ? sql6.and(...filters) : sql6`true`);
+    const [{ count: totalCount }] = await db2.select({ count: sql7`count(*)` }).from(fashionItems).where(filters.length > 0 ? sql7.and(...filters) : sql7`true`);
     res.json({
       results,
       pagination: {
@@ -6465,9 +6412,316 @@ router17.get("/search", async (req, res) => {
 });
 var ai_fashion_routes_default = router17;
 
+// server/routes/collections.ts
+import { Router as Router13 } from "express";
+init_schema();
+import { eq as eq18, and as and11, desc as desc9 } from "drizzle-orm";
+var router18 = Router13();
+router18.post("/", requireAuth, async (req, res) => {
+  try {
+    const { title, description, cover_image, is_public = true } = req.body;
+    const userId2 = req.user.id;
+    if (!title || title.trim().length === 0) {
+      return res.status(400).json({ error: "Le nom de la collection est requis" });
+    }
+    const [collection] = await db2.insert(collections).values({
+      user_id: userId2,
+      title: title.trim(),
+      description: description?.trim() || null,
+      cover_image: cover_image || null,
+      is_public
+    }).returning();
+    res.json(collection);
+  } catch (error) {
+    console.error("Erreur cr\xE9ation collection:", error);
+    res.status(500).json({ error: "Erreur lors de la cr\xE9ation de la collection" });
+  }
+});
+router18.get("/user/:userId", async (req, res) => {
+  try {
+    const userId2 = parseInt(req.params.user_id);
+    const requestingUserId = req.user?.id;
+    const whereClause = userId2 === requestingUserId ? eq18(collections.user_id, userId2) : and11(
+      eq18(collections.user_id, userId2),
+      eq18(collections.is_public, true)
+    );
+    const userCollections = await db2.select().from(collections).where(whereClause).orderBy(desc9(collections.created_at));
+    res.json(userCollections);
+  } catch (error) {
+    console.error("Erreur r\xE9cup\xE9ration collections:", error);
+    res.status(500).json({ error: "Erreur lors de la r\xE9cup\xE9ration des collections" });
+  }
+});
+router18.get("/:id", async (req, res) => {
+  try {
+    const collectionId = parseInt(req.params.id);
+    const requestingUserId = req.user?.id;
+    const [collection] = await db2.select().from(collections).where(eq18(collections.id, collectionId));
+    if (!collection) {
+      return res.status(404).json({ error: "Collection non trouv\xE9e" });
+    }
+    if (!collection.is_public && collection.user_id !== requestingUserId) {
+      return res.status(403).json({ error: "Collection priv\xE9e" });
+    }
+    const items = collection.items && collection.items.length > 0 ? await db2.select().from(fashionItems).where(eq18(fashionItems.id, parseInt(collection.items[0]))) : [];
+    res.json({ ...collection, fashionItems: items });
+  } catch (error) {
+    console.error("Erreur r\xE9cup\xE9ration collection:", error);
+    res.status(500).json({ error: "Erreur lors de la r\xE9cup\xE9ration de la collection" });
+  }
+});
+router18.put("/:id", requireAuth, async (req, res) => {
+  try {
+    const collectionId = parseInt(req.params.id);
+    const userId2 = req.user.id;
+    const { name, description, coverImageUrl, isPublic } = req.body;
+    const [collection] = await db2.select().from(collections).where(eq18(collections.id, collectionId));
+    if (!collection) {
+      return res.status(404).json({ error: "Collection non trouv\xE9e" });
+    }
+    if (collection.user_id !== userId2) {
+      return res.status(403).json({ error: "Non autoris\xE9" });
+    }
+    const [updated] = await db2.update(collections).set({
+      name: name?.trim() || collection.name,
+      description: description?.trim(),
+      coverImageUrl: coverImageUrl || collection.cover_image,
+      isPublic: isPublic !== void 0 ? isPublic : collection.is_public,
+      updatedAt: /* @__PURE__ */ new Date()
+    }).where(eq18(collections.id, collectionId)).returning();
+    res.json(updated);
+  } catch (error) {
+    console.error("Erreur mise \xE0 jour collection:", error);
+    res.status(500).json({ error: "Erreur lors de la mise \xE0 jour de la collection" });
+  }
+});
+router18.put("/:id/items", requireAuth, async (req, res) => {
+  try {
+    const collectionId = parseInt(req.params.id);
+    const userId2 = req.user.id;
+    const { itemIds, action = "add" } = req.body;
+    const [collection] = await db2.select().from(collections).where(eq18(collections.id, collectionId));
+    if (!collection) {
+      return res.status(404).json({ error: "Collection non trouv\xE9e" });
+    }
+    if (collection.user_id !== userId2) {
+      return res.status(403).json({ error: "Non autoris\xE9" });
+    }
+    let updatedItems = collection.items || [];
+    if (action === "add") {
+      const newItems = itemIds.map(String).filter((id) => !updatedItems.includes(id));
+      updatedItems = [...updatedItems, ...newItems];
+    } else if (action === "remove") {
+      updatedItems = updatedItems.filter((id) => !itemIds.map(String).includes(id));
+    }
+    const [updated] = await db2.update(collections).set({
+      items: updatedItems,
+      updatedAt: /* @__PURE__ */ new Date()
+    }).where(eq18(collections.id, collectionId)).returning();
+    res.json(updated);
+  } catch (error) {
+    console.error("Erreur mise \xE0 jour items collection:", error);
+    res.status(500).json({ error: "Erreur lors de la mise \xE0 jour des items" });
+  }
+});
+router18.delete("/:id", requireAuth, async (req, res) => {
+  try {
+    const collectionId = parseInt(req.params.id);
+    const userId2 = req.user.id;
+    const [collection] = await db2.select().from(collections).where(eq18(collections.id, collectionId));
+    if (!collection) {
+      return res.status(404).json({ error: "Collection non trouv\xE9e" });
+    }
+    if (collection.user_id !== userId2) {
+      return res.status(403).json({ error: "Non autoris\xE9" });
+    }
+    await db2.delete(collections).where(eq18(collections.id, collectionId));
+    res.json({ success: true });
+  } catch (error) {
+    console.error("Erreur suppression collection:", error);
+    res.status(500).json({ error: "Erreur lors de la suppression de la collection" });
+  }
+});
+var collections_default = router18;
+
+// server/routes/outfits.ts
+import { Router as Router14 } from "express";
+init_schema();
+import { eq as eq19, desc as desc10, and as and12, sql as sql8 } from "drizzle-orm";
+import multer3 from "multer";
+import path3 from "path";
+var router19 = Router14();
+var outfitsTable2 = looks;
+var outfitLikesTable2 = likes;
+var outfitCommentsTable2 = comments;
+var storage2 = multer3.diskStorage({
+  destination: "./uploads/outfits/",
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    cb(null, "outfit-" + uniqueSuffix + path3.extname(file.originalname));
+  }
+});
+var upload3 = multer3({
+  storage: storage2,
+  limits: { fileSize: 10 * 1024 * 1024 }
+});
+router19.get("/trending", async (req, res) => {
+  try {
+    const trendingOutfits = await db2.select().from(outfitsTable2).where(sql8`created_at > NOW() - INTERVAL '7 days'`).orderBy(desc10(outfitsTable2.engagementScore)).limit(12);
+    res.json(trendingOutfits);
+  } catch (error) {
+    console.error("Erreur r\xE9cup\xE9ration outfits tendance:", error);
+    res.status(500).json({ error: "Erreur serveur" });
+  }
+});
+router19.get("/", async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit) || 20;
+    const offset = parseInt(req.query.offset) || 0;
+    const outfitsList = await db2.select().from(outfitsTable2).where(eq19(outfitsTable2.isPublic, true)).orderBy(desc10(outfitsTable2.createdAt)).limit(limit).offset(offset);
+    res.json(outfitsList);
+  } catch (error) {
+    console.error("Erreur r\xE9cup\xE9ration outfits:", error);
+    res.status(500).json({ error: "Erreur serveur" });
+  }
+});
+router19.get("/:id", async (req, res) => {
+  try {
+    const outfitId = parseInt(req.params.id);
+    const [outfit] = await db2.select().from(outfitsTable2).where(eq19(outfitsTable2.id, outfitId));
+    if (!outfit) {
+      return res.status(404).json({ error: "Outfit non trouv\xE9" });
+    }
+    if (!outfit.isPublic && outfit.userId !== req.user?.id) {
+      return res.status(403).json({ error: "Acc\xE8s interdit" });
+    }
+    await db2.update(outfitsTable2).set({ viewsCount: (outfit.viewsCount || 0) + 1 }).where(eq19(outfitsTable2.id, outfitId));
+    res.json({ ...outfit, viewsCount: (outfit.viewsCount || 0) + 1 });
+  } catch (error) {
+    console.error("Erreur d\xE9tails outfit:", error);
+    res.status(500).json({ error: "Erreur serveur" });
+  }
+});
+router19.post("/", upload3.single("photo"), async (req, res) => {
+  try {
+    if (!req.user?.id) {
+      return res.status(401).json({ error: "Non authentifi\xE9" });
+    }
+    const {
+      title,
+      description,
+      items,
+      occasion,
+      season,
+      weather,
+      location,
+      tags,
+      colorPalette,
+      isPublic
+    } = req.body;
+    const photoUrl = req.file ? `/uploads/outfits/${req.file.filename}` : null;
+    const [outfit] = await db2.insert(outfitsTable2).values({
+      userId: req.user.id,
+      title,
+      description,
+      photoUrl,
+      items: items ? JSON.parse(items) : [],
+      occasion,
+      season,
+      weather,
+      location,
+      tags: tags ? JSON.parse(tags) : null,
+      colorPalette: colorPalette ? JSON.parse(colorPalette) : null,
+      isPublic: isPublic !== "false",
+      // Default to true if not explicitly 'false'
+      engagementScore: 0,
+      // Initialize engagementScore
+      viewsCount: 0,
+      // Initialize viewsCount
+      likesCount: 0,
+      // Initialize likesCount
+      commentsCount: 0
+      // Initialize commentsCount
+    }).returning();
+    await db2.update(users).set({ postsCount: db2.raw("posts_count + 1") }).where(eq19(users.id, req.user.id));
+    res.status(201).json(outfit);
+  } catch (error) {
+    console.error("Erreur cr\xE9ation outfit:", error);
+    res.status(500).json({ error: "Erreur serveur" });
+  }
+});
+router19.post("/:id/like", async (req, res) => {
+  try {
+    if (!req.user?.id) {
+      return res.status(401).json({ error: "Non authentifi\xE9" });
+    }
+    const outfitId = parseInt(req.params.id);
+    const existingLike = await db2.select().from(outfitLikesTable2).where(
+      and12(
+        eq19(outfitLikesTable2.outfitId, outfitId),
+        eq19(outfitLikesTable2.userId, req.user.id)
+      )
+    );
+    if (existingLike.length > 0) {
+      await db2.delete(outfitLikesTable2).where(
+        and12(
+          eq19(outfitLikesTable2.outfitId, outfitId),
+          eq19(outfitLikesTable2.userId, req.user.id)
+        )
+      );
+      await db2.update(outfitsTable2).set({ engagementScore: db2.raw("engagement_score - 1"), likesCount: db2.raw("likes_count - 1") }).where(eq19(outfitsTable2.id, outfitId));
+      return res.json({ liked: false });
+    } else {
+      await db2.insert(outfitLikesTable2).values({
+        outfitId,
+        userId: req.user.id
+      });
+      await db2.update(outfitsTable2).set({ engagementScore: db2.raw("engagement_score + 1"), likesCount: db2.raw("likes_count + 1") }).where(eq19(outfitsTable2.id, outfitId));
+      return res.json({ liked: true });
+    }
+  } catch (error) {
+    console.error("Erreur like outfit:", error);
+    res.status(500).json({ error: "Erreur serveur" });
+  }
+});
+router19.post("/:id/comments", async (req, res) => {
+  try {
+    if (!req.user?.id) {
+      return res.status(401).json({ error: "Non authentifi\xE9" });
+    }
+    const outfitId = parseInt(req.params.id);
+    const { content, parentCommentId } = req.body;
+    if (!content || content.trim().length === 0) {
+      return res.status(400).json({ error: "Commentaire vide" });
+    }
+    const [comment] = await db2.insert(outfitCommentsTable2).values({
+      outfitId,
+      userId: req.user.id,
+      parentCommentId: parentCommentId || null,
+      content: content.trim()
+    }).returning();
+    await db2.update(outfitsTable2).set({ engagementScore: db2.raw("engagement_score + 1"), commentsCount: db2.raw("comments_count + 1") }).where(eq19(outfitsTable2.id, outfitId));
+    res.status(201).json(comment);
+  } catch (error) {
+    console.error("Erreur ajout commentaire:", error);
+    res.status(500).json({ error: "Erreur serveur" });
+  }
+});
+router19.get("/:id/comments", async (req, res) => {
+  try {
+    const outfitId = parseInt(req.params.id);
+    const comments3 = await db2.select().from(outfitCommentsTable2).where(eq19(outfitCommentsTable2.outfitId, outfitId)).orderBy(desc10(outfitCommentsTable2.createdAt));
+    res.json(comments3);
+  } catch (error) {
+    console.error("Erreur r\xE9cup\xE9ration commentaires:", error);
+    res.status(500).json({ error: "Erreur serveur" });
+  }
+});
+var outfits_default = router19;
+
 // server/index.ts
 var __filename = fileURLToPath(import.meta.url);
-var __dirname = path5.dirname(__filename);
+var __dirname = path6.dirname(__filename);
 validateEnvironment();
 var app = express7();
 var port = parseInt(process.env.PORT || "5000", 10);
@@ -6716,10 +6970,15 @@ app.use("/api", (req, res, next) => {
 }, profile_routes_default);
 app.use("/api/auth", auth_routes_default);
 app.use("/api", api_routes_default);
+console.log("\u{1F457} Registering fashion routes...");
 app.use("/api/ai-fashion", ai_fashion_routes_default);
 app.use("/api/fashion", ai_fashion_routes_default);
 app.use("/api/wardrobe", wardrobe_default);
+app.use("/api/outfits", outfits_default);
+app.use("/api/looks", outfits_default);
+app.use("/api/collections", collections_default);
 app.use("/api/social", social_routes_default);
+console.log("\u2705 All fashion routes registered");
 app.get("/api/performance", (req, res) => {
   try {
     const stats = getPerformanceStats();
