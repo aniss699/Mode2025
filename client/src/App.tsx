@@ -95,7 +95,7 @@ function App() {
                 <Suspense fallback={<LoadingSpinner />}>
                   <Switch>
                     <Route path="/" component={Home} />
-                    <Route path="/provider-profile" component={ProviderProfile} />
+                    <Route path="/creators" component={CreatorsPage} />
                     <Route path="/missions" component={Missions} />
                     <Route path="/missions/:id" component={MissionDetailPage} />
                     <Route path="/missions-simple/:id" component={MissionDetailSimple} />

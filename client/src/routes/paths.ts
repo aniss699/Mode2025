@@ -11,7 +11,7 @@ export interface RouteConfig {
 export const ROUTES = {
   // Routes publiques
   HOME: '/',
-  MARKETPLACE: '/provider-profile',
+  MARKETPLACE: '/creators', // Renamed from '/provider-profile' to '/creators'
   SERVICES: '/services',
   FEATURES: '/features',
   NOTRE_CONCEPT: '/notre-concept',
@@ -43,10 +43,10 @@ export const routeConfigs: Record<string, RouteConfig> = {
     title: 'Accueil - AppelsPro',
     description: 'Plateforme d\'appels d\'offres inversés'
   },
-  [ROUTES.MARKETPLACE]: {
+  [ROUTES.MARKETPLACE]: { // Updated route config for creators
     path: ROUTES.MARKETPLACE,
-    title: 'Marketplace (en pause) - AppelsPro',
-    description: 'Trouvez des missions et prestataires'
+    title: 'Créateurs & Stylistes - AppelsPro',
+    description: 'Découvrez les créateurs et stylistes'
   },
   [ROUTES.DASHBOARD]: {
     path: ROUTES.DASHBOARD,
@@ -99,7 +99,7 @@ export const buildApiUrl = (endpoint: string): string => {
 export const navigationGroups = {
   main: [
     { path: ROUTES.HOME, label: 'Accueil' },
-    { path: ROUTES.MARKETPLACE, label: 'Marketplace (en pause)' },
+    { path: ROUTES.MARKETPLACE, label: 'Créateurs & Stylistes' }, // Updated label
     { path: ROUTES.SERVICES, label: 'Services' },
     { path: ROUTES.FEATURES, label: 'Fonctionnalités' }
   ],
@@ -115,7 +115,7 @@ export const navigationGroups = {
 
 export const paths = {
   home: '/',
-  marketplace: '/provider-profile',
+  marketplace: '/creators', // Updated path
   missions: '/missions',
   editMission: (id: string) => `/missions/${id}/edit`,
   createMission: '/create-mission',
