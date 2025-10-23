@@ -117,6 +117,9 @@ export function BidResponseModal({ bidId, bidderName, isOpen, onClose }: BidResp
             <MessageCircle className="w-6 h-6 text-blue-500" />
             Répondre à l'offre de {bidderName}
           </DialogTitle>
+          <DialogDescription>
+            Choisissez comment vous souhaitez répondre à cette offre
+          </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">

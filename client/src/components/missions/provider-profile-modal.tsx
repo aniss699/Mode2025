@@ -5,7 +5,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  VisuallyHidden,
+  DialogDescription,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -82,11 +82,11 @@ export function ProviderProfileModal({ providerId, providerName, isOpen, onClose
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle asChild>
-            <VisuallyHidden>Profil du prestataire</VisuallyHidden>
-          </DialogTitle>
+          <DialogTitle>Profil du prestataire</DialogTitle>
+          <DialogDescription>
+            Informations détaillées sur {providerName}
+          </DialogDescription>
         </DialogHeader>
-        <div className="p-6"></div>
 
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
