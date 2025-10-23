@@ -1,8 +1,7 @@
-import { Router, Request, Response, Express } from 'express';
-import { socialService } from '../services/social-service';
-import { db } from '../db';
-import { users } from '../../shared/schema';
-import { sql } from 'drizzle-orm';
+import { Router, Request, Response } from 'express';
+import { db } from '../database';
+import { follows, likes, comments, savedLooks, notifications, users, looks } from '../../shared/schema';
+import { eq, and, desc, sql } from 'drizzle-orm';
 
 const router = Router();
 

@@ -1,4 +1,3 @@
-
 import { Router } from 'express';
 import { db } from '../db';
 import { wardrobeCollections, wardrobeItems } from '../../shared/schema';

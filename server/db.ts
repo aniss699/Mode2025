@@ -1,3 +1,3 @@
 
-// Redirection vers la configuration principale
-export * from './database.js';
+// Re-export database instance from database.ts
+export { db, pool } from './database';

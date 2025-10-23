@@ -1,4 +1,3 @@
-
 import { Router } from 'express';
 import { db } from '../db';
 import { wardrobeItems, users } from '../../shared/schema';
@@ -24,7 +23,7 @@ const upload = multer({
     const allowedTypes = /jpeg|jpg|png|webp/;
     const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
     const mimetype = allowedTypes.test(file.mimetype);
-    
+
     if (mimetype && extname) {
       return cb(null, true);
     } else {
@@ -56,7 +55,7 @@ router.get('/items', async (req, res) => {
 router.get('/items/:id', async (req, res) => {
   try {
     const itemId = parseInt(req.params.id);
-    
+
     const [item] = await db.select()
       .from(wardrobeItems)
       .where(eq(wardrobeItems.id, itemId));
@@ -153,7 +152,7 @@ router.put('/items/:id', upload.single('image'), async (req, res) => {
     }
 
     const itemId = parseInt(req.params.id);
-    
+
     const [existingItem] = await db.select()
       .from(wardrobeItems)
       .where(eq(wardrobeItems.id, itemId));
@@ -199,7 +198,7 @@ router.delete('/items/:id', async (req, res) => {
     }
 
     const itemId = parseInt(req.params.id);
-    
+
     const [item] = await db.select()
       .from(wardrobeItems)
       .where(eq(wardrobeItems.id, itemId));
@@ -231,7 +230,7 @@ router.delete('/items/:id', async (req, res) => {
 router.get('/users/:userId', async (req, res) => {
   try {
     const userId = parseInt(req.params.userId);
-    
+
     const items = await db.select()
       .from(wardrobeItems)
       .where(

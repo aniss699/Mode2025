@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { db } from '../db';
+import { db } from '../db'; // Assuming '../db' is the correct path for the database connection
 import { outfitsTable, outfitLikesTable, outfitCommentsTable, users } from '../../shared/schema';
 import { eq, desc, and, sql } from 'drizzle-orm'; // Added sql for trending query
 import multer from 'multer';
@@ -28,7 +28,7 @@ router.get('/trending', async (req, res) => {
       .select()
       .from(outfitsTable)
       .where(sql`created_at > NOW() - INTERVAL '7 days'`)
-      .orderBy(desc(outfitsTable.engagementScore), desc(outfitLikesTable.likesCount)) // Assuming likesCount is in outfitsTable, adjust if not
+      .orderBy(desc(outfitsTable.engagementScore)) // Simplified orderBy for trending
       .limit(12);
 
     res.json(trendingOutfits);
@@ -48,7 +48,7 @@ router.get('/', async (req, res) => {
     const outfitsList = await db.select()
       .from(outfitsTable)
       .where(eq(outfitsTable.isPublic, true))
-      .orderBy(desc(outfitsTable.engagementScore), desc(outfitsTable.createdAt))
+      .orderBy(desc(outfitsTable.createdAt)) // Order by creation date for feed
       .limit(limit)
       .offset(offset);
 
@@ -72,16 +72,18 @@ router.get('/:id', async (req, res) => {
       return res.status(404).json({ error: 'Outfit non trouvé' });
     }
 
+    // Check if the outfit is public or if the request user is the owner
     if (!outfit.isPublic && outfit.userId !== req.user?.id) {
       return res.status(403).json({ error: 'Accès interdit' });
     }
 
-    // Incrémenter vues
+    // Increment views count
     await db.update(outfitsTable)
-      .set({ viewsCount: outfit.viewsCount + 1 })
+      .set({ viewsCount: (outfit.viewsCount || 0) + 1 }) // Ensure viewsCount is not null
       .where(eq(outfitsTable.id, outfitId));
 
-    res.json({ ...outfit, viewsCount: outfit.viewsCount + 1 });
+    // Return the outfit data with the incremented view count
+    res.json({ ...outfit, viewsCount: (outfit.viewsCount || 0) + 1 });
   } catch (error) {
     console.error('Erreur détails outfit:', error);
     res.status(500).json({ error: 'Erreur serveur' });
@@ -122,10 +124,14 @@ router.post('/', upload.single('photo'), async (req, res) => {
       location,
       tags: tags ? JSON.parse(tags) : null,
       colorPalette: colorPalette ? JSON.parse(colorPalette) : null,
-      isPublic: isPublic !== 'false',
+      isPublic: isPublic !== 'false', // Default to true if not explicitly 'false'
+      engagementScore: 0, // Initialize engagementScore
+      viewsCount: 0, // Initialize viewsCount
+      likesCount: 0, // Initialize likesCount
+      commentsCount: 0, // Initialize commentsCount
     }).returning();
 
-    // Incrémenter compteur user
+    // Increment postsCount for the user
     await db.update(users)
       .set({ postsCount: db.raw('posts_count + 1') })
       .where(eq(users.id, req.user.id));
@@ -146,8 +152,8 @@ router.post('/:id/like', async (req, res) => {
 
     const outfitId = parseInt(req.params.id);
 
-    // Vérifier si déjà liké
-    const existing = await db.select()
+    // Check if the user has already liked this outfit
+    const existingLike = await db.select()
       .from(outfitLikesTable)
       .where(
         and(
@@ -156,8 +162,8 @@ router.post('/:id/like', async (req, res) => {
         )
       );
 
-    if (existing.length > 0) {
-      // Unlike
+    if (existingLike.length > 0) {
+      // Unlike the outfit
       await db.delete(outfitLikesTable)
         .where(
           and(
@@ -168,12 +174,12 @@ router.post('/:id/like', async (req, res) => {
 
       // Decrement engagement score and likes count
       await db.update(outfitsTable)
-        .set({ engagementScore: db.raw('engagement_score - 1'), likesCount: db.raw('likes_count - 1') }) // Assuming likesCount exists
+        .set({ engagementScore: db.raw('engagement_score - 1'), likesCount: db.raw('likes_count - 1') })
         .where(eq(outfitsTable.id, outfitId));
 
       return res.json({ liked: false });
     } else {
-      // Like
+      // Like the outfit
       await db.insert(outfitLikesTable).values({
         outfitId,
         userId: req.user.id,
@@ -181,7 +187,7 @@ router.post('/:id/like', async (req, res) => {
 
       // Increment engagement score and likes count
       await db.update(outfitsTable)
-        .set({ engagementScore: db.raw('engagement_score + 1'), likesCount: db.raw('likes_count + 1') }) // Assuming likesCount exists
+        .set({ engagementScore: db.raw('engagement_score + 1'), likesCount: db.raw('likes_count + 1') })
         .where(eq(outfitsTable.id, outfitId));
 
       return res.json({ liked: true });
@@ -213,9 +219,9 @@ router.post('/:id/comments', async (req, res) => {
       content: content.trim(),
     }).returning();
 
-    // Increment engagement score
+    // Increment engagement score and comments count
     await db.update(outfitsTable)
-      .set({ engagementScore: db.raw('engagement_score + 1') })
+      .set({ engagementScore: db.raw('engagement_score + 1'), commentsCount: db.raw('comments_count + 1') })
       .where(eq(outfitsTable.id, outfitId));
 
     res.status(201).json(comment);

@@ -11,9 +11,9 @@ import {
   index,
   uniqueIndex,
   unique,
-  varchar,
-  sql // Import sql
+  varchar
 } from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
 import { z } from 'zod';
 import { createInsertSchema } from 'drizzle-zod';
 
