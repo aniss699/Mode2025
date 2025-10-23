@@ -2146,13 +2146,6 @@ router2.get("/users/:userId", async (req, res) => {
 });
 var wardrobe_default = router2;
 
-// server/api-routes.ts
-init_schema();
-import express5 from "express";
-import { Pool as Pool3 } from "pg";
-import { drizzle as drizzle4 } from "drizzle-orm/node-postgres";
-import { eq as eq14 } from "drizzle-orm";
-
 // server/routes/missions.ts
 init_database();
 init_schema();
@@ -3196,6 +3189,13 @@ router3.delete("/:id", asyncHandler(async (req, res) => {
   res.json({ message: "Mission supprim\xE9e avec succ\xE8s", mission: deletedMission[0] });
 }));
 var missions_default = router3;
+
+// server/api-routes.ts
+init_schema();
+import express5 from "express";
+import { Pool as Pool3 } from "pg";
+import { drizzle as drizzle4 } from "drizzle-orm/node-postgres";
+import { eq as eq14 } from "drizzle-orm";
 
 // server/routes/bids.ts
 init_database();
@@ -6672,7 +6672,7 @@ app.use("/api/missions", (req, res, next) => {
     body: req.body.title ? { title: req.body.title, userId: req.body.userId } : {}
   });
   next();
-}, missionsRoutes);
+}, missions_default);
 console.log("\u{1F4CB} Registering other API routes...");
 app.use("/api", api_routes_default);
 app.use("/api/projects", (req, res, next) => {
@@ -6681,7 +6681,7 @@ app.use("/api/projects", (req, res, next) => {
   req.url = req.url.replace("/projects", "/missions");
   req.originalUrl = newUrl;
   next();
-}, missionsRoutes);
+}, missions_default);
 app.use("/api/ai/suggest-pricing", strictAiRateLimit);
 app.use("/api/ai/enhance-description", strictAiRateLimit);
 app.use("/api/ai/analyze-quality", strictAiRateLimit);
@@ -6691,24 +6691,24 @@ console.log("\u{1F91D} Registering open teams routes...");
 app.use("/api/open-teams", (req, res, next) => {
   console.log(`\u{1F91D} Open teams request: ${req.method} ${req.path}`);
   next();
-}, openTeamsRoutes);
+}, open_teams_default);
 console.log("\u{1F3AF} Registering bids routes...");
 app.use("/api/bids", (req, res, next) => {
   console.log(`\u{1F3AF} Bids request: ${req.method} ${req.path}`, {
     body: req.body.mission_id ? { mission_id: req.body.mission_id, bid_type: req.body.bid_type } : {}
   });
   next();
-}, bidsRoutes);
+}, bids_default);
 console.log("\u{1F4AC} Registering messaging routes...");
 app.use("/api", (req, res, next) => {
   console.log(`\u{1F4AC} Messaging request: ${req.method} ${req.path}`);
   next();
-}, messagingRoutes);
+}, messaging_default);
 console.log("\u{1F4EC} Registering notifications routes...");
 app.use("/api", (req, res, next) => {
   console.log(`\u{1F4EC} Notifications request: ${req.method} ${req.path}`);
   next();
-}, notificationsRoutes);
+}, notifications_default);
 console.log("\u{1F464} Registering profile routes...");
 app.use("/api", (req, res, next) => {
   console.log(`\u{1F464} Profile request: ${req.method} ${req.path}`);

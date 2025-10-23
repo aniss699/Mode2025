@@ -289,7 +289,7 @@ app.use('/api/auth', (req, res, next) => {
   next();
 }, authRoutes);
 // Import missions routes here
-// import missionsRoutes from './routes/missions.js';
+import missionsRoutes from './routes/missions.js';
 // Import projects supprimé - remplacé par missions
 import apiRoutes from './api-routes.js';
 // import aiMonitoringRoutes from './routes/ai-monitoring-routes.js';
@@ -303,10 +303,10 @@ import apiRoutes from './api-routes.js';
 // import aiDiagnosticRoutes from './routes/ai-diagnostic-routes.js';
 // import aiLearningRoutes from './routes/ai-learning-routes.js';
 // import teamRoutes from './routes/team-routes.js';
-// import openTeamsRoutes from './routes/open-teams.js';
-// import bidsRoutes from './routes/bids.js';
-// import messagingRoutes from './routes/messaging.js';
-// import notificationsRoutes from './routes/notifications.js';
+import openTeamsRoutes from './routes/open-teams.js';
+import bidsRoutes from './routes/bids.js';
+import messagingRoutes from './routes/messaging.js';
+import notificationsRoutes from './routes/notifications.js';
 // import servicesRoutes from './routes/services-routes.js';
 // import availabilityRoutes from './routes/availability-routes';
 import { websocketManager } from './websocket.js';

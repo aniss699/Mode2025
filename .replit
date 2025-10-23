@@ -22,13 +22,13 @@ args = "Start application"
 name = "Start application"
 author = "agent"
 
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "NODE_ENV=development npx tsx server/minimal-server.ts"
-waitForPort = 5000
-
 [workflows.workflow.metadata]
 outputType = "webview"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm run dev"
+waitForPort = 5000
 
 [[workflows.workflow]]
 name = "Go"
@@ -50,6 +50,14 @@ externalPort = 80
 [[ports]]
 localPort = 5001
 externalPort = 3001
+
+[[ports]]
+localPort = 24678
+externalPort = 3003
+
+[[ports]]
+localPort = 35211
+externalPort = 3002
 
 [[ports]]
 localPort = 37289
