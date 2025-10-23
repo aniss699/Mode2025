@@ -115,7 +115,11 @@ export default function CollectionDetailPage() {
               )}
 
               {/* Creator info */}
-              <div className="flex items-center gap-3">
+              <div 
+                className="flex items-center gap-3 cursor-pointer hover:bg-gray-50 p-2 rounded-lg transition-colors"
+                onClick={() => setLocation(`/wardrobe/${collection.user.id}`)}
+                data-testid="button-view-creator-wardrobe"
+              >
                 <Avatar className="w-10 h-10">
                   <AvatarImage src={collection.user.avatar} />
                   <AvatarFallback>
@@ -126,6 +130,7 @@ export default function CollectionDetailPage() {
                   <p className="font-medium">{collection.user.name}</p>
                   <p className="text-sm text-gray-500">{collection.user.username}</p>
                 </div>
+                <Eye className="w-4 h-4 text-gray-400 ml-auto" />
               </div>
 
               <div className="flex gap-4 mt-4 text-sm text-gray-500">
