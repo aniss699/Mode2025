@@ -72,14 +72,24 @@ router.post('/login', async (req, res) => {
 // Register route
 router.post('/register', async (req, res) => {
   try {
-    console.log('📝 Tentative de création de compte:', { email: req.body.email, name: req.body.name });
-    const { email, password, name, role = 'CLIENT' } = req.body;
+    console.log('📝 Tentative de création de compte:', { email: req.body.email, name: req.body.name, role: req.body.role });
+    const { email, password, name, role = 'CLIENT', profile_data = {} } = req.body;
 
     // Validation améliorée
     if (!email || !password) {
       console.log('❌ Email ou mot de passe manquant');
       return res.status(400).json({ 
         error: 'Email et mot de passe requis',
+        success: false 
+      });
+    }
+
+    // Validation email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      console.log('❌ Format email invalide:', email);
+      return res.status(400).json({ 
+        error: 'Format email invalide',
         success: false 
       });
     }
@@ -100,8 +110,19 @@ router.post('/register', async (req, res) => {
       });
     }
 
+    // Validation du rôle
+    const validRoles = ['CLIENT', 'PRO', 'ADMIN'];
+    const normalizedRole = role.toUpperCase();
+    if (!validRoles.includes(normalizedRole)) {
+      console.log('❌ Rôle invalide:', role);
+      return res.status(400).json({ 
+        error: 'Rôle invalide. Doit être CLIENT, PRO ou ADMIN',
+        success: false 
+      });
+    }
+
     // Vérifier si l'utilisateur existe déjà
-    const existingUser = await db.select().from(users).where(eq(users.email, email)).limit(1);
+    const existingUser = await db.select().from(users).where(eq(users.email, email.toLowerCase().trim())).limit(1);
 
     if (existingUser.length > 0) {
       console.log('❌ Email déjà utilisé:', email);
@@ -111,6 +132,25 @@ router.post('/register', async (req, res) => {
       });
     }
 
+    // Préparer profile_data avec valeurs par défaut selon le rôle
+    const defaultProfileData = normalizedRole === 'PRO' ? {
+      bio: '',
+      skills: [],
+      portfolio: [],
+      hourlyRate: null,
+      availability: true,
+      calendarAvailability: [],
+      keywords: [],
+      ...profile_data
+    } : {
+      bio: '',
+      style_preferences: [],
+      fashion_interests: [],
+      favorite_brands: [],
+      size_info: {},
+      ...profile_data
+    };
+
     // Créer l'utilisateur
     const [newUser] = await db
       .insert(users)
@@ -118,8 +158,10 @@ router.post('/register', async (req, res) => {
         email: email.toLowerCase().trim(),
         password, // En production, hasher avec bcrypt
         name: name.trim(),
-        role: role.toUpperCase(),
-        profile_data: {},
+        role: normalizedRole,
+        profile_data: defaultProfileData,
+        rating_mean: null,
+        rating_count: 0,
         created_at: new Date(),
         updated_at: new Date()
       })

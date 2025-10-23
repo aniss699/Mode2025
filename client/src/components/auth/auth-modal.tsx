@@ -99,6 +99,27 @@ export function AuthModal({ isOpen, onClose, mode, onSwitchMode }: AuthModalProp
   };
 
   const nextOnboardingStep = () => {
+    // Validation avant de passer à l'étape suivante
+    if (onboardingStep === 0 && !onboardingData.role) {
+      loginSubmit.handleError(new Error('Veuillez sélectionner un type de profil'), 'Validation onboarding');
+      return;
+    }
+
+    if (onboardingStep === 1) {
+      if (!onboardingData.name || onboardingData.name.trim().length < 2) {
+        loginSubmit.handleError(new Error('Le nom doit contenir au moins 2 caractères'), 'Validation onboarding');
+        return;
+      }
+      if (!onboardingData.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(onboardingData.email)) {
+        loginSubmit.handleError(new Error('Veuillez entrer un email valide'), 'Validation onboarding');
+        return;
+      }
+      if (!onboardingData.password || onboardingData.password.length < 6) {
+        loginSubmit.handleError(new Error('Le mot de passe doit contenir au moins 6 caractères'), 'Validation onboarding');
+        return;
+      }
+    }
+
     if (onboardingStep < totalOnboardingSteps() - 1) {
       setOnboardingStep(onboardingStep + 1);
     }
@@ -120,20 +141,43 @@ export function AuthModal({ isOpen, onClose, mode, onSwitchMode }: AuthModalProp
   };
 
   const completeOnboarding = () => {
+    // Validation avant envoi
+    if (!onboardingData.name || onboardingData.name.trim().length < 2) {
+      loginSubmit.handleError(new Error('Le nom doit contenir au moins 2 caractères'), 'Validation inscription');
+      return;
+    }
+
+    if (!onboardingData.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(onboardingData.email)) {
+      loginSubmit.handleError(new Error('Email invalide'), 'Validation inscription');
+      return;
+    }
+
+    if (!onboardingData.password || onboardingData.password.length < 6) {
+      loginSubmit.handleError(new Error('Le mot de passe doit contenir au moins 6 caractères'), 'Validation inscription');
+      return;
+    }
+
     const userData = {
-      name: onboardingData.name,
-      email: onboardingData.email,
+      name: onboardingData.name.trim(),
+      email: onboardingData.email.toLowerCase().trim(),
       password: onboardingData.password,
-      role: onboardingData.role === 'CLIENT' ? 'CLIENT' : 'PRO',
+      role: onboardingData.role, // CLIENT ou PRO
       profile_data: {
+        bio: onboardingData.bio?.trim() || '',
         style_preferences: onboardingData.style_preferences || [],
         fashion_interests: onboardingData.fashion_interests || [],
         favorite_brands: onboardingData.favorite_brands || [],
         size_info: onboardingData.size_info || {},
-        bio: onboardingData.bio || '',
-        onboarding_completed: true
+        onboarding_completed: true,
+        created_via: 'onboarding_flow'
       }
     };
+
+    console.log('📤 Envoi données inscription:', { 
+      email: userData.email, 
+      role: userData.role,
+      hasProfileData: !!userData.profile_data 
+    });
 
     registerMutation.mutate(userData);
   };
@@ -250,38 +294,52 @@ export function AuthModal({ isOpen, onClose, mode, onSwitchMode }: AuthModalProp
 
             <div className="space-y-4">
               <div>
-                <Label htmlFor="name">Ton nom ou pseudo</Label>
+                <Label htmlFor="name">Ton nom ou pseudo *</Label>
                 <Input
                   id="name"
                   value={onboardingData.name}
                   onChange={(e) => updateOnboardingData('name', e.target.value)}
                   placeholder="Comment veux-tu être appelé(e) ?"
+                  required
+                  minLength={2}
                   data-testid="input-onboarding-name"
                 />
+                {onboardingData.name && onboardingData.name.length < 2 && (
+                  <p className="text-xs text-red-600 mt-1">Le nom doit contenir au moins 2 caractères</p>
+                )}
               </div>
 
               <div>
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email">Email *</Label>
                 <Input
                   id="email"
                   type="email"
                   value={onboardingData.email}
                   onChange={(e) => updateOnboardingData('email', e.target.value)}
                   placeholder="ton@email.com"
+                  required
                   data-testid="input-onboarding-email"
                 />
+                {onboardingData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(onboardingData.email) && (
+                  <p className="text-xs text-red-600 mt-1">Format email invalide</p>
+                )}
               </div>
 
               <div>
-                <Label htmlFor="password">Mot de passe</Label>
+                <Label htmlFor="password">Mot de passe *</Label>
                 <Input
                   id="password"
                   type="password"
                   value={onboardingData.password}
                   onChange={(e) => updateOnboardingData('password', e.target.value)}
                   placeholder="Au moins 6 caractères"
+                  required
+                  minLength={6}
                   data-testid="input-onboarding-password"
                 />
+                {onboardingData.password && onboardingData.password.length < 6 && (
+                  <p className="text-xs text-red-600 mt-1">Le mot de passe doit contenir au moins 6 caractères</p>
+                )}
               </div>
 
               <div>
@@ -291,8 +349,12 @@ export function AuthModal({ isOpen, onClose, mode, onSwitchMode }: AuthModalProp
                   value={onboardingData.bio || ''}
                   onChange={(e) => updateOnboardingData('bio', e.target.value)}
                   placeholder="Décris ton style en quelques mots ✨"
+                  maxLength={200}
                   data-testid="input-onboarding-bio"
                 />
+                {onboardingData.bio && (
+                  <p className="text-xs text-gray-500 mt-1">{onboardingData.bio.length}/200 caractères</p>
+                )}
               </div>
             </div>
           </div>
