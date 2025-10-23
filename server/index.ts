@@ -408,29 +408,27 @@ app.use('/api', (req, res, next) => {
   next();
 }, profileRoutes);
 
-// Import social routes
+// Import social and fashion routes
 import socialRoutes from './routes/social-routes';
 import aiFashionRoutes from './routes/ai-fashion-routes';
+import collectionsRoutes from './routes/collections';
+import outfitsRoutes from './routes/outfits';
 // import analyticsRoutes from './routes/analytics-routes'; // This import was commented out in the original, keeping it that way.
 
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api', apiRoutes);
-// app.use('/api/wardrobe', wardrobeRoutes); // These are now registered below
-// app.use('/api/outfits', outfitsRoutes); // These are now registered below
-// app.use('/api/collections', collectionsRoutes);
-// app.use('/api/search', searchRoutes);
-// app.use('/api/stats', statsRoutes);
-// app.use('/api/social', socialRoutes); // This is now registered below
-// app.use('/api/ai-fashion', aiFashionRoutes); // This is now registered below
-// app.use('/api/analytics', analyticsRoutes); // This is now commented out
 
 // Fashion & Social routes
+console.log('👗 Registering fashion routes...');
 app.use('/api/ai-fashion', aiFashionRoutes); // Alias pour cohérence
 app.use('/api/fashion', aiFashionRoutes); // Alias pour cohérence
 app.use('/api/wardrobe', wardrobeRoutes);
-// app.use('/api/outfits', outfitsRoutes);
+app.use('/api/outfits', outfitsRoutes);
+app.use('/api/looks', outfitsRoutes); // Alias for outfits
+app.use('/api/collections', collectionsRoutes);
 app.use('/api/social', socialRoutes);
+console.log('✅ All fashion routes registered');
 
 // Performance stats endpoint
 app.get('/api/performance', (req, res) => {

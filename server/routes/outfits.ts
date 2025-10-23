@@ -1,11 +1,16 @@
 import { Router } from 'express';
-import { db } from '../db'; // Assuming '../db' is the correct path for the database connection
-import { outfitsTable, outfitLikesTable, outfitCommentsTable, users } from '../../shared/schema';
-import { eq, desc, and, sql } from 'drizzle-orm'; // Added sql for trending query
+import { db } from '../db';
+import { looks, likes, comments, users } from '../../shared/schema';
+import { eq, desc, and, sql } from 'drizzle-orm';
 import multer from 'multer';
 import path from 'path';
 
 const router = Router();
+
+// Aliases pour compatibilité
+const outfitsTable = looks;
+const outfitLikesTable = likes;
+const outfitCommentsTable = comments;
 
 // Configuration upload
 const storage = multer.diskStorage({

@@ -1,28 +1,27 @@
 import { Router } from 'express';
 import { db } from '../db';
-import { wardrobeCollections, wardrobeItems } from '../../shared/schema';
+import { collections, fashionItems } from '../../shared/schema';
 import { eq, and, desc } from 'drizzle-orm';
-import { authenticateToken } from '../middleware/auth';
+import { requireAuth, optionalAuth } from '../middleware/auth';
 
 const router = Router();
 
 // Créer une nouvelle collection
-router.post('/', authenticateToken, async (req, res) => {
+router.post('/', requireAuth, async (req, res) => {
   try {
-    const { name, description, coverImageUrl, items = [], isPublic = true } = req.body;
+    const { title, description, cover_image, is_public = true } = req.body;
     const userId = req.user!.id;
 
-    if (!name || name.trim().length === 0) {
+    if (!title || title.trim().length === 0) {
       return res.status(400).json({ error: 'Le nom de la collection est requis' });
     }
 
-    const [collection] = await db.insert(wardrobeCollections).values({
-      userId,
-      name: name.trim(),
-      description: description?.trim(),
-      coverImageUrl,
-      items: items.map(String),
-      isPublic
+    const [collection] = await db.insert(collections).values({
+      user_id: userId,
+      title: title.trim(),
+      description: description?.trim() || null,
+      cover_image: cover_image || null,
+      is_public
     }).returning();
 
     res.json(collection);
@@ -35,24 +34,24 @@ router.post('/', authenticateToken, async (req, res) => {
 // Récupérer les collections d'un utilisateur
 router.get('/user/:userId', async (req, res) => {
   try {
-    const userId = parseInt(req.params.userId);
+    const userId = parseInt(req.params.user_id);
     const requestingUserId = req.user?.id;
 
     // Si ce n'est pas l'utilisateur lui-même, ne montrer que les collections publiques
     const whereClause = userId === requestingUserId
-      ? eq(wardrobeCollections.userId, userId)
+      ? eq(collections.user_id, userId)
       : and(
-          eq(wardrobeCollections.userId, userId),
-          eq(wardrobeCollections.isPublic, true)
+          eq(collections.user_id, userId),
+          eq(collections.is_public, true)
         );
 
-    const collections = await db
+    const userCollections = await db
       .select()
-      .from(wardrobeCollections)
+      .from(collections)
       .where(whereClause)
-      .orderBy(desc(wardrobeCollections.createdAt));
+      .orderBy(desc(collections.created_at));
 
-    res.json(collections);
+    res.json(userCollections);
   } catch (error) {
     console.error('Erreur récupération collections:', error);
     res.status(500).json({ error: 'Erreur lors de la récupération des collections' });
@@ -67,15 +66,15 @@ router.get('/:id', async (req, res) => {
 
     const [collection] = await db
       .select()
-      .from(wardrobeCollections)
-      .where(eq(wardrobeCollections.id, collectionId));
+      .from(collections)
+      .where(eq(collections.id, collectionId));
 
     if (!collection) {
       return res.status(404).json({ error: 'Collection non trouvée' });
     }
 
     // Vérifier la visibilité
-    if (!collection.isPublic && collection.userId !== requestingUserId) {
+    if (!collection.is_public && collection.user_id !== requestingUserId) {
       return res.status(403).json({ error: 'Collection privée' });
     }
 
@@ -83,11 +82,11 @@ router.get('/:id', async (req, res) => {
     const items = collection.items && collection.items.length > 0
       ? await db
           .select()
-          .from(wardrobeItems)
-          .where(eq(wardrobeItems.id, parseInt(collection.items[0])))
+          .from(fashionItems)
+          .where(eq(fashionItems.id, parseInt(collection.items[0])))
       : [];
 
-    res.json({ ...collection, wardrobeItems: items });
+    res.json({ ...collection, fashionItems: items });
   } catch (error) {
     console.error('Erreur récupération collection:', error);
     res.status(500).json({ error: 'Erreur lors de la récupération de la collection' });
@@ -95,7 +94,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // Mettre à jour une collection
-router.put('/:id', authenticateToken, async (req, res) => {
+router.put('/:id', requireAuth, async (req, res) => {
   try {
     const collectionId = parseInt(req.params.id);
     const userId = req.user!.id;
@@ -103,27 +102,27 @@ router.put('/:id', authenticateToken, async (req, res) => {
 
     const [collection] = await db
       .select()
-      .from(wardrobeCollections)
-      .where(eq(wardrobeCollections.id, collectionId));
+      .from(collections)
+      .where(eq(collections.id, collectionId));
 
     if (!collection) {
       return res.status(404).json({ error: 'Collection non trouvée' });
     }
 
-    if (collection.userId !== userId) {
+    if (collection.user_id !== userId) {
       return res.status(403).json({ error: 'Non autorisé' });
     }
 
     const [updated] = await db
-      .update(wardrobeCollections)
+      .update(collections)
       .set({
         name: name?.trim() || collection.name,
         description: description?.trim(),
-        coverImageUrl: coverImageUrl || collection.coverImageUrl,
-        isPublic: isPublic !== undefined ? isPublic : collection.isPublic,
+        coverImageUrl: coverImageUrl || collection.cover_image,
+        isPublic: isPublic !== undefined ? isPublic : collection.is_public,
         updatedAt: new Date()
       })
-      .where(eq(wardrobeCollections.id, collectionId))
+      .where(eq(collections.id, collectionId))
       .returning();
 
     res.json(updated);
@@ -134,7 +133,7 @@ router.put('/:id', authenticateToken, async (req, res) => {
 });
 
 // Ajouter/retirer des items dans une collection
-router.put('/:id/items', authenticateToken, async (req, res) => {
+router.put('/:id/items', requireAuth, async (req, res) => {
   try {
     const collectionId = parseInt(req.params.id);
     const userId = req.user!.id;
@@ -142,14 +141,14 @@ router.put('/:id/items', authenticateToken, async (req, res) => {
 
     const [collection] = await db
       .select()
-      .from(wardrobeCollections)
-      .where(eq(wardrobeCollections.id, collectionId));
+      .from(collections)
+      .where(eq(collections.id, collectionId));
 
     if (!collection) {
       return res.status(404).json({ error: 'Collection non trouvée' });
     }
 
-    if (collection.userId !== userId) {
+    if (collection.user_id !== userId) {
       return res.status(403).json({ error: 'Non autorisé' });
     }
 
@@ -163,12 +162,12 @@ router.put('/:id/items', authenticateToken, async (req, res) => {
     }
 
     const [updated] = await db
-      .update(wardrobeCollections)
+      .update(collections)
       .set({
         items: updatedItems,
         updatedAt: new Date()
       })
-      .where(eq(wardrobeCollections.id, collectionId))
+      .where(eq(collections.id, collectionId))
       .returning();
 
     res.json(updated);
@@ -179,25 +178,25 @@ router.put('/:id/items', authenticateToken, async (req, res) => {
 });
 
 // Supprimer une collection
-router.delete('/:id', authenticateToken, async (req, res) => {
+router.delete('/:id', requireAuth, async (req, res) => {
   try {
     const collectionId = parseInt(req.params.id);
     const userId = req.user!.id;
 
     const [collection] = await db
       .select()
-      .from(wardrobeCollections)
-      .where(eq(wardrobeCollections.id, collectionId));
+      .from(collections)
+      .where(eq(collections.id, collectionId));
 
     if (!collection) {
       return res.status(404).json({ error: 'Collection non trouvée' });
     }
 
-    if (collection.userId !== userId) {
+    if (collection.user_id !== userId) {
       return res.status(403).json({ error: 'Non autorisé' });
     }
 
-    await db.delete(wardrobeCollections).where(eq(wardrobeCollections.id, collectionId));
+    await db.delete(collections).where(eq(collections.id, collectionId));
 
     res.json({ success: true });
   } catch (error) {
