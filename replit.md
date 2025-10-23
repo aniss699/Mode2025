@@ -153,10 +153,60 @@ FashionHub est un réseau social moderne dédié à la mode et au style personne
 - Refonte de la page profil pour afficher le dressing virtuel personnel
 - Migration prévue vers base de données PostgreSQL pour données persistantes
 
+## Pages Principales
+
+### 1. Page d'Accueil (`/`)
+- Hero section avec présentation FashionHub
+- Feed de looks tendances
+- Call-to-action vers création de profil
+
+### 2. Créateurs Mode (`/creators`)
+- Découverte de fashionistas et créateurs de contenu
+- Filtres par style (minimaliste, streetwear, classique, bohème, vintage)
+- Filtres par localisation
+- Système de follow/unfollow
+- Galeries de looks par créateur (3 looks mis en avant)
+- Badges de vérification pour créateurs authentifiés
+- Mock data actuellement (prêt pour connexion backend)
+
+### 3. Mes Collections (`/collections`)
+- Gestion de collections thématiques de looks
+- Création de nouvelles collections (titre, description, visibilité)
+- Onglets : "Mes Collections" et "Looks sauvegardés"
+- Collections publiques ou privées
+- Grilles visuelles style Pinterest
+- Statistiques par collection
+- Nécessite authentification
+
+### 4. Notre Concept (`/notre-concept`)
+- Présentation du concept FashionHub
+- 4 étapes : Créer dressing → Composer looks → Partager → Construire communauté
+- Bénéfices pour utilisateurs (créativité, communauté, tendances, garde-robe optimisée)
+- 6 fonctionnalités principales détaillées
+- Témoignages de fashionistas
+- FAQ complète
+- CTA vers création de dressing et exploration
+
+### 5. Profil (`/profile`)
+- Dressing virtuel personnel
+- Gestion des articles de mode
+- Statistiques (articles, looks, followers)
+- Paramètres de confidentialité
+
+### 6. Feed (`/feed`)
+- Feed vertical type TikTok/Instagram
+- Looks de la communauté
+- Interactions (likes, commentaires, partages)
+
+### 7. Explorer (`/explore`)
+- Découverte de nouveaux looks
+- Filtres par tendances, styles, couleurs
+- Hashtags populaires
+
 ## Next Steps
-- Finaliser le schéma de base de données pour le système de mode
-- Transformer toutes les pages existantes vers le nouveau concept
-- Créer le feed de looks inspiré TikTok
-- Implémenter les interactions sociales (likes, commentaires, follows)
-- Ajouter le système de collections
-- Intégrer l'IA pour suggestions de style
+- Connecter les pages creators et collections au backend PostgreSQL
+- Implémenter l'authentification complète
+- Créer le système de création de looks (assemblage d'articles)
+- Ajouter les interactions sociales (likes, commentaires)
+- Intégrer l'IA Gemini pour suggestions de style
+- Développer le feed personnalisé avec algorithme de recommandation
