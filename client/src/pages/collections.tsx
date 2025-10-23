@@ -47,6 +47,8 @@ export default function CollectionsPage() {
   const [, setLocation] = useLocation();
   const [activeTab, setActiveTab] = useState<'my-collections' | 'saved'>('my-collections');
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editingCollection, setEditingCollection] = useState<Collection | null>(null);
   const [newCollection, setNewCollection] = useState({
     title: '',
     description: '',
@@ -172,6 +174,34 @@ export default function CollectionsPage() {
     },
   });
 
+  const updateCollectionMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: { title: string; description: string; isPublic: boolean } }) => {
+      const response = await fetch(`/api/collections/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) throw new Error('Failed to update collection');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/collections'] });
+      toast({
+        title: "Collection modifiée",
+        description: "Votre collection a été mise à jour avec succès.",
+      });
+      setIsEditDialogOpen(false);
+      setEditingCollection(null);
+    },
+    onError: () => {
+      toast({
+        title: "Erreur",
+        description: "Impossible de modifier la collection.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleDeleteCollection = (collectionId: number) => {
     if (window.confirm('Êtes-vous sûr de vouloir supprimer cette collection ?')) {
       deleteCollectionMutation.mutate(collectionId);
@@ -188,6 +218,30 @@ export default function CollectionsPage() {
       return;
     }
     createCollectionMutation.mutate(newCollection);
+  };
+
+  const handleEditCollection = (collection: Collection) => {
+    setEditingCollection(collection);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleUpdateCollection = () => {
+    if (!editingCollection || !editingCollection.title.trim()) {
+      toast({
+        title: "Titre requis",
+        description: "Veuillez entrer un titre pour votre collection.",
+        variant: "destructive",
+      });
+      return;
+    }
+    updateCollectionMutation.mutate({
+      id: editingCollection.id,
+      data: {
+        title: editingCollection.title,
+        description: editingCollection.description,
+        isPublic: editingCollection.isPublic,
+      },
+    });
   };
 
   if (!user) {
@@ -294,6 +348,69 @@ export default function CollectionsPage() {
         </div>
       </div>
 
+      {/* Edit Collection Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={(open) => {
+        setIsEditDialogOpen(open);
+        if (!open) setEditingCollection(null);
+      }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Modifier la collection</DialogTitle>
+            <DialogDescription>
+              Modifiez les informations de votre collection
+            </DialogDescription>
+          </DialogHeader>
+          {editingCollection && (
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm font-medium text-gray-700 mb-2 block">
+                  Titre de la collection
+                </label>
+                <Input
+                  data-testid="input-edit-collection-title"
+                  placeholder="Ex: Looks d'été, Style minimaliste..."
+                  value={editingCollection.title}
+                  onChange={(e) => setEditingCollection({ ...editingCollection, title: e.target.value })}
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-700 mb-2 block">
+                  Description
+                </label>
+                <Textarea
+                  data-testid="input-edit-collection-description"
+                  placeholder="Décrivez votre collection..."
+                  value={editingCollection.description}
+                  onChange={(e) => setEditingCollection({ ...editingCollection, description: e.target.value })}
+                  rows={3}
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <input
+                  data-testid="checkbox-edit-collection-public"
+                  type="checkbox"
+                  id="editIsPublic"
+                  checked={editingCollection.isPublic}
+                  onChange={(e) => setEditingCollection({ ...editingCollection, isPublic: e.target.checked })}
+                  className="rounded border-gray-300"
+                />
+                <label htmlFor="editIsPublic" className="text-sm text-gray-700">
+                  Rendre cette collection publique
+                </label>
+              </div>
+              <Button 
+                data-testid="button-update-collection"
+                onClick={handleUpdateCollection}
+                disabled={updateCollectionMutation.isPending}
+                className="w-full bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white"
+              >
+                {updateCollectionMutation.isPending ? 'Modification...' : 'Enregistrer les modifications'}
+              </Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Tabs */}
         <div className="border-b border-gray-200 mb-8">
@@ -390,7 +507,7 @@ export default function CollectionsPage() {
                         data-testid={`button-edit-collection-${collection.id}`}
                         variant="outline"
                         size="sm"
-                        onClick={() => {}}
+                        onClick={() => handleEditCollection(collection)}
                       >
                         <Edit className="w-4 h-4" />
                       </Button>
