@@ -19,7 +19,6 @@ router.get('/', async (req, res) => {
         username: users.username,
         avatar: users.avatar_url,
         bio: users.bio,
-        location: users.location,
         styleTags: users.style_tags,
         followersCount: users.followers_count,
         postsCount: users.posts_count,
@@ -28,9 +27,9 @@ router.get('/', async (req, res) => {
           ARRAY(
             SELECT photo_url 
             FROM ${looks} 
-            WHERE ${looks.userId} = ${users.id} 
-              AND ${looks.isPublic} = true 
-            ORDER BY ${looks.createdAt} DESC 
+            WHERE ${looks.user_id} = ${users.id} 
+              AND ${looks.is_public} = true 
+            ORDER BY ${looks.created_at} DESC 
             LIMIT 3
           )
         `
@@ -47,7 +46,7 @@ router.get('/', async (req, res) => {
       username: creator.username || `@${creator.name.toLowerCase().replace(/\s+/g, '')}`,
       avatar: creator.avatar,
       bio: creator.bio || '',
-      location: creator.location || 'Non spécifié',
+      location: 'France', // Default location as the column doesn't exist
       styleTags: creator.styleTags || [],
       followersCount: creator.followersCount || 0,
       postsCount: creator.postsCount || 0,

@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { useLocation } from 'wouter';
+import { mvpStore } from '@/lib/mvpStore';
 
 interface FashionCreator {
   id: string;
@@ -157,9 +158,24 @@ export default function CreatorsPage() {
     return true;
   });
 
-  const handleFollow = (creatorId: string) => {
-    console.log('Follow creator:', creatorId);
-    // TODO: Implement follow mutation
+  const handleFollow = async (creatorId: string) => {
+    try {
+      // For now, toggle follow status in localStorage (MVP approach)
+      const following = mvpStore.getFollowing();
+      if (following.includes(creatorId)) {
+        mvpStore.unfollow(creatorId);
+      } else {
+        mvpStore.follow(creatorId);
+      }
+      
+      // In production, this would call an API:
+      // await apiRequest('POST', `/api/social/follow/${creatorId}`);
+      
+      // Re-fetch creators to update UI
+      window.location.reload();
+    } catch (error) {
+      console.error('Error following creator:', error);
+    }
   };
 
   return (
