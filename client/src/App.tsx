@@ -24,7 +24,6 @@ const Sitemap = React.lazy(() => import('@/pages/sitemap'));
 const Features = React.lazy(() => import('@/pages/features'));
 const NotreConcept = React.lazy(() => import('@/pages/notre-concept'));
 
-const DemoMissions = React.lazy(() => import('@/pages/demo-missions'));
 const AvailableProviders = React.lazy(() => import('@/pages/available-providers'));
 const AIMonitoring = React.lazy(() => import('@/pages/AIMonitoring'));
 const LoginPage = React.lazy(() => import('@/pages/login'));
@@ -123,7 +122,6 @@ function App() {
                     <Route path="/features" component={Features} />
 
                     <Route path="/available-providers" component={AvailableProviders} />
-                    <Route path="/demo/missions" component={DemoMissions} />
                     <Route path="/monitoring" component={AIMonitoring} />
                     <Route path="/feed" component={Feed} />
                     <Route path="/explore" component={Explore} />
