@@ -142,6 +142,11 @@ FashionHub est un réseau social moderne dédié à la mode et au style personne
 - **Lucide React**: Bibliothèque d'icônes
 
 ## Recent Changes
+- **2025-10-23**: Transformation des pages legacy en pages mode
+  - Ancienne page "Prestataires disponibles" → Nouvelle page "Créateurs Mode" (`/creators`) pour découvrir des fashionistas
+  - Ancienne page "Missions" → Nouvelle page "Mes Collections" (`/collections`) pour gérer des collections de looks
+  - Nettoyage des routes dans App.tsx pour supprimer les anciennes pages services/missions
+  - Interface moderne avec grilles de looks, filtres par style, et système de follow
 - **2025-10-22**: Transformation complète de l'application de plateforme de mise en relation professionnelle en réseau social de la mode
 - Création du système mvpStore pour gérer articles, profils et follows en localStorage
 - Ajout du composant ArticleFormMVP pour créer des articles de mode
