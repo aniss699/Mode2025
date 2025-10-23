@@ -87,8 +87,8 @@ export default function MobileBottomNav() {
               onClick={() => handleNavigation(item.path)}
               className={`flex flex-col items-center justify-center flex-1 h-full space-y-1 transition-all duration-200 ${
                 isActive 
-                  ? 'text-blue-600' 
-                  : 'text-gray-600 hover:text-blue-500'
+                  ? 'text-pink-600' 
+                  : 'text-gray-600 hover:text-pink-500'
               }`}
               data-testid={item.testId}
             >
@@ -105,7 +105,7 @@ export default function MobileBottomNav() {
           className="flex flex-col items-center justify-center -mt-6 transition-transform duration-200 active:scale-95"
           data-testid="button-new-mission-central"
         >
-          <div className="bg-gradient-to-br from-blue-600 to-purple-600 rounded-full p-4 shadow-lg">
+          <div className="bg-gradient-to-br from-pink-500 to-fuchsia-500 rounded-full p-4 shadow-lg">
             <Plus className="w-8 h-8 text-white" strokeWidth={2.5} />
           </div>
           <span className="text-[0.65rem] font-semibold text-gray-700 mt-1">
@@ -123,8 +123,8 @@ export default function MobileBottomNav() {
               onClick={() => handleNavigation(item.path)}
               className={`flex flex-col items-center justify-center flex-1 h-full space-y-1 transition-all duration-200 ${
                 isActive 
-                  ? 'text-blue-600' 
-                  : 'text-gray-600 hover:text-blue-500'
+                  ? 'text-pink-600' 
+                  : 'text-gray-600 hover:text-pink-500'
               }`}
               data-testid={item.testId}
             >
@@ -163,7 +163,7 @@ export default function MobileBottomNav() {
                     onClick={() => handleNavigation(item.path)}
                     className={`w-full flex items-center gap-4 px-4 py-3 rounded-lg transition-colors duration-200 ${
                       isActive 
-                        ? 'bg-blue-50 text-blue-600' 
+                        ? 'bg-pink-50 text-pink-600' 
                         : 'text-gray-700 hover:bg-gray-50'
                     }`}
                     data-testid={item.testId}
