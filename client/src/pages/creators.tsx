@@ -404,7 +404,7 @@ export default function CreatorsPage() {
                           <Button 
                             data-testid={`button-view-profile-${creator.id}`}
                             variant="outline"
-                            onClick={() => setLocation(`/profile/${creator.id}`)}
+                            onClick={() => setLocation(`/wardrobe/${creator.id}`)}
                           >
                             <Eye className="w-4 h-4" />
                           </Button>

@@ -223,6 +223,16 @@ router.get('/users/:userId', async (req, res) => {
   try {
     const userId = parseInt(req.params.userId);
 
+    // Récupérer l'utilisateur
+    const [user] = await db.select()
+      .from(users)
+      .where(eq(users.id, userId));
+
+    if (!user) {
+      return res.status(404).json({ error: 'Utilisateur non trouvé' });
+    }
+
+    // Récupérer les items publics
     const items = await db.select()
       .from(wardrobeItems)
       .where(
@@ -233,7 +243,49 @@ router.get('/users/:userId', async (req, res) => {
       )
       .orderBy(desc(wardrobeItems.created_at));
 
-    res.json(items);
+    // Récupérer les collections publiques
+    const { collections } = await import('../../shared/schema');
+    const userCollections = await db.select()
+      .from(collections)
+      .where(
+        and(
+          eq(collections.user_id, userId),
+          eq(collections.is_public, true)
+        )
+      )
+      .orderBy(desc(collections.created_at));
+
+    res.json({
+      user: {
+        id: user.id,
+        name: user.name,
+        username: user.username || `@${user.name.toLowerCase().replace(/\s+/g, '')}`,
+        avatar: user.avatar_url,
+        bio: user.bio,
+        location: user.location,
+        styleTags: user.style_tags || [],
+        followersCount: user.followers_count || 0,
+        postsCount: user.posts_count || 0,
+        rating: 4.8,
+        isFollowing: false,
+        isVerified: user.is_verified || false
+      },
+      items: items.map(item => ({
+        id: item.id,
+        name: item.name,
+        imageUrl: item.image_url,
+        category: item.category,
+        brand: item.brand,
+        color: item.color,
+        tags: item.tags
+      })),
+      collections: userCollections.map(col => ({
+        id: col.id,
+        title: col.title,
+        coverImage: col.cover_image,
+        itemsCount: col.items?.length || 0
+      }))
+    });
   } catch (error) {
     console.error('Erreur récupération garde-robe publique:', error);
     res.status(500).json({ error: 'Erreur serveur' });

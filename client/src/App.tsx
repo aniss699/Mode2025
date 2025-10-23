@@ -14,6 +14,8 @@ import { queryClient } from '@/lib/queryClient';
 const Home = React.lazy(() => import('@/pages/home'));
 const CreatorsPage = React.lazy(() => import('@/pages/creators'));
 const Collections = React.lazy(() => import('@/pages/collections'));
+const CollectionDetail = React.lazy(() => import('@/pages/collection-detail')); // New import
+const PublicWardrobe = React.lazy(() => import('@/pages/public-wardrobe')); // New import
 const Profile = React.lazy(() => import('@/pages/profile'));
 const Dashboard = React.lazy(() => import('@/pages/dashboard'));
 const Messages = React.lazy(() => import('@/pages/messages'));
@@ -71,6 +73,8 @@ function App() {
                     <Route path="/" component={Home} />
                     <Route path="/creators" component={CreatorsPage} />
                     <Route path="/collections" component={Collections} />
+                    <Route path="/collections/:id" component={CollectionDetail} /> {/* New Route */}
+                    <Route path="/wardrobe/:userId" component={PublicWardrobe} /> {/* New Route */}
                     <Route path="/profile" component={Profile} />
                     <Route path="/dashboard" component={Dashboard} />
                     <Route path="/messages" component={Messages} />
