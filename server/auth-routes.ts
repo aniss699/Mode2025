@@ -134,20 +134,18 @@ router.post('/register', async (req, res) => {
 
     // Préparer profile_data avec valeurs par défaut selon le rôle
     const defaultProfileData = normalizedRole === 'PRO' ? {
-      bio: '',
-      skills: [],
-      portfolio: [],
-      hourlyRate: null,
-      availability: true,
-      calendarAvailability: [],
-      keywords: [],
+      bio: profile_data.bio || '',
+      created_via: 'onboarding_flow',
+      onboarding_completed: true,
       ...profile_data
     } : {
-      bio: '',
-      style_preferences: [],
-      fashion_interests: [],
-      favorite_brands: [],
-      size_info: {},
+      bio: profile_data.bio || '',
+      style_preferences: profile_data.style_preferences || [],
+      fashion_interests: profile_data.fashion_interests || [],
+      favorite_brands: profile_data.favorite_brands || [],
+      size_info: profile_data.size_info || {},
+      created_via: 'onboarding_flow',
+      onboarding_completed: true,
       ...profile_data
     };
 
@@ -159,9 +157,18 @@ router.post('/register', async (req, res) => {
         password, // En production, hasher avec bcrypt
         name: name.trim(),
         role: normalizedRole,
+        bio: defaultProfileData.bio,
         profile_data: defaultProfileData,
         rating_mean: null,
         rating_count: 0,
+        style_tags: [],
+        favorite_colors: [],
+        favorite_brands: profile_data.favorite_brands || [],
+        followers_count: 0,
+        following_count: 0,
+        posts_count: 0,
+        is_private: false,
+        is_verified: false,
         created_at: new Date(),
         updated_at: new Date()
       })

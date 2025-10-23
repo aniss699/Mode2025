@@ -12,6 +12,7 @@ import {
   uniqueIndex,
   unique,
   varchar,
+  sql // Import sql
 } from 'drizzle-orm/pg-core';
 import { z } from 'zod';
 import { createInsertSchema } from 'drizzle-zod';
@@ -30,24 +31,32 @@ export const users = pgTable('users', {
   email: text('email').notNull().unique(),
   name: text('name').notNull(),
   password: text('password').notNull(),
+  role: text('role').notNull().default("CLIENT"), // CLIENT ou PRO
   username: text('username').unique(), // Nom d'utilisateur unique pour le réseau social
   avatar_url: text('avatar_url'),
   bio: text('bio'),
-  
+
   // Style et préférences mode
-  style_tags: text('style_tags').array().default([]), // ["minimalist", "vintage", "streetwear"]
-  favorite_colors: text('favorite_colors').array().default([]),
-  favorite_brands: text('favorite_brands').array().default([]),
-  
+  style_tags: text('style_tags').array().default(sql`ARRAY[]::text[]`), // ["minimalist", "vintage", "streetwear"]
+  favorite_colors: text('favorite_colors').array().default(sql`ARRAY[]::text[]`),
+  favorite_brands: text('favorite_brands').array().default(sql`ARRAY[]::text[]`),
+
   // Statistiques
   followers_count: integer('followers_count').default(0),
   following_count: integer('following_count').default(0),
   posts_count: integer('posts_count').default(0),
-  
+
+  // Données de profil JSON
+  profile_data: jsonb('profile_data').default(sql`'{}'::jsonb`),
+
+  // Reputation (pour compatibilité)
+  rating_mean: numeric('rating_mean', { precision: 3, scale: 2 }),
+  rating_count: integer('rating_count').default(0),
+
   // Paramètres
   is_private: boolean('is_private').default(false), // Profil privé
   is_verified: boolean('is_verified').default(false), // Badge vérifié
-  
+
   created_at: timestamp('created_at').defaultNow(),
   updated_at: timestamp('updated_at').defaultNow(),
 });
@@ -73,36 +82,36 @@ export const follows = pgTable('follows', {
 export const fashionItems = pgTable('fashion_items', {
   id: serial('id').primaryKey(),
   user_id: integer('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
-  
+
   // Informations de base
   title: text('title').notNull(),
   description: text('description'),
-  
+
   // Images
   images: text('images').array().default([]), // URLs des images
-  
+
   // Catégorisation
   category: text('category').notNull(), // "top", "bottom", "shoes", "accessory", "outerwear", "dress", "bag"
   sub_category: text('sub_category'), // "t-shirt", "jeans", "sneakers", etc.
-  
+
   // Caractéristiques
   brand: text('brand'),
   color: text('color'),
   season: text('season'), // "spring", "summer", "fall", "winter", "all"
   occasion: text('occasion'), // "casual", "formal", "sport", "party"
   tags: text('tags').array().default([]),
-  
+
   // Métadonnées
   purchase_date: timestamp('purchase_date'),
   price: integer('price'), // Prix en centimes
   size: text('size'),
-  
+
   // Statistiques d'utilisation
   worn_count: integer('worn_count').default(0), // Nombre de fois porté dans des looks
-  
+
   // Visibilité
   is_public: boolean('is_public').default(true),
-  
+
   created_at: timestamp('created_at').defaultNow(),
   updated_at: timestamp('updated_at').defaultNow(),
 });
@@ -114,30 +123,30 @@ export const fashionItems = pgTable('fashion_items', {
 export const looks = pgTable('looks', {
   id: serial('id').primaryKey(),
   user_id: integer('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
-  
+
   // Contenu
   title: text('title').notNull(),
   description: text('description'),
   cover_image: text('cover_image'), // Image principale du look
-  
+
   // Catégorisation
   style_tags: text('style_tags').array().default([]), // ["casual", "chic", "streetwear"]
   occasion: text('occasion'), // "daily", "work", "party", "date", "sport"
   season: text('season'), // "spring", "summer", "fall", "winter"
-  
+
   // Statistiques d'engagement
   likes_count: integer('likes_count').default(0),
   comments_count: integer('comments_count').default(0),
   saves_count: integer('saves_count').default(0),
   views_count: integer('views_count').default(0),
-  
+
   // Algorithme feed
   engagement_score: decimal('engagement_score', { precision: 5, scale: 2 }).default('0.0'),
-  
+
   // Visibilité
   is_public: boolean('is_public').default(true),
   is_featured: boolean('is_featured').default(false), // Mis en avant par la plateforme
-  
+
   created_at: timestamp('created_at').defaultNow(),
   updated_at: timestamp('updated_at').defaultNow(),
 });
@@ -161,18 +170,18 @@ export const lookItems = pgTable('look_items', {
 export const collections = pgTable('collections', {
   id: serial('id').primaryKey(),
   user_id: integer('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
-  
+
   title: text('title').notNull(),
   description: text('description'),
   cover_image: text('cover_image'),
-  
+
   // Visibilité
   is_public: boolean('is_public').default(true),
-  
+
   // Statistiques
   looks_count: integer('looks_count').default(0),
   followers_count: integer('followers_count').default(0),
-  
+
   created_at: timestamp('created_at').defaultNow(),
   updated_at: timestamp('updated_at').defaultNow(),
 });
@@ -211,12 +220,12 @@ export const comments = pgTable('comments', {
   id: serial('id').primaryKey(),
   user_id: integer('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
   look_id: integer('look_id').references(() => looks.id, { onDelete: 'cascade' }).notNull(),
-  
+
   content: text('content').notNull(),
   parent_id: integer('parent_id').references((): any => comments.id, { onDelete: 'cascade' }), // Pour les réponses
-  
+
   likes_count: integer('likes_count').default(0),
-  
+
   created_at: timestamp('created_at').defaultNow(),
   updated_at: timestamp('updated_at').defaultNow(),
 });
@@ -241,20 +250,20 @@ export const savedLooks = pgTable('saved_looks', {
 export const notifications = pgTable('notifications', {
   id: serial('id').primaryKey(),
   user_id: integer('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
-  
+
   type: text('type').notNull(), // 'like', 'comment', 'follow', 'mention'
   title: text('title').notNull(),
   message: text('message').notNull(),
   link: text('link'), // URL de redirection
-  
+
   // Acteur de la notification
   actor_id: integer('actor_id').references(() => users.id, { onDelete: 'cascade' }),
   actor_name: text('actor_name'),
   actor_avatar: text('actor_avatar'),
-  
+
   // Métadonnées
   metadata: jsonb('metadata'),
-  
+
   read_at: timestamp('read_at'),
   created_at: timestamp('created_at').defaultNow(),
 });
@@ -275,14 +284,14 @@ export const messages = pgTable('messages', {
   id: serial('id').primaryKey(),
   conversation_id: integer('conversation_id').references(() => conversations.id, { onDelete: 'cascade' }).notNull(),
   sender_id: integer('sender_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
-  
+
   content: text('content').notNull(),
   message_type: text('message_type').$type<'text' | 'image' | 'look'>().default('text'),
-  
+
   // Pour partager un look
   look_id: integer('look_id').references(() => looks.id),
   image_url: text('image_url'),
-  
+
   read_at: timestamp('read_at'),
   created_at: timestamp('created_at').defaultNow(),
 });
@@ -294,17 +303,17 @@ export const messages = pgTable('messages', {
 export const files = pgTable('files', {
   id: serial('id').primaryKey(),
   user_id: integer('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
-  
+
   filename: text('filename').notNull(),
   original_filename: text('original_filename').notNull(),
   file_type: text('file_type').notNull(), // mime type
   file_size: integer('file_size').notNull(), // en bytes
   file_url: text('file_url').notNull(),
-  
+
   // Contexte d'utilisation
   context_type: text('context_type'), // 'fashion_item', 'look', 'avatar', 'message'
   context_id: integer('context_id'),
-  
+
   metadata: jsonb('metadata'),
   created_at: timestamp('created_at').defaultNow(),
 });
@@ -316,11 +325,11 @@ export const files = pgTable('files', {
 export const userSettings = pgTable('user_settings', {
   id: serial('id').primaryKey(),
   user_id: integer('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull().unique(),
-  
+
   notifications: jsonb('notifications'), // Préférences de notifications
   privacy: jsonb('privacy'), // Paramètres de confidentialité
   appearance: jsonb('appearance'), // Thème, langue, etc.
-  
+
   created_at: timestamp('created_at').defaultNow(),
   updated_at: timestamp('updated_at').defaultNow(),
 });
@@ -507,6 +516,9 @@ export const insertUserSchema = createInsertSchema(users).omit({
   followers_count: true,
   following_count: true,
   posts_count: true,
+  profile_data: true,
+  rating_mean: true,
+  rating_count: true,
 });
 
 export const insertFashionItemSchema = createInsertSchema(fashionItems).omit({
