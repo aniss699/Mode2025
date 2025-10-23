@@ -12,7 +12,7 @@ import { queryClient } from '@/lib/queryClient';
 
 // Lazy load pages for better performance
 const Home = React.lazy(() => import('@/pages/home'));
-const ProviderProfile = React.lazy(() => import('@/pages/provider-profile'));
+const CreatorsPage = React.lazy(() => import('@/pages/provider-profile'));
 const Missions = React.lazy(() => import('@/pages/missions'));
 const CreateMissionPage = React.lazy(() => import('@/pages/create-mission'));
 const Profile = React.lazy(() => import('@/pages/profile'));
