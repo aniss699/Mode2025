@@ -20,7 +20,7 @@ validateEnvironment();
 
 const app = express();
 const port = parseInt(process.env.PORT || '5000', 10);
-const PID_FILE = '/tmp/swideal-server.pid';
+const PID_FILE = '/tmp/fashionhub-server.pid';
 
 // Helper function to check if port is free
 function checkPortFree(port: number): Promise<boolean> {
@@ -238,8 +238,8 @@ app.use(cors({
 
     // Production: Only allow trusted domains
     const allowedOrigins = [
-      'https://swideal.com',
-      'https://www.swideal.com',
+      'https://fashionhub.com',
+      'https://www.fashionhub.com',
       /^https:\/\/.*\.replit\.dev$/,
       /^https:\/\/.*\.replit\.app$/,
       /^https:\/\/.*\.replit\.co$/,
@@ -320,7 +320,7 @@ import { aiRateLimit, strictAiRateLimit, monitoringRateLimit } from './middlewar
 app.all('/api', (req, res) => {
   res.status(200).json({
     status: 'ok',
-    service: 'SWIDEAL API',
+    service: 'FASHIONHUB API',
     timestamp: new Date().toISOString(),
     version: '1.0.0'
   });
@@ -469,7 +469,7 @@ app.get('/api/health', async (req, res) => {
 
     res.status(200).json({
       status: 'healthy',
-      message: 'SWIDEAL API is running',
+      message: 'FASHIONHUB API is running',
       timestamp: new Date().toISOString(),
       uptime: process.uptime(),
       env: process.env.NODE_ENV || 'development',
@@ -508,7 +508,7 @@ app.get('/healthz', (req, res) => {
   res.status(200).json({
     status: 'healthy',
     timestamp: new Date().toISOString(),
-    service: 'swideal-api',
+    service: 'fashionhub-api',
     version: '1.0.0',
     node_env: process.env.NODE_ENV
   });
@@ -571,7 +571,7 @@ async function startServerWithRetry(): Promise<void> {
       await new Promise<void>((resolve, reject) => {
         const serverInstance = server.listen(port, '0.0.0.0', async () => {
           writePidFile();
-          console.log(`🚀 SWIDEAL server running on http://0.0.0.0:${port} (attempt ${attempt})`);
+          console.log(`🚀 FASHIONHUB server running on http://0.0.0.0:${port} (attempt ${attempt})`);
           console.log(`📱 Frontend: http://0.0.0.0:${port}`);
           console.log(`🔧 API Health: http://0.0.0.0:${port}/api/health`);
           console.log(`💬 WebSocket: ws://0.0.0.0:${port}/ws`);
