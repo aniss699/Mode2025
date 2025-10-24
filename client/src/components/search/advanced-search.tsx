@@ -261,15 +261,31 @@ export function AdvancedSearch({ onFiltersChange, initialFilters }: AdvancedSear
         )}
       </div>
 
-      {/* Panneau de filtres */}
+      {/* Panneau de filtres avec animation */}
       {showFilters && (
-        <Card className="border-2 border-primary/20 shadow-lg">
-          <CardContent className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <Card className="border-2 border-primary/20 shadow-xl animate-in slide-in-from-top-2 duration-300">
+          <CardContent className="p-8">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-lg font-bold text-primary flex items-center gap-2">
+                <Filter className="h-5 w-5" />
+                Filtres avancés
+              </h3>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => setShowFilters(false)}
+                className="gap-1 text-muted-foreground hover:text-foreground"
+              >
+                <X className="h-4 w-4" />
+                Fermer
+              </Button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {/* Catégories */}
-              <div className="space-y-3">
-                <label className="text-sm font-semibold flex items-center gap-2">
-                  <Filter className="h-4 w-4 text-primary" />
+              <div className="space-y-4">
+                <label className="text-sm font-semibold flex items-center gap-2 text-primary">
+                  <Filter className="h-4 w-4" />
                   Catégories
                 </label>
                 <div className="flex flex-wrap gap-2">
@@ -277,7 +293,7 @@ export function AdvancedSearch({ onFiltersChange, initialFilters }: AdvancedSear
                     <Badge
                       key={category.id}
                       variant={filters.categories.includes(category.id) ? "default" : "outline"}
-                      className="cursor-pointer hover:scale-105 transition-transform"
+                      className="cursor-pointer hover:scale-110 transition-all duration-200 hover:shadow-md px-3 py-1.5"
                       onClick={() => toggleCategory(category.id)}
                     >
                       {category.name}
@@ -287,12 +303,12 @@ export function AdvancedSearch({ onFiltersChange, initialFilters }: AdvancedSear
               </div>
 
               {/* Budget */}
-              <div className="space-y-3">
-                <label className="text-sm font-semibold flex items-center gap-2">
-                  <DollarSign className="h-4 w-4 text-primary" />
+              <div className="space-y-4">
+                <label className="text-sm font-semibold flex items-center gap-2 text-primary">
+                  <DollarSign className="h-4 w-4" />
                   Budget
                 </label>
-                <div className="space-y-3">
+                <div className="space-y-4 bg-muted/30 rounded-lg p-4">
                   <Slider
                     value={filters.budgetRange}
                     onValueChange={(value) => updateFilters({ budgetRange: value as [number, number] })}
@@ -300,57 +316,73 @@ export function AdvancedSearch({ onFiltersChange, initialFilters }: AdvancedSear
                     step={100}
                     className="w-full"
                   />
-                  <div className="flex justify-between text-sm font-medium text-primary">
-                    <span>{filters.budgetRange[0]}€</span>
-                    <span>{filters.budgetRange[1]}€</span>
+                  <div className="flex justify-between text-sm font-bold text-primary">
+                    <span className="bg-primary/10 px-3 py-1 rounded-md">{filters.budgetRange[0]}€</span>
+                    <span className="bg-primary/10 px-3 py-1 rounded-md">{filters.budgetRange[1]}€</span>
                   </div>
                 </div>
               </div>
 
               {/* Note minimale */}
-              <div className="space-y-3">
-                <label className="text-sm font-semibold flex items-center gap-2">
-                  <Star className="h-4 w-4 text-primary" />
+              <div className="space-y-4">
+                <label className="text-sm font-semibold flex items-center gap-2 text-primary">
+                  <Star className="h-4 w-4" />
                   Note minimale
                 </label>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 bg-muted/30 rounded-lg p-3 justify-center">
                   {[1, 2, 3, 4, 5].map((rating) => (
                     <Button
                       key={rating}
                       variant={filters.rating >= rating ? "default" : "outline"}
                       size="sm"
                       onClick={() => updateFilters({ rating })}
-                      className="w-10 h-10 p-0"
+                      className="w-12 h-12 p-0 hover:scale-110 transition-transform"
                     >
-                      <Star className={`h-4 w-4 ${filters.rating >= rating ? 'fill-current' : ''}`} />
+                      <Star className={`h-5 w-5 ${filters.rating >= rating ? 'fill-current' : ''}`} />
                     </Button>
                   ))}
                 </div>
               </div>
 
               {/* Distance */}
-              <div className="space-y-3">
-                <label className="text-sm font-semibold flex items-center gap-2">
-                  <MapPin className="h-4 w-4 text-primary" />
-                  Rayon ({filters.distance}km)
+              <div className="space-y-4">
+                <label className="text-sm font-semibold flex items-center gap-2 text-primary">
+                  <MapPin className="h-4 w-4" />
+                  Rayon de recherche
                 </label>
-                <Slider
-                  value={[filters.distance]}
-                  onValueChange={([value]) => updateFilters({ distance: value })}
-                  max={100}
-                  step={5}
-                />
+                <div className="bg-muted/30 rounded-lg p-4 space-y-3">
+                  <div className="text-center">
+                    <span className="text-2xl font-bold text-primary">{filters.distance}</span>
+                    <span className="text-sm text-muted-foreground ml-1">km</span>
+                  </div>
+                  <Slider
+                    value={[filters.distance]}
+                    onValueChange={([value]) => updateFilters({ distance: value })}
+                    max={100}
+                    step={5}
+                  />
+                </div>
               </div>
 
               {/* Urgence */}
-              <div className="space-y-3 md:col-span-2">
-                <label className="text-sm font-semibold flex items-center gap-2">
-                  <Clock className="h-4 w-4 text-primary" />
-                  Urgence
+              <div className="space-y-4 md:col-span-2">
+                <label className="text-sm font-semibold flex items-center gap-2 text-primary">
+                  <Clock className="h-4 w-4" />
+                  Niveau d'urgence
                 </label>
-                <div className="flex flex-wrap gap-3">
+                <div className="flex flex-wrap gap-4 bg-muted/30 rounded-lg p-4">
                   {urgencyLevels.map((level) => (
-                    <div key={level.id} className="flex items-center space-x-2">
+                    <div 
+                      key={level.id} 
+                      className="flex items-center space-x-2 bg-background rounded-md px-3 py-2 hover:shadow-md transition-shadow cursor-pointer"
+                      onClick={() => {
+                        const checked = !filters.urgency.includes(level.id);
+                        const newUrgency = checked
+                          ? [...filters.urgency, level.id]
+                          : filters.urgency.filter(u => u !== level.id);
+                        updateFilters({ urgency: newUrgency });
+                      }}
+                    >
                       <Checkbox
                         id={level.id}
                         checked={filters.urgency.includes(level.id)}
@@ -362,12 +394,39 @@ export function AdvancedSearch({ onFiltersChange, initialFilters }: AdvancedSear
                         }}
                       />
                       <label htmlFor={level.id} className="text-sm cursor-pointer">
-                        <span className={`font-medium ${level.color}`}>{level.name}</span>
-                        <span className="text-muted-foreground ml-1">({level.days})</span>
+                        <span className={`font-semibold ${level.color}`}>{level.name}</span>
+                        <span className="text-muted-foreground ml-1.5 text-xs">({level.days})</span>
                       </label>
                     </div>
                   ))}
                 </div>
+              </div>
+            </div>
+
+            {/* Actions du panneau */}
+            <div className="flex items-center justify-between mt-6 pt-6 border-t">
+              <p className="text-sm text-muted-foreground">
+                {activeFiltersCount} filtre{activeFiltersCount > 1 ? 's' : ''} actif{activeFiltersCount > 1 ? 's' : ''}
+              </p>
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={clearFilters}
+                  disabled={activeFiltersCount === 0}
+                  className="gap-1"
+                >
+                  <X className="h-3 w-3" />
+                  Réinitialiser
+                </Button>
+                <Button 
+                  variant="default" 
+                  size="sm"
+                  onClick={() => setShowFilters(false)}
+                  className="gap-1"
+                >
+                  Appliquer les filtres
+                </Button>
               </div>
             </div>
           </CardContent>
