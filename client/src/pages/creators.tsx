@@ -23,7 +23,8 @@ import {
   TrendingUp,
   Users,
   Shirt,
-  Eye
+  Eye,
+  Activity
 } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { useLocation } from 'wouter';
@@ -47,6 +48,7 @@ interface FashionCreator {
 
 export default function CreatorsPage() {
   const [searchTerm, setSearchTerm] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState({
     style: 'all',
     location: '',
@@ -245,23 +247,76 @@ export default function CreatorsPage() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid lg:grid-cols-4 gap-8">
-          {/* Filters Sidebar */}
-          <div className="lg:col-span-1">
-            <Card className="sticky top-6">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-2 mb-6">
-                  <Filter className="w-5 h-5 text-pink-600" />
-                  <h3 className="font-semibold text-lg">Filtres</h3>
+        <div className="space-y-6">
+          {/* Bouton Filtres et compte */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Button 
+                variant={showFilters ? "default" : "outline"} 
+                className="gap-2 bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white"
+                onClick={() => setShowFilters(!showFilters)}
+              >
+                <Filter className="h-4 w-4" />
+                Filtres
+                {(filters.style !== 'all' || filters.location || filters.followers !== 'all' || filters.activity !== 'all') && (
+                  <Badge variant="secondary" className="ml-1 bg-white text-pink-600">
+                    {[
+                      filters.style !== 'all',
+                      filters.location,
+                      filters.followers !== 'all',
+                      filters.activity !== 'all'
+                    ].filter(Boolean).length}
+                  </Badge>
+                )}
+              </Button>
+
+              {(filters.style !== 'all' || filters.location || filters.followers !== 'all' || filters.activity !== 'all') && (
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => setFilters({style: 'all', location: '', followers: 'all', activity: 'all'})}
+                  className="gap-1 text-muted-foreground hover:text-foreground"
+                >
+                  <Search className="h-3 w-3" />
+                  Effacer
+                </Button>
+              )}
+            </div>
+
+            <h2 className="text-xl font-bold text-gray-700" data-testid="text-creators-count">
+              {filteredCreators.length} créateur{filteredCreators.length > 1 ? 's' : ''}
+            </h2>
+          </div>
+
+          {/* Panneau de filtres avec animation */}
+          {showFilters && (
+            <Card className="border-2 border-pink-200 shadow-xl animate-in slide-in-from-top-2 duration-300 bg-gradient-to-br from-pink-50 to-purple-50">
+              <CardContent className="p-8">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-lg font-bold text-pink-600 flex items-center gap-2">
+                    <Filter className="h-5 w-5" />
+                    Filtres de recherche
+                  </h3>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => setShowFilters(false)}
+                    className="gap-1 text-muted-foreground hover:text-pink-600"
+                  >
+                    <Search className="h-4 w-4" />
+                    Fermer
+                  </Button>
                 </div>
 
-                <div className="space-y-4">
-                  <div>
-                    <label className="text-sm font-medium text-gray-700 mb-2 block">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  {/* Style */}
+                  <div className="space-y-3">
+                    <label className="text-sm font-semibold flex items-center gap-2 text-pink-600">
+                      <Shirt className="h-4 w-4" />
                       Style vestimentaire
                     </label>
                     <Select value={filters.style} onValueChange={(value) => setFilters(prev => ({...prev, style: value}))}>
-                      <SelectTrigger data-testid="select-style-filter">
+                      <SelectTrigger data-testid="select-style-filter" className="border-pink-200 focus:border-pink-400">
                         <SelectValue placeholder="Tous les styles" />
                       </SelectTrigger>
                       <SelectContent>
@@ -279,8 +334,10 @@ export default function CreatorsPage() {
                     </Select>
                   </div>
 
-                  <div>
-                    <label className="text-sm font-medium text-gray-700 mb-2 block">
+                  {/* Localisation */}
+                  <div className="space-y-3">
+                    <label className="text-sm font-semibold flex items-center gap-2 text-pink-600">
+                      <MapPin className="h-4 w-4" />
                       Localisation
                     </label>
                     <div className="relative">
@@ -290,17 +347,19 @@ export default function CreatorsPage() {
                         placeholder="Paris, Lyon, Marseille..."
                         value={filters.location}
                         onChange={(e) => setFilters(prev => ({...prev, location: e.target.value}))}
-                        className="pl-10"
+                        className="pl-10 border-pink-200 focus:border-pink-400"
                       />
                     </div>
                   </div>
 
-                  <div>
-                    <label className="text-sm font-medium text-gray-700 mb-2 block">
+                  {/* Popularité */}
+                  <div className="space-y-3">
+                    <label className="text-sm font-semibold flex items-center gap-2 text-pink-600">
+                      <TrendingUp className="h-4 w-4" />
                       Popularité
                     </label>
                     <Select value={filters.followers} onValueChange={(value) => setFilters(prev => ({...prev, followers: value}))}>
-                      <SelectTrigger data-testid="select-popularity-filter">
+                      <SelectTrigger data-testid="select-popularity-filter" className="border-pink-200 focus:border-pink-400">
                         <SelectValue placeholder="Tous" />
                       </SelectTrigger>
                       <SelectContent>
@@ -313,12 +372,14 @@ export default function CreatorsPage() {
                     </Select>
                   </div>
 
-                  <div>
-                    <label className="text-sm font-medium text-gray-700 mb-2 block">
+                  {/* Activité */}
+                  <div className="space-y-3">
+                    <label className="text-sm font-semibold flex items-center gap-2 text-pink-600">
+                      <Activity className="h-4 w-4" />
                       Activité
                     </label>
                     <Select value={filters.activity || 'all'} onValueChange={(value) => setFilters(prev => ({...prev, activity: value}))}>
-                      <SelectTrigger data-testid="select-activity-filter">
+                      <SelectTrigger data-testid="select-activity-filter" className="border-pink-200 focus:border-pink-400">
                         <SelectValue placeholder="Toutes activités" />
                       </SelectTrigger>
                       <SelectContent>
@@ -329,60 +390,54 @@ export default function CreatorsPage() {
                       </SelectContent>
                     </Select>
                   </div>
-
-                  <Button 
-                    data-testid="button-reset-filters"
-                    variant="outline" 
-                    size="sm"
-                    className="w-full mt-4"
-                    onClick={() => setFilters({style: 'all', location: '', followers: 'all', activity: 'all'})}
-                  >
-                    🔄 Réinitialiser les filtres
-                  </Button>
                 </div>
 
-                {/* Stats */}
-                <div className="mt-8 pt-6 border-t border-gray-200">
-                  <h4 className="text-sm font-semibold text-gray-700 mb-3">Statistiques</h4>
-                  <div className="space-y-3 text-sm">
-                    <div className="flex items-center justify-between">
-                      <span className="text-gray-600 flex items-center gap-1">
-                        <Users className="w-3 h-3" />
-                        Créateurs affichés
-                      </span>
+                {/* Stats et Actions */}
+                <div className="flex items-center justify-between mt-6 pt-6 border-t border-pink-200">
+                  <div className="flex gap-6 text-sm">
+                    <div className="flex items-center gap-2">
+                      <Users className="w-4 h-4 text-pink-500" />
                       <span className="font-semibold text-pink-600">{filteredCreators.length}</span>
+                      <span className="text-gray-600">résultats</span>
                     </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-gray-600 flex items-center gap-1">
-                        <TrendingUp className="w-3 h-3" />
-                        En tendance
-                      </span>
-                      <span className="font-semibold text-green-600">
-                        {filteredCreators.filter(c => c.followersCount > 5000).length}
-                      </span>
+                    <div className="flex items-center gap-2">
+                      <TrendingUp className="w-4 h-4 text-green-500" />
+                      <span className="font-semibold text-green-600">{filteredCreators.filter(c => c.followersCount > 5000).length}</span>
+                      <span className="text-gray-600">tendance</span>
                     </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-gray-600 flex items-center gap-1">
-                        <Sparkles className="w-3 h-3" />
-                        Vérifiés
-                      </span>
-                      <span className="font-semibold text-blue-600">
-                        {filteredCreators.filter(c => c.isVerified).length}
-                      </span>
+                    <div className="flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-blue-500" />
+                      <span className="font-semibold text-blue-600">{filteredCreators.filter(c => c.isVerified).length}</span>
+                      <span className="text-gray-600">vérifiés</span>
                     </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button 
+                      data-testid="button-reset-filters"
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => setFilters({style: 'all', location: '', followers: 'all', activity: 'all'})}
+                      className="gap-1"
+                    >
+                      <Search className="h-3 w-3" />
+                      Réinitialiser
+                    </Button>
+                    <Button 
+                      variant="default" 
+                      size="sm"
+                      onClick={() => setShowFilters(false)}
+                      className="gap-1 bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600"
+                    >
+                      Appliquer
+                    </Button>
                   </div>
                 </div>
               </CardContent>
             </Card>
-          </div>
+          )}
 
           {/* Creators Grid */}
-          <div className="lg:col-span-3">
-            <div className="mb-6 flex justify-between items-center">
-              <h2 className="text-2xl font-bold" data-testid="text-creators-count">
-                {filteredCreators.length} créateurs trouvés
-              </h2>
-            </div>
+          <div>
 
             {isLoading ? (
               <div className="text-center py-12">
