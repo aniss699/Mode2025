@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { 
   Shirt, 
   Heart, 
@@ -19,7 +20,7 @@ import {
   Activity
 } from 'lucide-react';
 import { mvpStore } from '@/lib/mvpStore';
-import ArticleFormMVP from '@/components/ArticleFormMVP';
+import AddClothingForm from '@/components/fashion/AddClothingForm';
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -276,13 +277,19 @@ export default function Dashboard() {
               </Card>
             </div>
 
-            {showAddForm && (
-              <Card className="border-2 border-pink-200 bg-pink-50/50">
-                <CardContent className="p-6">
-                  <ArticleFormMVP onSaved={() => { refresh(); setShowAddForm(false); }} />
-                </CardContent>
-              </Card>
-            )}
+            <Dialog open={showAddForm} onOpenChange={setShowAddForm}>
+              <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
+                    Ajouter un vêtement à ton dressing
+                  </DialogTitle>
+                </DialogHeader>
+                <AddClothingForm 
+                  onSaved={() => { refresh(); setShowAddForm(false); }} 
+                  onCancel={() => setShowAddForm(false)}
+                />
+              </DialogContent>
+            </Dialog>
           </TabsContent>
 
           <TabsContent value="wardrobe" className="space-y-6">
@@ -297,13 +304,6 @@ export default function Dashboard() {
               </Button>
             </div>
 
-            {showAddForm && (
-              <Card className="border-2 border-pink-200 bg-pink-50/50 mb-6">
-                <CardContent className="p-6">
-                  <ArticleFormMVP onSaved={() => { refresh(); setShowAddForm(false); }} />
-                </CardContent>
-              </Card>
-            )}
 
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
               {articles.map(article => (
