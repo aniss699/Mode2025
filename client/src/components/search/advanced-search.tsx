@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, Filter, MapPin, Calendar, DollarSign, Star, Sliders, X } from 'lucide-react';
+import { Search, Filter, MapPin, Calendar, DollarSign, Star, Sliders, X, Clock } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -42,7 +42,7 @@ export function AdvancedSearch({ onFiltersChange, initialFilters }: AdvancedSear
     availability: 'all'
   });
 
-  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [aiSuggestions, setAiSuggestions] = useState<string[]>([]);
 
@@ -221,116 +221,25 @@ export function AdvancedSearch({ onFiltersChange, initialFilters }: AdvancedSear
         )}
       </div>
 
-      {/* Filtres rapides */}
-      <div className="flex items-center gap-2 flex-wrap">
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button variant="outline" className="gap-2">
-              <Filter className="h-4 w-4" />
-              Filtres
-              {activeFiltersCount > 0 && (
-                <Badge variant="secondary">{activeFiltersCount}</Badge>
-              )}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-80" align="start">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h4 className="font-medium">Filtres avancés</h4>
-                <Button variant="ghost" size="sm" onClick={clearFilters}>
-                  Effacer
-                </Button>
-              </div>
-
-              {/* Budget */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Budget (€)</label>
-                <Slider
-                  value={filters.budgetRange}
-                  onValueChange={(value) => updateFilters({ budgetRange: value as [number, number] })}
-                  max={10000}
-                  step={100}
-                  className="w-full"
-                />
-                <div className="flex justify-between text-xs text-muted-foreground">
-                  <span>{filters.budgetRange[0]}€</span>
-                  <span>{filters.budgetRange[1]}€</span>
-                </div>
-              </div>
-
-              {/* Note minimale */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Note minimale</label>
-                <div className="flex items-center gap-2">
-                  {[1, 2, 3, 4, 5].map((rating) => (
-                    <Button
-                      key={rating}
-                      variant={filters.rating >= rating ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => updateFilters({ rating })}
-                      className="w-8 h-8 p-0"
-                    >
-                      <Star className="h-3 w-3" />
-                    </Button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Distance */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Rayon ({filters.distance}km)</label>
-                <Slider
-                  value={[filters.distance]}
-                  onValueChange={([value]) => updateFilters({ distance: value })}
-                  max={100}
-                  step={5}
-                />
-              </div>
-
-              {/* Urgence */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Urgence</label>
-                <div className="space-y-2">
-                  {urgencyLevels.map((level) => (
-                    <div key={level.id} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={level.id}
-                        checked={filters.urgency.includes(level.id)}
-                        onCheckedChange={(checked) => {
-                          const newUrgency = checked
-                            ? [...filters.urgency, level.id]
-                            : filters.urgency.filter(u => u !== level.id);
-                          updateFilters({ urgency: newUrgency });
-                        }}
-                      />
-                      <label htmlFor={level.id} className="text-sm">
-                        <span className={level.color}>{level.name}</span> ({level.days})
-                      </label>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </PopoverContent>
-        </Popover>
-
-        {/* Catégories rapides */}
-        <div className="flex gap-2 flex-wrap">
-          {categories.slice(0, 5).map((category) => (
-            <Badge
-              key={category.id}
-              variant={filters.categories.includes(category.id) ? "default" : "outline"}
-              className="cursor-pointer"
-              onClick={() => toggleCategory(category.id)}
-            >
-              {category.name}
+      {/* Bouton pour afficher/masquer les filtres */}
+      <div className="flex items-center gap-3">
+        <Button 
+          variant={showFilters ? "default" : "outline"} 
+          className="gap-2"
+          onClick={() => setShowFilters(!showFilters)}
+        >
+          <Sliders className="h-4 w-4" />
+          Filtres
+          {activeFiltersCount > 0 && (
+            <Badge variant="secondary" className="ml-1 bg-white text-primary">
+              {activeFiltersCount}
             </Badge>
-          ))}
-        </div>
+          )}
+        </Button>
 
-        {/* Tri */}
+        {/* Tri toujours visible */}
         <Select value={filters.sortBy} onValueChange={(value) => updateFilters({ sortBy: value })}>
-          <SelectTrigger className="w-40">
+          <SelectTrigger className="w-48">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -343,7 +252,127 @@ export function AdvancedSearch({ onFiltersChange, initialFilters }: AdvancedSear
             <SelectItem value="distance">Distance</SelectItem>
           </SelectContent>
         </Select>
+
+        {activeFiltersCount > 0 && (
+          <Button variant="ghost" size="sm" onClick={clearFilters} className="gap-1">
+            <X className="h-3 w-3" />
+            Effacer
+          </Button>
+        )}
       </div>
+
+      {/* Panneau de filtres */}
+      {showFilters && (
+        <Card className="border-2 border-primary/20 shadow-lg">
+          <CardContent className="p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {/* Catégories */}
+              <div className="space-y-3">
+                <label className="text-sm font-semibold flex items-center gap-2">
+                  <Filter className="h-4 w-4 text-primary" />
+                  Catégories
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {categories.map((category) => (
+                    <Badge
+                      key={category.id}
+                      variant={filters.categories.includes(category.id) ? "default" : "outline"}
+                      className="cursor-pointer hover:scale-105 transition-transform"
+                      onClick={() => toggleCategory(category.id)}
+                    >
+                      {category.name}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+
+              {/* Budget */}
+              <div className="space-y-3">
+                <label className="text-sm font-semibold flex items-center gap-2">
+                  <DollarSign className="h-4 w-4 text-primary" />
+                  Budget
+                </label>
+                <div className="space-y-3">
+                  <Slider
+                    value={filters.budgetRange}
+                    onValueChange={(value) => updateFilters({ budgetRange: value as [number, number] })}
+                    max={10000}
+                    step={100}
+                    className="w-full"
+                  />
+                  <div className="flex justify-between text-sm font-medium text-primary">
+                    <span>{filters.budgetRange[0]}€</span>
+                    <span>{filters.budgetRange[1]}€</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Note minimale */}
+              <div className="space-y-3">
+                <label className="text-sm font-semibold flex items-center gap-2">
+                  <Star className="h-4 w-4 text-primary" />
+                  Note minimale
+                </label>
+                <div className="flex items-center gap-2">
+                  {[1, 2, 3, 4, 5].map((rating) => (
+                    <Button
+                      key={rating}
+                      variant={filters.rating >= rating ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => updateFilters({ rating })}
+                      className="w-10 h-10 p-0"
+                    >
+                      <Star className={`h-4 w-4 ${filters.rating >= rating ? 'fill-current' : ''}`} />
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Distance */}
+              <div className="space-y-3">
+                <label className="text-sm font-semibold flex items-center gap-2">
+                  <MapPin className="h-4 w-4 text-primary" />
+                  Rayon ({filters.distance}km)
+                </label>
+                <Slider
+                  value={[filters.distance]}
+                  onValueChange={([value]) => updateFilters({ distance: value })}
+                  max={100}
+                  step={5}
+                />
+              </div>
+
+              {/* Urgence */}
+              <div className="space-y-3 md:col-span-2">
+                <label className="text-sm font-semibold flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-primary" />
+                  Urgence
+                </label>
+                <div className="flex flex-wrap gap-3">
+                  {urgencyLevels.map((level) => (
+                    <div key={level.id} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={level.id}
+                        checked={filters.urgency.includes(level.id)}
+                        onCheckedChange={(checked) => {
+                          const newUrgency = checked
+                            ? [...filters.urgency, level.id]
+                            : filters.urgency.filter(u => u !== level.id);
+                          updateFilters({ urgency: newUrgency });
+                        }}
+                      />
+                      <label htmlFor={level.id} className="text-sm cursor-pointer">
+                        <span className={`font-medium ${level.color}`}>{level.name}</span>
+                        <span className="text-muted-foreground ml-1">({level.days})</span>
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Filtres actifs */}
       {activeFiltersCount > 0 && (
