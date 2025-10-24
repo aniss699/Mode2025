@@ -2228,7 +2228,7 @@ router2.get("/users/:userId", async (req, res) => {
         username: user.username || `@${user.name.toLowerCase().replace(/\s+/g, "")}`,
         avatar: user.avatar_url,
         bio: user.bio,
-        location: user.location,
+        location: user.profile_data?.location || "",
         styleTags: user.style_tags || [],
         followersCount: user.followers_count || 0,
         postsCount: user.posts_count || 0,
@@ -2238,18 +2238,18 @@ router2.get("/users/:userId", async (req, res) => {
       },
       items: items.map((item) => ({
         id: item.id,
-        name: item.name,
-        imageUrl: item.image_url,
+        name: item.title,
+        imageUrl: item.images && item.images.length > 0 ? item.images[0] : "",
         category: item.category,
         brand: item.brand,
         color: item.color,
-        tags: item.tags
+        tags: item.tags || []
       })),
       collections: userCollections.map((col) => ({
         id: col.id,
         title: col.title,
         coverImage: col.cover_image,
-        itemsCount: col.items?.length || 0
+        itemsCount: col.looks_count || 0
       }))
     });
   } catch (error) {
@@ -5604,6 +5604,72 @@ init_schema();
 import { Router as Router10 } from "express";
 import { eq as eq15 } from "drizzle-orm";
 var router15 = Router10();
+router15.get("/profile/me", async (req, res) => {
+  try {
+    if (!req.user?.id) {
+      return res.status(401).json({ error: "Non authentifi\xE9" });
+    }
+    const userId2 = req.user.id;
+    console.log("\u{1F4CB} GET /api/profile/me - Requ\xEAte pour userId:", userId2);
+    const user = await db2.select().from(users).where(eq15(users.id, userId2)).limit(1);
+    if (!user.length) {
+      console.warn("\u26A0\uFE0F Utilisateur non trouv\xE9:", userId2);
+      return res.status(404).json({ error: "Utilisateur non trouv\xE9" });
+    }
+    const userData = user[0];
+    const profile = {
+      id: userData.id,
+      name: userData.name,
+      username: userData.username,
+      email: userData.email,
+      bio: userData.bio,
+      avatar_url: userData.avatar_url,
+      style_tags: userData.style_tags || [],
+      posts_count: userData.posts_count || 0,
+      followers_count: userData.followers_count || 0,
+      following_count: userData.following_count || 0,
+      is_verified: userData.is_verified || false
+    };
+    console.log("\u2705 Profil retourn\xE9 pour /profile/me:", profile);
+    res.json(profile);
+  } catch (error) {
+    console.error("\u274C Erreur r\xE9cup\xE9ration profil me:", error);
+    res.status(500).json({ error: "Erreur serveur", details: error instanceof Error ? error.message : "Unknown" });
+  }
+});
+router15.patch("/profile/update", async (req, res) => {
+  try {
+    if (!req.user?.id) {
+      return res.status(401).json({ error: "Non authentifi\xE9" });
+    }
+    const userId2 = req.user.id;
+    const { name, username, bio, avatar_url, style_tags } = req.body;
+    console.log("\u{1F4DD} PATCH /api/profile/update - Donn\xE9es re\xE7ues pour userId:", userId2, req.body);
+    const updateData = {
+      updated_at: /* @__PURE__ */ new Date()
+    };
+    if (name !== void 0) updateData.name = name;
+    if (username !== void 0) updateData.username = username;
+    if (bio !== void 0) updateData.bio = bio;
+    if (avatar_url !== void 0) updateData.avatar_url = avatar_url;
+    if (style_tags !== void 0) updateData.style_tags = style_tags;
+    await db2.update(users).set(updateData).where(eq15(users.id, userId2));
+    console.log("\u2705 Profil mis \xE0 jour avec succ\xE8s");
+    res.json({
+      message: "Profil mis \xE0 jour avec succ\xE8s",
+      success: true
+    });
+  } catch (error) {
+    console.error("\u274C Erreur mise \xE0 jour profil:", error);
+    if (error.code === "23505") {
+      return res.status(409).json({ error: "Ce nom d'utilisateur est d\xE9j\xE0 utilis\xE9" });
+    }
+    res.status(500).json({
+      error: "Erreur lors de la sauvegarde du profil",
+      details: error.message || "Erreur inconnue"
+    });
+  }
+});
 router15.get("/profile/:userId", async (req, res) => {
   try {
     const userId2 = parseInt(req.params.userId);
