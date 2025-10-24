@@ -260,40 +260,6 @@ export default function Home() {
           </Button>
         </Card>
       </div>
-
-      {/* Footer */}
-      <div className="bg-gray-900 text-white py-8 sm:py-10 md:py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
-            <div>
-              <h3 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4 bg-gradient-to-r from-pink-400 to-purple-400 bg-clip-text text-transparent">
-                FashionHub
-              </h3>
-              <p className="text-sm sm:text-base text-gray-400">
-                Le réseau social pour gérer ton dressing et partager ta passion pour la mode.
-              </p>
-            </div>
-            <div>
-              <h4 className="text-base sm:text-base font-semibold mb-3 sm:mb-4">Liens rapides</h4>
-              <ul className="space-y-2 text-sm sm:text-base text-gray-400">
-                <li><a href="/feed" className="hover:text-pink-400 transition-colors" data-testid="link-footer-feed">Feed</a></li>
-                <li><a href="/profile" className="hover:text-pink-400 transition-colors" data-testid="link-footer-profile">Mon profil</a></li>
-                <li><a href="/dashboard" className="hover:text-pink-400 transition-colors" data-testid="link-footer-dashboard">Dashboard</a></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="text-base sm:text-base font-semibold mb-3 sm:mb-4">Légal</h4>
-              <ul className="space-y-2 text-sm sm:text-base text-gray-400">
-                <li><a href="/legal" className="hover:text-pink-400 transition-colors" data-testid="link-footer-legal">Mentions légales</a></li>
-                <li><a href="/legal" className="hover:text-pink-400 transition-colors" data-testid="link-footer-privacy">Politique de confidentialité</a></li>
-              </ul>
-            </div>
-          </div>
-          <div className="mt-8 sm:mt-10 md:mt-12 pt-6 sm:pt-8 border-t border-gray-800 text-center text-sm sm:text-base text-gray-400">
-            <p>&copy; 2024 FashionHub. Tous droits réservés.</p>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }

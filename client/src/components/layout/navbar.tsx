@@ -332,30 +332,39 @@ export default function Navbar() {
                 }}
                 className="mobile-quick-action flex items-center space-x-2.5 bg-white rounded-lg p-2.5 shadow-sm hover:shadow-md transition-shadow"
               >
-                <Smartphone className="w-4 h-4 text-pink-600" />
-                <span className="text-sm font-medium text-left">{t('mobile.feed')}</span>
+                <TrendingUp className="w-4 h-4 text-pink-600" />
+                <span className="text-sm font-medium text-left">Feed</span>
               </button>
               <button
                 onClick={() => {
-                  handleNavigation('/available-providers');
+                  handleNavigation('/explore');
+                  setIsMobileMenuOpen(false);
+                }}
+                className="mobile-quick-action flex items-center space-x-2.5 bg-white rounded-lg p-2.5 shadow-sm hover:shadow-md transition-shadow"
+              >
+                <Sparkles className="w-4 h-4 text-pink-600" />
+                <span className="text-sm font-medium text-left">Explorer</span>
+              </button>
+              <button
+                onClick={() => {
+                  handleNavigation('/creators');
                   setIsMobileMenuOpen(false);
                 }}
                 className="mobile-quick-action flex items-center space-x-2.5 bg-white rounded-lg p-2.5 shadow-sm hover:shadow-md transition-shadow"
               >
                 <Users className="w-4 h-4 text-pink-600" />
-                <span className="text-sm font-medium text-left">{t('mobile.providers')}</span>
+                <span className="text-sm font-medium text-left">Créateurs</span>
               </button>
               <button
                 onClick={() => {
-                  handleNavigation('/services');
+                  handleNavigation('/collections');
                   setIsMobileMenuOpen(false);
                 }}
                 className="mobile-quick-action flex items-center space-x-2.5 bg-white rounded-lg p-2.5 shadow-sm hover:shadow-md transition-shadow"
               >
                 <Briefcase className="w-4 h-4 text-pink-600" />
-                <span className="text-sm font-medium text-left">{t('mobile.services')}</span>
+                <span className="text-sm font-medium text-left">Collections</span>
               </button>
-
               <button
                 onClick={() => {
                   handleNavigation('/notre-concept');
@@ -363,20 +372,9 @@ export default function Navbar() {
                 }}
                 className="mobile-quick-action flex items-center space-x-2.5 bg-white rounded-lg p-2.5 shadow-sm hover:shadow-md transition-shadow"
               >
-                <Sparkles className="w-4 h-4 text-pink-600" />
-                <span className="text-sm font-medium text-left">{t('mobile.concept')}</span>
+                <Lightbulb className="w-4 h-4 text-pink-600" />
+                <span className="text-sm font-medium text-left">Notre Concept</span>
               </button>
-              <button
-                onClick={() => {
-                  handleNavigation('/provider-profile');
-                  setIsMobileMenuOpen(false);
-                }}
-                className="mobile-quick-action flex items-center space-x-2.5 bg-white rounded-lg p-2.5 shadow-sm hover:shadow-md transition-shadow"
-              >
-                <Target className="w-4 h-4 text-pink-600" />
-                <span className="text-sm font-medium text-left">{t('mobile.missions')}</span>
-              </button>
-              
             </div>
           </div>
 
@@ -391,11 +389,8 @@ export default function Navbar() {
                 <MobileNavLink href="/profile" icon={User}>
                   {t('navbar.profile')}
                 </MobileNavLink>
-                <MobileNavLink href="/missions" icon={Briefcase}>
-                  {t('navbar.myMissions')}
-                </MobileNavLink>
                 <MobileNavLink href="/messages" icon={MessageSquare}>
-                  {t('navbar.messages')}
+                  Messages
                 </MobileNavLink>
                 <MobileNavLink href="/favorites" icon={Heart}>
                   {t('mobile.myFavorites')}
@@ -407,20 +402,22 @@ export default function Navbar() {
             )}
           </div>
 
-          {/* Mobile quick mission creator button */}
-          <div className="mt-6 px-4">
-            <Button
-              onClick={() => {
-                handleNavigation('/create-mission');
-                setIsMobileMenuOpen(false);
-              }}
-              size="sm"
-              className="w-full bg-gradient-to-r from-pink-500 to-fuchsia-500 hover:from-pink-600 hover:to-fuchsia-600"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              {t('navbar.newMission')}
-            </Button>
-          </div>
+          {/* Mobile quick add button */}
+          {user && (
+            <div className="mt-6 px-4">
+              <Button
+                onClick={() => {
+                  handleNavigation('/dashboard');
+                  setIsMobileMenuOpen(false);
+                }}
+                size="sm"
+                className="w-full bg-gradient-to-r from-pink-500 to-fuchsia-500 hover:from-pink-600 hover:to-fuchsia-600"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Ajouter un vêtement
+              </Button>
+            </div>
+          )}
 
           {/* Authentication buttons for mobile */}
           {!user && (
