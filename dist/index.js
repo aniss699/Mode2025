@@ -6608,7 +6608,7 @@ var upload3 = multer3({
 });
 router19.get("/trending", async (req, res) => {
   try {
-    const trendingOutfits = await db2.select().from(outfitsTable2).where(sql8`created_at > NOW() - INTERVAL '7 days'`).orderBy(desc10(outfitsTable2.engagementScore)).limit(12);
+    const trendingOutfits = await db2.select().from(outfitsTable2).where(sql8`${outfitsTable2.created_at} > NOW() - INTERVAL '7 days'`).orderBy(desc10(outfitsTable2.engagement_score)).limit(12);
     res.json(trendingOutfits);
   } catch (error) {
     console.error("Erreur r\xE9cup\xE9ration outfits tendance:", error);
@@ -6779,7 +6779,7 @@ router20.get("/", async (req, res) => {
       isVerified: users.is_verified,
       featuredLooks: sql9`
           ARRAY(
-            SELECT photo_url 
+            SELECT cover_image 
             FROM ${looks} 
             WHERE ${looks.user_id} = ${users.id} 
               AND ${looks.is_public} = true 
