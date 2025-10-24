@@ -262,7 +262,7 @@ router.get('/users/:userId', async (req, res) => {
         username: user.username || `@${user.name.toLowerCase().replace(/\s+/g, '')}`,
         avatar: user.avatar_url,
         bio: user.bio,
-        location: user.location,
+        location: (user.profile_data as any)?.location || '',
         styleTags: user.style_tags || [],
         followersCount: user.followers_count || 0,
         postsCount: user.posts_count || 0,
@@ -272,18 +272,18 @@ router.get('/users/:userId', async (req, res) => {
       },
       items: items.map(item => ({
         id: item.id,
-        name: item.name,
-        imageUrl: item.image_url,
+        name: item.title,
+        imageUrl: item.images && item.images.length > 0 ? item.images[0] : '',
         category: item.category,
         brand: item.brand,
         color: item.color,
-        tags: item.tags
+        tags: item.tags || []
       })),
       collections: userCollections.map(col => ({
         id: col.id,
         title: col.title,
         coverImage: col.cover_image,
-        itemsCount: col.items?.length || 0
+        itemsCount: col.looks_count || 0
       }))
     });
   } catch (error) {

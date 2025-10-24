@@ -5,6 +5,98 @@ import { users } from '../../shared/schema.js';
 
 const router = Router();
 
+// GET /api/profile/me - Récupérer le profil de l'utilisateur connecté
+router.get('/profile/me', async (req, res) => {
+  try {
+    if (!req.user?.id) {
+      return res.status(401).json({ error: 'Non authentifié' });
+    }
+
+    const userId = req.user.id;
+    console.log('📋 GET /api/profile/me - Requête pour userId:', userId);
+
+    const user = await db
+      .select()
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+
+    if (!user.length) {
+      console.warn('⚠️ Utilisateur non trouvé:', userId);
+      return res.status(404).json({ error: 'Utilisateur non trouvé' });
+    }
+
+    const userData = user[0];
+
+    // Retourner le profil au format attendu par le frontend profile.tsx
+    const profile = {
+      id: userData.id,
+      name: userData.name,
+      username: userData.username,
+      email: userData.email,
+      bio: userData.bio,
+      avatar_url: userData.avatar_url,
+      style_tags: userData.style_tags || [],
+      posts_count: userData.posts_count || 0,
+      followers_count: userData.followers_count || 0,
+      following_count: userData.following_count || 0,
+      is_verified: userData.is_verified || false,
+    };
+
+    console.log('✅ Profil retourné pour /profile/me:', profile);
+    res.json(profile);
+  } catch (error) {
+    console.error('❌ Erreur récupération profil me:', error);
+    res.status(500).json({ error: 'Erreur serveur', details: error instanceof Error ? error.message : 'Unknown' });
+  }
+});
+
+// PATCH /api/profile/update - Mettre à jour le profil de l'utilisateur connecté
+router.patch('/profile/update', async (req, res) => {
+  try {
+    if (!req.user?.id) {
+      return res.status(401).json({ error: 'Non authentifié' });
+    }
+
+    const userId = req.user.id;
+    const { name, username, bio, avatar_url, style_tags } = req.body;
+
+    console.log('📝 PATCH /api/profile/update - Données reçues pour userId:', userId, req.body);
+
+    const updateData: any = {
+      updated_at: new Date()
+    };
+
+    if (name !== undefined) updateData.name = name;
+    if (username !== undefined) updateData.username = username;
+    if (bio !== undefined) updateData.bio = bio;
+    if (avatar_url !== undefined) updateData.avatar_url = avatar_url;
+    if (style_tags !== undefined) updateData.style_tags = style_tags;
+
+    await db
+      .update(users)
+      .set(updateData)
+      .where(eq(users.id, userId));
+
+    console.log('✅ Profil mis à jour avec succès');
+    res.json({ 
+      message: 'Profil mis à jour avec succès',
+      success: true
+    });
+  } catch (error: any) {
+    console.error('❌ Erreur mise à jour profil:', error);
+
+    if (error.code === '23505') {
+      return res.status(409).json({ error: 'Ce nom d\'utilisateur est déjà utilisé' });
+    }
+
+    res.status(500).json({ 
+      error: 'Erreur lors de la sauvegarde du profil',
+      details: error.message || 'Erreur inconnue'
+    });
+  }
+});
+
 // GET /api/profile/:userId - Récupérer le profil d'un utilisateur
 router.get('/profile/:userId', async (req, res) => {
   try {
@@ -147,7 +239,7 @@ router.put('/profile/:userId', async (req, res) => {
 
     res.json({ 
       message: 'Profil mis à jour avec succès',
-      userId,
+      userId: userId,
       success: true
     });
   } catch (error: any) {
@@ -170,7 +262,7 @@ router.put('/profile/:userId', async (req, res) => {
       // Retourner succès quand même
       return res.json({ 
         message: 'Profil mis à jour avec succès',
-        userId,
+        userId: userId,
         success: true,
         warning: 'Certains formats ont été ajustés automatiquement'
       });
@@ -254,7 +346,7 @@ router.put('/users/:id', async (req, res) => {
 
     res.json({ 
       message: 'Profil mis à jour avec succès',
-      userId,
+      userId: userId,
       success: true
     });
   } catch (error: any) {
@@ -277,7 +369,7 @@ router.put('/users/:id', async (req, res) => {
       // Retourner succès quand même
       return res.json({ 
         message: 'Profil mis à jour avec succès',
-        userId,
+        userId: userId,
         success: true,
         warning: 'Certains formats ont été ajustés automatiquement'
       });
