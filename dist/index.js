@@ -1161,14 +1161,14 @@ var ai_exports = {};
 __export(ai_exports, {
   default: () => ai_default
 });
-import { Router as Router16 } from "express";
-var router21, ai_default;
+import { Router as Router17 } from "express";
+var router22, ai_default;
 var init_ai = __esm({
   "apps/api/src/routes/ai.ts"() {
     "use strict";
     init_AIOrchestrator();
-    router21 = Router16();
-    router21.post("/pricing", async (req, res) => {
+    router22 = Router17();
+    router22.post("/pricing", async (req, res) => {
       try {
         const result = await getPricingSuggestion(req.body);
         res.json(result);
@@ -1177,7 +1177,7 @@ var init_ai = __esm({
         res.status(500).json({ error: "Erreur lors du calcul de prix" });
       }
     });
-    router21.post("/brief", async (req, res) => {
+    router22.post("/brief", async (req, res) => {
       try {
         const result = await enhanceBrief(req.body);
         res.json(result);
@@ -1186,7 +1186,7 @@ var init_ai = __esm({
         res.status(500).json({ error: "Erreur lors de l'am\xE9lioration du brief" });
       }
     });
-    router21.post("/feedback", async (req, res) => {
+    router22.post("/feedback", async (req, res) => {
       try {
         const { phase, prompt, feedback } = req.body;
         await logUserFeedback(phase, prompt, feedback);
@@ -1196,7 +1196,7 @@ var init_ai = __esm({
         res.status(500).json({ error: "Erreur lors de l'enregistrement du feedback" });
       }
     });
-    ai_default = router21;
+    ai_default = router22;
   }
 });
 
@@ -3307,7 +3307,7 @@ var missions_default = router3;
 init_schema();
 import express5 from "express";
 import { Pool as Pool3 } from "pg";
-import { drizzle as drizzle4 } from "drizzle-orm/node-postgres";
+import { drizzle as drizzle3 } from "drizzle-orm/node-postgres";
 import { eq as eq14 } from "drizzle-orm";
 
 // server/routes/bids.ts
@@ -4261,8 +4261,8 @@ var FeedRanker = class {
   /**
    * Trie les annonces par score décroissant
    */
-  rankAnnouncements(announcements2, userProfile) {
-    return announcements2.map((announcement) => ({
+  rankAnnouncements(announcements3, userProfile) {
+    return announcements3.map((announcement) => ({
       ...announcement,
       _score: this.calculateScore(announcement, userProfile)
     })).sort((a, b) => b._score - a._score).map(({ _score, ...announcement }) => announcement);
@@ -4270,11 +4270,11 @@ var FeedRanker = class {
   /**
    * Insère des annonces sponsorisées toutes les N positions
    */
-  insertSponsoredSlots(announcements2, sponsoredAnnouncements, interval = 5) {
+  insertSponsoredSlots(announcements3, sponsoredAnnouncements, interval = 5) {
     const result = [];
     let sponsoredIndex = 0;
-    for (let i = 0; i < announcements2.length; i++) {
-      result.push(announcements2[i]);
+    for (let i = 0; i < announcements3.length; i++) {
+      result.push(announcements3[i]);
       if ((i + 1) % interval === 0 && sponsoredIndex < sponsoredAnnouncements.length) {
         result.push({
           ...sponsoredAnnouncements[sponsoredIndex],
@@ -4467,28 +4467,20 @@ router6.get("/price-benchmark", async (req, res) => {
 var feed_routes_default = router6;
 
 // server/routes/favorites-routes.ts
-init_schema();
 import { Router as Router5 } from "express";
-import { drizzle as drizzle3 } from "drizzle-orm/neon-http";
-import { neon } from "@neondatabase/serverless";
+init_schema();
 import { eq as eq8, and as and5 } from "drizzle-orm";
-var sql5 = neon(process.env.DATABASE_URL);
-var db3 = drizzle3(sql5);
 var router7 = Router5();
 router7.get("/favorites", async (req, res) => {
   try {
-    const { user_id } = req.query;
-    if (!user_id) {
-      return res.status(400).json({ error: "user_id requis" });
+    if (!req.user?.id) {
+      return res.status(401).json({ error: "Non authentifi\xE9" });
     }
-    const userFavorites = await db3.select({
-      announcement: announcements
-    }).from(favorites).innerJoin(announcements, eq8(favorites.announcement_id, announcements.id)).where(eq8(favorites.user_id, parseInt(user_id)));
-    const favoriteAnnouncements = userFavorites.map((f) => f.announcement);
-    res.json({
-      favorites: favoriteAnnouncements,
-      count: favoriteAnnouncements.length
-    });
+    const userFavorites = await db2.select({
+      look: looks
+    }).from(savedLooks).innerJoin(looks, eq8(savedLooks.look_id, looks.id)).where(eq8(savedLooks.user_id, req.user.id));
+    const favoriteLooks = userFavorites.map((f) => f.look);
+    res.json(favoriteLooks);
   } catch (error) {
     console.error("Erreur r\xE9cup\xE9ration favoris:", error);
     res.status(500).json({ error: "Erreur lors de la r\xE9cup\xE9ration des favoris" });
@@ -4496,22 +4488,25 @@ router7.get("/favorites", async (req, res) => {
 });
 router7.post("/favorites", async (req, res) => {
   try {
-    const { user_id, announcement_id } = req.body;
-    if (!user_id || !announcement_id) {
-      return res.status(400).json({ error: "user_id et announcement_id requis" });
+    if (!req.user?.id) {
+      return res.status(401).json({ error: "Non authentifi\xE9" });
     }
-    const existing = await db3.select().from(favorites).where(
+    const { look_id } = req.body;
+    if (!look_id) {
+      return res.status(400).json({ error: "look_id requis" });
+    }
+    const existing = await db2.select().from(savedLooks).where(
       and5(
-        eq8(favorites.user_id, user_id),
-        eq8(favorites.announcement_id, announcement_id)
+        eq8(savedLooks.user_id, req.user.id),
+        eq8(savedLooks.look_id, look_id)
       )
     );
     if (existing.length > 0) {
       return res.status(200).json({ message: "D\xE9j\xE0 en favori" });
     }
-    await db3.insert(favorites).values({
-      user_id,
-      announcement_id,
+    await db2.insert(savedLooks).values({
+      user_id: req.user.id,
+      look_id,
       created_at: /* @__PURE__ */ new Date()
     });
     res.status(201).json({ message: "Ajout\xE9 aux favoris" });
@@ -4520,17 +4515,16 @@ router7.post("/favorites", async (req, res) => {
     res.status(500).json({ error: "Erreur lors de l'ajout aux favoris" });
   }
 });
-router7.delete("/favorites/:announcementId", async (req, res) => {
+router7.delete("/favorites/:lookId", async (req, res) => {
   try {
-    const { announcementId } = req.params;
-    const { user_id } = req.body;
-    if (!user_id) {
-      return res.status(400).json({ error: "user_id requis" });
+    if (!req.user?.id) {
+      return res.status(401).json({ error: "Non authentifi\xE9" });
     }
-    await db3.delete(favorites).where(
+    const { lookId } = req.params;
+    await db2.delete(savedLooks).where(
       and5(
-        eq8(favorites.user_id, user_id),
-        eq8(favorites.announcement_id, parseInt(announcementId))
+        eq8(savedLooks.user_id, req.user.id),
+        eq8(savedLooks.look_id, parseInt(lookId))
       )
     );
     res.json({ message: "Supprim\xE9 des favoris" });
@@ -5431,7 +5425,7 @@ var user_settings_default = router13;
 
 // server/api-routes.ts
 var pool3 = new Pool3({ connectionString: process.env.DATABASE_URL });
-var db4 = drizzle4(pool3);
+var db3 = drizzle3(pool3);
 var router14 = express5.Router();
 var authMiddleware = (req, res, next) => {
   console.log("Authentication middleware placeholder passed.");
@@ -5454,7 +5448,7 @@ router14.put("/users/:id", async (req, res) => {
       updateData.role = role;
       console.log(`\u2705 Mise \xE0 jour du r\xF4le: ${role}`);
     }
-    await db4.update(users).set(updateData).where(eq14(users.id, userId2));
+    await db3.update(users).set(updateData).where(eq14(users.id, userId2));
     res.json({ message: "Profil mis \xE0 jour avec succ\xE8s" });
   } catch (error) {
     console.error("\u274C Erreur update user profile:", error);
@@ -5464,7 +5458,7 @@ router14.put("/users/:id", async (req, res) => {
 router14.get("/providers/available", async (req, res) => {
   try {
     console.log("\u{1F4CB} GET /api/providers/available - R\xE9cup\xE9ration des prestataires disponibles");
-    const allProviders = await db4.select({
+    const allProviders = await db3.select({
       id: users.id,
       email: users.email,
       name: users.name,
@@ -5529,7 +5523,7 @@ router14.get("/providers/available", async (req, res) => {
 });
 router14.get("/demo-providers", async (req, res) => {
   try {
-    const providers = await db4.select({
+    const providers = await db3.select({
       id: users.id,
       email: users.email,
       name: users.name,
@@ -5564,7 +5558,7 @@ router14.get("/demo-bids", async (req, res) => {
 router14.get("/provider/:id", async (req, res) => {
   try {
     const providerId = parseInt(req.params.id);
-    const provider = await db4.select().from(users).where(eq14(users.id, providerId)).limit(1);
+    const provider = await db3.select().from(users).where(eq14(users.id, providerId)).limit(1);
     if (provider.length === 0) {
       return res.status(404).json({ error: "Utilisateur non trouv\xE9" });
     }
@@ -5923,11 +5917,11 @@ var monitoringRateLimit = rateLimit({
 init_database();
 init_schema();
 import { Router as Router11 } from "express";
-import { sql as sql6 } from "drizzle-orm";
+import { sql as sql5 } from "drizzle-orm";
 var router16 = Router11();
 router16.get("/popular-users", async (req, res) => {
   try {
-    const popularUsers = await db2.select().from(users).orderBy(sql6`followers_count DESC`).limit(12);
+    const popularUsers = await db2.select().from(users).orderBy(sql5`followers_count DESC`).limit(12);
     res.json(popularUsers);
   } catch (error) {
     console.error("Error fetching popular users:", error);
@@ -6186,7 +6180,7 @@ var aiFashionService = new AIFashionService();
 
 // server/routes/ai-fashion-routes.ts
 init_schema();
-import { eq as eq17, sql as sql7 } from "drizzle-orm";
+import { eq as eq17, sql as sql6 } from "drizzle-orm";
 var router17 = Router12();
 router17.post("/analyze-item", async (req, res) => {
   try {
@@ -6311,8 +6305,8 @@ router17.post("/items/:itemId/tags", async (req, res) => {
 });
 router17.get("/explore/trending", async (req, res) => {
   try {
-    const trendingLooks = await db2.select().from(looks).orderBy(sql7`${looks.likes_count} DESC`).limit(10);
-    const trendingItems = await db2.select().from(fashionItems).where(eq17(fashionItems.is_public, true)).orderBy(sql7`${fashionItems.worn_count} DESC`).limit(10);
+    const trendingLooks = await db2.select().from(looks).orderBy(sql6`${looks.likes_count} DESC`).limit(10);
+    const trendingItems = await db2.select().from(fashionItems).where(eq17(fashionItems.is_public, true)).orderBy(sql6`${fashionItems.worn_count} DESC`).limit(10);
     res.json({
       success: true,
       trending: {
@@ -6342,7 +6336,7 @@ router17.get("/explore/search", async (req, res) => {
     }).from(fashionItems).$dynamic();
     const filters = [];
     if (q) {
-      filters.push(sql7`(${fashionItems.title} ILIKE ${`%${q}%`} OR ${fashionItems.description} ILIKE ${`%${q}%`})`);
+      filters.push(sql6`(${fashionItems.title} ILIKE ${`%${q}%`} OR ${fashionItems.description} ILIKE ${`%${q}%`})`);
     }
     if (category) {
       filters.push(eq17(fashionItems.category, category));
@@ -6351,14 +6345,14 @@ router17.get("/explore/search", async (req, res) => {
       filters.push(eq17(fashionItems.color, color));
     }
     if (style) {
-      filters.push(sql7`${fashionItems.tags} @> ARRAY[${style}]`);
+      filters.push(sql6`${fashionItems.tags} @> ARRAY[${style}]`);
     }
     if (filters.length > 0) {
-      query = query.where(sql7.and(...filters));
+      query = query.where(sql6.and(...filters));
     }
     let orderBy = fashionItems.created_at;
     if (sortBy === "popular") {
-      orderBy = sql7`${fashionItems.worn_count} DESC`;
+      orderBy = sql6`${fashionItems.worn_count} DESC`;
     } else if (sortBy === "newest") {
       orderBy = fashionItems.created_at;
     }
@@ -6366,7 +6360,7 @@ router17.get("/explore/search", async (req, res) => {
     const offset = (parseInt(page) - 1) * parseInt(limit);
     query = query.limit(parseInt(limit)).offset(offset);
     const results = await query;
-    const totalCount = await db2.select({ count: sql7`count(*)` }).from(fashionItems).where(filters.length > 0 ? sql7.and(...filters) : void 0).then((rows) => rows[0]?.count || 0);
+    const totalCount = await db2.select({ count: sql6`count(*)` }).from(fashionItems).where(filters.length > 0 ? sql6.and(...filters) : void 0).then((rows) => rows[0]?.count || 0);
     res.json({
       success: true,
       results,
@@ -6388,9 +6382,9 @@ router17.get("/explore/search", async (req, res) => {
 router17.get("/trending-tags", async (req, res) => {
   try {
     const trendingTags = await db2.select({
-      tag: sql7`unnest(tags)`,
-      count: sql7`count(*)`
-    }).from(fashionItems).where(sql7`tags IS NOT NULL AND array_length(tags, 1) > 0`).groupBy(sql7`unnest(tags)`).orderBy(sql7`count(*) DESC`).limit(20);
+      tag: sql6`unnest(tags)`,
+      count: sql6`count(*)`
+    }).from(fashionItems).where(sql6`tags IS NOT NULL AND array_length(tags, 1) > 0`).groupBy(sql6`unnest(tags)`).orderBy(sql6`count(*) DESC`).limit(20);
     res.json(trendingTags);
   } catch (error) {
     console.error("Error fetching trending tags:", error);
@@ -6413,7 +6407,7 @@ router17.get("/search", async (req, res) => {
     const filters = [eq17(fashionItems.is_public, true)];
     if (q) {
       filters.push(
-        sql7`(${fashionItems.title} ILIKE ${`%${q}%`} OR ${fashionItems.description} ILIKE ${`%${q}%`})`
+        sql6`(${fashionItems.title} ILIKE ${`%${q}%`} OR ${fashionItems.description} ILIKE ${`%${q}%`})`
       );
     }
     if (category) {
@@ -6423,20 +6417,20 @@ router17.get("/search", async (req, res) => {
       filters.push(eq17(fashionItems.color, color));
     }
     if (style) {
-      filters.push(sql7`${style} = ANY(${fashionItems.tags})`);
+      filters.push(sql6`${style} = ANY(${fashionItems.tags})`);
     }
     if (filters.length > 0) {
-      query = query.where(sql7.and(...filters));
+      query = query.where(sql6.and(...filters));
     }
     if (sortBy === "popular") {
-      query = query.orderBy(sql7`${fashionItems.worn_count} DESC`);
+      query = query.orderBy(sql6`${fashionItems.worn_count} DESC`);
     } else {
-      query = query.orderBy(sql7`${fashionItems.created_at} DESC`);
+      query = query.orderBy(sql6`${fashionItems.created_at} DESC`);
     }
     const offset = (parseInt(page) - 1) * parseInt(limit);
     query = query.limit(parseInt(limit)).offset(offset);
     const results = await query;
-    const [{ count: totalCount }] = await db2.select({ count: sql7`count(*)` }).from(fashionItems).where(filters.length > 0 ? sql7.and(...filters) : sql7`true`);
+    const [{ count: totalCount }] = await db2.select({ count: sql6`count(*)` }).from(fashionItems).where(filters.length > 0 ? sql6.and(...filters) : sql6`true`);
     res.json({
       results,
       pagination: {
@@ -6588,7 +6582,7 @@ var collections_default = router18;
 // server/routes/outfits.ts
 import { Router as Router14 } from "express";
 init_schema();
-import { eq as eq19, desc as desc10, and as and12, sql as sql8 } from "drizzle-orm";
+import { eq as eq19, desc as desc10, and as and12, sql as sql7 } from "drizzle-orm";
 import multer3 from "multer";
 import path3 from "path";
 var router19 = Router14();
@@ -6606,9 +6600,21 @@ var upload3 = multer3({
   storage: storage2,
   limits: { fileSize: 10 * 1024 * 1024 }
 });
+router19.get("/my-looks", async (req, res) => {
+  try {
+    if (!req.user?.id) {
+      return res.status(401).json({ error: "Non authentifi\xE9" });
+    }
+    const userLooks = await db2.select().from(outfitsTable2).where(eq19(outfitsTable2.user_id, req.user.id)).orderBy(desc10(outfitsTable2.created_at));
+    res.json(userLooks);
+  } catch (error) {
+    console.error("Erreur r\xE9cup\xE9ration looks utilisateur:", error);
+    res.status(500).json({ error: "Erreur serveur" });
+  }
+});
 router19.get("/trending", async (req, res) => {
   try {
-    const trendingOutfits = await db2.select().from(outfitsTable2).where(sql8`${outfitsTable2.created_at} > NOW() - INTERVAL '7 days'`).orderBy(desc10(outfitsTable2.engagement_score)).limit(12);
+    const trendingOutfits = await db2.select().from(outfitsTable2).where(sql7`${outfitsTable2.created_at} > NOW() - INTERVAL '7 days'`).orderBy(desc10(outfitsTable2.engagement_score)).limit(12);
     res.json(trendingOutfits);
   } catch (error) {
     console.error("Erreur r\xE9cup\xE9ration outfits tendance:", error);
@@ -6760,12 +6766,31 @@ router19.get("/:id/comments", async (req, res) => {
 });
 var outfits_default = router19;
 
-// server/routes/creators-routes.ts
+// server/routes/fashion-items-routes.ts
 import { Router as Router15 } from "express";
 init_schema();
-import { desc as desc11, sql as sql9 } from "drizzle-orm";
+import { eq as eq20, desc as desc11 } from "drizzle-orm";
 var router20 = Router15();
-router20.get("/", async (req, res) => {
+router20.get("/my-items", async (req, res) => {
+  try {
+    if (!req.user?.id) {
+      return res.status(401).json({ error: "Non authentifi\xE9" });
+    }
+    const userItems = await db2.select().from(fashionItems).where(eq20(fashionItems.user_id, req.user.id)).orderBy(desc11(fashionItems.created_at));
+    res.json(userItems);
+  } catch (error) {
+    console.error("Erreur r\xE9cup\xE9ration items utilisateur:", error);
+    res.status(500).json({ error: "Erreur serveur" });
+  }
+});
+var fashion_items_routes_default = router20;
+
+// server/routes/creators-routes.ts
+import { Router as Router16 } from "express";
+init_schema();
+import { desc as desc12, sql as sql8 } from "drizzle-orm";
+var router21 = Router16();
+router21.get("/", async (req, res) => {
   try {
     const creators = await db2.select({
       id: users.id,
@@ -6777,7 +6802,7 @@ router20.get("/", async (req, res) => {
       followersCount: users.followers_count,
       postsCount: users.posts_count,
       isVerified: users.is_verified,
-      featuredLooks: sql9`
+      featuredLooks: sql8`
           ARRAY(
             SELECT cover_image 
             FROM ${looks} 
@@ -6787,7 +6812,7 @@ router20.get("/", async (req, res) => {
             LIMIT 3
           )
         `
-    }).from(users).where(sql9`${users.posts_count} > 0`).orderBy(desc11(users.followers_count)).limit(50);
+    }).from(users).where(sql8`${users.posts_count} > 0`).orderBy(desc12(users.followers_count)).limit(50);
     const formattedCreators = creators.map((creator) => ({
       id: creator.id.toString(),
       name: creator.name,
@@ -6812,7 +6837,7 @@ router20.get("/", async (req, res) => {
     res.status(500).json({ error: "Failed to fetch creators" });
   }
 });
-router20.get("/top", async (req, res) => {
+router21.get("/top", async (req, res) => {
   try {
     const topCreators = await db2.select({
       id: users.id,
@@ -6823,14 +6848,14 @@ router20.get("/top", async (req, res) => {
       followersCount: users.followers_count,
       postsCount: users.posts_count,
       styleTags: users.style_tags
-    }).from(users).where(sql9`${users.followers_count} > 100`).orderBy(desc11(users.followers_count)).limit(10);
+    }).from(users).where(sql8`${users.followers_count} > 100`).orderBy(desc12(users.followers_count)).limit(10);
     res.json(topCreators);
   } catch (error) {
     console.error("Error fetching top creators:", error);
     res.status(500).json({ error: "Failed to fetch top creators" });
   }
 });
-var creators_routes_default = router20;
+var creators_routes_default = router21;
 
 // server/index.ts
 var __filename = fileURLToPath(import.meta.url);
@@ -7087,9 +7112,11 @@ console.log("\u{1F457} Registering fashion routes...");
 app.use("/api/ai-fashion", ai_fashion_routes_default);
 app.use("/api/fashion", ai_fashion_routes_default);
 app.use("/api/wardrobe", wardrobe_default);
-app.use("/api/outfits", outfits_default);
-app.use("/api/looks", outfits_default);
+app.use("/api/fashion-items", optionalAuth, fashion_items_routes_default);
+app.use("/api/outfits", optionalAuth, outfits_default);
+app.use("/api/looks", optionalAuth, outfits_default);
 app.use("/api/collections", collections_default);
+app.use("/api", optionalAuth, favorites_routes_default);
 app.use("/api/social", social_routes_default);
 app.use("/api/creators", creators_routes_default);
 console.log("\u2705 All fashion routes registered");
