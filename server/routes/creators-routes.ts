@@ -25,7 +25,7 @@ router.get('/', async (req, res) => {
         isVerified: users.is_verified,
         featuredLooks: sql<string[]>`
           ARRAY(
-            SELECT photo_url 
+            SELECT cover_image 
             FROM ${looks} 
             WHERE ${looks.user_id} = ${users.id} 
               AND ${looks.is_public} = true 

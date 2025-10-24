@@ -32,8 +32,8 @@ router.get('/trending', async (req, res) => {
     const trendingOutfits = await db
       .select()
       .from(outfitsTable)
-      .where(sql`created_at > NOW() - INTERVAL '7 days'`)
-      .orderBy(desc(outfitsTable.engagementScore)) // Simplified orderBy for trending
+      .where(sql`${outfitsTable.created_at} > NOW() - INTERVAL '7 days'`)
+      .orderBy(desc(outfitsTable.engagement_score))
       .limit(12);
 
     res.json(trendingOutfits);
