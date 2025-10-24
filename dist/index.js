@@ -6838,7 +6838,7 @@ var __dirname = path6.dirname(__filename);
 validateEnvironment();
 var app = express7();
 var port = parseInt(process.env.PORT || "5000", 10);
-var PID_FILE = "/tmp/swideal-server.pid";
+var PID_FILE = "/tmp/fashionhub-server.pid";
 function checkPortFree(port2) {
   return new Promise((resolve) => {
     const client = new net.Socket();
@@ -6994,8 +6994,8 @@ app.use(cors({
       return callback(null, true);
     }
     const allowedOrigins = [
-      "https://swideal.com",
-      "https://www.swideal.com",
+      "https://fashionhub.com",
+      "https://www.fashionhub.com",
       /^https:\/\/.*\.replit\.dev$/,
       /^https:\/\/.*\.replit\.app$/,
       /^https:\/\/.*\.replit\.co$/,
@@ -7028,7 +7028,7 @@ app.use("/api/auth", (req, res, next) => {
 app.all("/api", (req, res) => {
   res.status(200).json({
     status: "ok",
-    service: "SWIDEAL API",
+    service: "FASHIONHUB API",
     timestamp: (/* @__PURE__ */ new Date()).toISOString(),
     version: "1.0.0"
   });
@@ -7124,7 +7124,7 @@ app.get("/api/health", async (req, res) => {
     await Promise.race([queryPromise, timeoutPromise]);
     res.status(200).json({
       status: "healthy",
-      message: "SWIDEAL API is running",
+      message: "FASHIONHUB API is running",
       timestamp: (/* @__PURE__ */ new Date()).toISOString(),
       uptime: process.uptime(),
       env: process.env.NODE_ENV || "development",
@@ -7160,7 +7160,7 @@ app.get("/healthz", (req, res) => {
   res.status(200).json({
     status: "healthy",
     timestamp: (/* @__PURE__ */ new Date()).toISOString(),
-    service: "swideal-api",
+    service: "fashionhub-api",
     version: "1.0.0",
     node_env: process.env.NODE_ENV
   });
@@ -7202,7 +7202,7 @@ async function startServerWithRetry() {
       await new Promise((resolve, reject) => {
         const serverInstance = server.listen(port, "0.0.0.0", async () => {
           writePidFile();
-          console.log(`\u{1F680} SWIDEAL server running on http://0.0.0.0:${port} (attempt ${attempt})`);
+          console.log(`\u{1F680} FASHIONHUB server running on http://0.0.0.0:${port} (attempt ${attempt})`);
           console.log(`\u{1F4F1} Frontend: http://0.0.0.0:${port}`);
           console.log(`\u{1F527} API Health: http://0.0.0.0:${port}/api/health`);
           console.log(`\u{1F4AC} WebSocket: ws://0.0.0.0:${port}/ws`);
