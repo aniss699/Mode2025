@@ -297,7 +297,7 @@ import apiRoutes from './api-routes.js';
 // import aiMissionsRoutes from './routes/ai-missions-routes.js';
 // AI orchestrator routes will be imported dynamically
 // import feedRoutes from './routes/feed-routes.js';
-// import favoritesRoutes from './routes/favorites-routes.js';
+import favoritesRoutes from './routes/favorites-routes';
 // import missionDemoRoutes from './routes/mission-demo.js'; // Supprimé - mode démo retiré
 // import aiQuickAnalysisRoutes from './routes/ai-quick-analysis.js';
 // import aiDiagnosticRoutes from './routes/ai-diagnostic-routes.js';
@@ -413,6 +413,7 @@ import socialRoutes from './routes/social-routes';
 import aiFashionRoutes from './routes/ai-fashion-routes';
 import collectionsRoutes from './routes/collections';
 import outfitsRoutes from './routes/outfits';
+import fashionItemsRoutes from './routes/fashion-items-routes';
 import creatorsRoutes from './routes/creators-routes';
 // import analyticsRoutes from './routes/analytics-routes'; // This import was commented out in the original, keeping it that way.
 
@@ -420,14 +421,19 @@ import creatorsRoutes from './routes/creators-routes';
 app.use('/api/auth', authRoutes);
 app.use('/api', apiRoutes);
 
+// Import auth middleware
+import { optionalAuth } from './middleware/auth';
+
 // Fashion & Social routes
 console.log('👗 Registering fashion routes...');
 app.use('/api/ai-fashion', aiFashionRoutes); // Alias pour cohérence
 app.use('/api/fashion', aiFashionRoutes); // Alias pour cohérence
 app.use('/api/wardrobe', wardrobeRoutes);
-app.use('/api/outfits', outfitsRoutes);
-app.use('/api/looks', outfitsRoutes); // Alias for outfits
+app.use('/api/fashion-items', optionalAuth, fashionItemsRoutes);
+app.use('/api/outfits', optionalAuth, outfitsRoutes);
+app.use('/api/looks', optionalAuth, outfitsRoutes); // Alias for outfits
 app.use('/api/collections', collectionsRoutes);
+app.use('/api', optionalAuth, favoritesRoutes);
 app.use('/api/social', socialRoutes);
 app.use('/api/creators', creatorsRoutes);
 console.log('✅ All fashion routes registered');

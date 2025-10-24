@@ -1,37 +1,28 @@
 import { Router } from 'express';
-import { drizzle } from 'drizzle-orm/neon-http';
-import { neon } from '@neondatabase/serverless';
+import { db } from '../db';
 import { eq, and } from 'drizzle-orm';
-import { favorites, announcements } from '../../shared/schema';
-
-const sql = neon(process.env.DATABASE_URL!);
-const db = drizzle(sql);
+import { favorites, announcements, savedLooks, looks } from '../../shared/schema';
 
 const router = Router();
 
-// Récupérer les favoris d'un utilisateur
+// Récupérer les favoris d'un utilisateur (saved looks for fashion app)
 router.get('/favorites', async (req, res) => {
   try {
-    const { user_id } = req.query;
-    
-    if (!user_id) {
-      return res.status(400).json({ error: 'user_id requis' });
+    if (!req.user?.id) {
+      return res.status(401).json({ error: 'Non authentifié' });
     }
 
     const userFavorites = await db
       .select({
-        announcement: announcements
+        look: looks
       })
-      .from(favorites)
-      .innerJoin(announcements, eq(favorites.announcement_id, announcements.id))
-      .where(eq(favorites.user_id, parseInt(user_id as string)));
+      .from(savedLooks)
+      .innerJoin(looks, eq(savedLooks.look_id, looks.id))
+      .where(eq(savedLooks.user_id, req.user.id));
 
-    const favoriteAnnouncements = userFavorites.map(f => f.announcement);
+    const favoriteLooks = userFavorites.map(f => f.look);
 
-    res.json({
-      favorites: favoriteAnnouncements,
-      count: favoriteAnnouncements.length
-    });
+    res.json(favoriteLooks);
 
   } catch (error) {
     console.error('Erreur récupération favoris:', error);
@@ -39,23 +30,27 @@ router.get('/favorites', async (req, res) => {
   }
 });
 
-// Ajouter une annonce aux favoris
+// Ajouter un look aux favoris
 router.post('/favorites', async (req, res) => {
   try {
-    const { user_id, announcement_id } = req.body;
+    if (!req.user?.id) {
+      return res.status(401).json({ error: 'Non authentifié' });
+    }
 
-    if (!user_id || !announcement_id) {
-      return res.status(400).json({ error: 'user_id et announcement_id requis' });
+    const { look_id } = req.body;
+
+    if (!look_id) {
+      return res.status(400).json({ error: 'look_id requis' });
     }
 
     // Vérifier si déjà en favori
     const existing = await db
       .select()
-      .from(favorites)
+      .from(savedLooks)
       .where(
         and(
-          eq(favorites.user_id, user_id),
-          eq(favorites.announcement_id, announcement_id)
+          eq(savedLooks.user_id, req.user.id),
+          eq(savedLooks.look_id, look_id)
         )
       );
 
@@ -64,9 +59,9 @@ router.post('/favorites', async (req, res) => {
     }
 
     // Ajouter aux favoris
-    await db.insert(favorites).values({
-      user_id,
-      announcement_id,
+    await db.insert(savedLooks).values({
+      user_id: req.user.id,
+      look_id,
       created_at: new Date()
     });
 
@@ -78,22 +73,21 @@ router.post('/favorites', async (req, res) => {
   }
 });
 
-// Supprimer une annonce des favoris
-router.delete('/favorites/:announcementId', async (req, res) => {
+// Supprimer un look des favoris
+router.delete('/favorites/:lookId', async (req, res) => {
   try {
-    const { announcementId } = req.params;
-    const { user_id } = req.body;
-
-    if (!user_id) {
-      return res.status(400).json({ error: 'user_id requis' });
+    if (!req.user?.id) {
+      return res.status(401).json({ error: 'Non authentifié' });
     }
 
+    const { lookId } = req.params;
+
     await db
-      .delete(favorites)
+      .delete(savedLooks)
       .where(
         and(
-          eq(favorites.user_id, user_id),
-          eq(favorites.announcement_id, parseInt(announcementId))
+          eq(savedLooks.user_id, req.user.id),
+          eq(savedLooks.look_id, parseInt(lookId))
         )
       );
 

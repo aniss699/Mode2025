@@ -26,6 +26,25 @@ const upload = multer({
   limits: { fileSize: 10 * 1024 * 1024 }
 });
 
+// GET /api/looks/my-looks - Get logged-in user's looks
+router.get('/my-looks', async (req, res) => {
+  try {
+    if (!req.user?.id) {
+      return res.status(401).json({ error: 'Non authentifié' });
+    }
+
+    const userLooks = await db.select()
+      .from(outfitsTable)
+      .where(eq(outfitsTable.user_id, req.user.id))
+      .orderBy(desc(outfitsTable.created_at));
+
+    res.json(userLooks);
+  } catch (error) {
+    console.error('Erreur récupération looks utilisateur:', error);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
 // GET /api/outfits/trending - Tendance outfits
 router.get('/trending', async (req, res) => {
   try {
