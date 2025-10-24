@@ -158,11 +158,11 @@ export default function Footer() {
               <div className="space-y-2">
                 <div className="flex items-center text-xs text-gray-400">
                   <Mail className="w-3 h-3 mr-2 text-pink-400" />
-                  contact@swideal.com
+                  contact@fashionhub.com
                 </div>
                 <div className="flex items-center text-xs text-gray-400">
                   <Globe className="w-3 h-3 mr-2 text-pink-400" />
-                  www.swideal.com
+                  www.fashionhub.com
                 </div>
               </div>
             </div>

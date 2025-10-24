@@ -61,7 +61,7 @@ export function AuthModal({ isOpen, onClose, mode, onSwitchMode }: AuthModalProp
 
   // Utilisation de l'architecture centralisée pour éliminer la duplication
   const loginApi = useCreateApi<any, { email: string; password: string }>('/api/auth/login', {
-    successMessage: 'Connexion réussie ! Bienvenue sur Swideal',
+    successMessage: 'Connexion réussie ! Bienvenue sur FashionHub',
     errorContext: 'Connexion utilisateur',
     onSuccess: (data) => {
       login(data.user);
@@ -77,7 +77,7 @@ export function AuthModal({ isOpen, onClose, mode, onSwitchMode }: AuthModalProp
   });
 
   const registerMutation = useCreateApi<any, OnboardingData>('/api/auth/register', {
-    successMessage: '🎉 Bienvenue sur Swideal ! Votre compte a été créé',
+    successMessage: '🎉 Bienvenue sur FashionHub ! Votre compte a été créé',
     errorContext: 'Inscription utilisateur',
     onSuccess: (data) => {
       login(data.user);
@@ -236,7 +236,7 @@ export function AuthModal({ isOpen, onClose, mode, onSwitchMode }: AuthModalProp
             <div className="text-center">
               <Users className="w-12 h-12 text-pink-600 mx-auto mb-4" />
               <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                ✨ Bienvenue dans l'univers Swideal !
+                ✨ Bienvenue dans l'univers FashionHub !
               </h3>
               <p className="text-gray-600">
                 Choisissez votre profil pour rejoindre la communauté mode
@@ -476,8 +476,8 @@ export function AuthModal({ isOpen, onClose, mode, onSwitchMode }: AuthModalProp
           </DialogTitle>
           <DialogDescription>
             {mode === 'login'
-              ? 'Connectez-vous à votre compte Swideal'
-              : 'Rejoignez la communauté Swideal'
+              ? 'Connectez-vous à votre compte FashionHub'
+              : 'Rejoignez la communauté FashionHub'
             }
           </DialogDescription>
         </DialogHeader>

@@ -26,15 +26,15 @@ const translations = {
     'navbar.mission': 'Mission',
 
     // Brand
-    'brand.name': 'Swideal',
-    'brand.tagline': 'Le meilleur deal vient à toi',
-    'brand.taglinePart1': 'Le meilleur ',
-    'brand.taglinePart2': 'deal',
-    'brand.taglinePart3': ' vient à toi',
+    'brand.name': 'FashionHub',
+    'brand.tagline': 'Votre réseau social mode',
+    'brand.taglinePart1': 'Votre réseau ',
+    'brand.taglinePart2': 'social',
+    'brand.taglinePart3': ' mode',
 
     // Home page
-    'home.title': 'La plateforme qui modernise la mise en relation',
-    'home.subtitle': 'Swideal transforme chaque collaboration en opportunité gagnant-gagnant',
+    'home.title': 'Le réseau social qui révolutionne la mode',
+    'home.subtitle': 'FashionHub connecte les passionnés de mode du monde entier',
     'home.hero.title': 'Trouvez le prestataire parfait avec l\'IA',
     'home.hero.description': 'Plateforme française d\'appels d\'offres inversés avec intelligence artificielle.',
     'home.hero.platformLaunching': 'Plateforme en lancement',
@@ -85,7 +85,7 @@ const translations = {
     'footer.support': 'Support',
     'footer.legalNotices': 'Mentions légales',
     'footer.sitemap': 'Plan du site',
-    'footer.rightsReserved': '© 2024 Swideal. Tous droits réservés.',
+    'footer.rightsReserved': '© 2024 FashionHub. Tous droits réservés.',
     'footer.service247': 'Service disponible 24h/7j',
     'footer.globalPlatform': '🌍 Plateforme mondiale',
     'footer.securePayments': '🔒 Paiements sécurisés',
@@ -117,15 +117,15 @@ const translations = {
     'navbar.mission': 'Mission',
 
     // Brand
-    'brand.name': 'Swideal',
-    'brand.tagline': 'The best deal comes to you',
-    'brand.taglinePart1': 'The best ',
-    'brand.taglinePart2': 'deal',
-    'brand.taglinePart3': ' comes to you',
+    'brand.name': 'FashionHub',
+    'brand.tagline': 'Your fashion social network',
+    'brand.taglinePart1': 'Your fashion ',
+    'brand.taglinePart2': 'social',
+    'brand.taglinePart3': ' network',
 
     // Home page
     'home.title': 'The platform that modernizes networking',
-    'home.subtitle': 'Swideal transforms every collaboration into a win-win opportunity',
+    'home.subtitle': 'FashionHub connects fashion enthusiasts worldwide',
     'home.hero.title': 'Find the perfect service provider with AI',
     'home.hero.description': 'French platform for reverse bidding with artificial intelligence.',
     'home.hero.platformLaunching': 'Platform launching',
@@ -176,7 +176,7 @@ const translations = {
     'footer.support': 'Support',
     'footer.legalNotices': 'Legal notices',
     'footer.sitemap': 'Sitemap',
-    'footer.rightsReserved': '© 2024 Swideal. All rights reserved.',
+    'footer.rightsReserved': '© 2024 FashionHub. All rights reserved.',
     'footer.service247': 'Service available 24/7',
     'footer.globalPlatform': '🌍 Global platform',
     'footer.securePayments': '🔒 Secure payments',
@@ -208,15 +208,15 @@ const translations = {
     'navbar.mission': 'Misión',
 
     // Brand
-    'brand.name': 'Swideal',
-    'brand.tagline': 'El mejor trato viene a ti',
-    'brand.taglinePart1': 'El mejor ',
-    'brand.taglinePart2': 'trato',
-    'brand.taglinePart3': ' viene a ti',
+    'brand.name': 'FashionHub',
+    'brand.tagline': 'Tu red social de moda',
+    'brand.taglinePart1': 'Tu red ',
+    'brand.taglinePart2': 'social',
+    'brand.taglinePart3': ' de moda',
 
     // Home page
     'home.title': 'La plataforma que moderniza las conexiones',
-    'home.subtitle': 'Swideal transforma cada colaboración en una oportunidad ganadora',
+    'home.subtitle': 'FashionHub conecta a los amantes de la moda en todo el mundo',
     'home.hero.title': 'Encuentra el proveedor perfecto con IA',
     'home.hero.description': 'Plataforma francesa de licitaciones inversas con inteligencia artificial.',
     'home.hero.platformLaunching': 'Plataforma en lanzamiento',
@@ -261,7 +261,7 @@ const translations = {
     'footer.support': 'Soporte',
     'footer.legalNotices': 'Avisos legales',
     'footer.sitemap': 'Mapa del sitio',
-    'footer.rightsReserved': '© 2024 Swideal. Todos los derechos reservados.',
+    'footer.rightsReserved': '© 2024 FashionHub. Todos los derechos reservados.',
     'footer.service247': 'Servicio disponible 24/7',
     'footer.globalPlatform': '🌍 Plataforma global',
     'footer.securePayments': '🔒 Pagos seguros',
@@ -293,11 +293,11 @@ const translations = {
     'navbar.mission': 'مهمة',
 
     // Brand
-    'brand.name': 'Swideal',
-    'brand.tagline': 'أفضل صفقة تأتي إليك',
-    'brand.taglinePart1': 'أفضل ',
-    'brand.taglinePart2': 'صفقة',
-    'brand.taglinePart3': ' تأتي إليك',
+    'brand.name': 'FashionHub',
+    'brand.tagline': 'شبكتك الاجتماعية للموضة',
+    'brand.taglinePart1': 'شبكتك ',
+    'brand.taglinePart2': 'الاجتماعية',
+    'brand.taglinePart3': ' للموضة',
 
     // Home page
     'home.title': 'المنصة التي تحدث الاتصالات',

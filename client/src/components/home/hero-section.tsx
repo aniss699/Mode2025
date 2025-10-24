@@ -9,22 +9,22 @@ export function HeroSection() {
   return (
     <div className="text-center mb-12 sm:mb-16 px-2 sm:px-0">
       <div className="space-y-6">
-        {/* Logo et nom SWIDEAL */}
+        {/* Logo et nom FASHIONHUB */}
         <div className="flex items-center justify-center space-x-4 mb-8" data-testid="logo-hero">
           <div className="relative">
             <img 
-              src="/swideal-logo.jpeg" 
-              alt="Swideal Logo" 
+              src="/fashionhub-logo.jpeg" 
+              alt="FashionHub Logo" 
               className="w-24 h-24 sm:w-28 sm:h-28 object-contain rounded-2xl shadow-xl"
             />
             <div className="absolute -top-1 -right-1 w-5 h-5 sm:w-6 sm:h-6 bg-gradient-to-r from-green-400 to-emerald-500 rounded-full animate-pulse shadow-lg"></div>
           </div>
           <div className="flex flex-col items-start">
             <span className="text-3xl sm:text-4xl font-black bg-gradient-to-r from-gray-900 via-blue-900 to-purple-900 dark:from-gray-100 dark:via-blue-300 dark:to-purple-300 bg-clip-text text-transparent tracking-tight drop-shadow-md" data-testid="text-brand-hero">
-              SWIDEAL
+              FASHIONHUB
             </span>
             <span className="text-base sm:text-lg text-gray-600 dark:text-gray-300 font-bold">
-              IA • Missions • Talents
+              Mode • Style • Communauté
             </span>
           </div>
         </div>

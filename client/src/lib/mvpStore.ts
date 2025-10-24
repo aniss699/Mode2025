@@ -17,7 +17,7 @@ export type Profile = {
   bio?: string;
 };
 
-const LS_KEY = "swideal_mvp_v1";
+const LS_KEY = "fashionhub_mvp_v1";
 
 function readState(): { profiles: Profile[], articles: Article[], following: string[] } {
   try {
