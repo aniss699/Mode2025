@@ -50,7 +50,8 @@ export default function CreatorsPage() {
   const [filters, setFilters] = useState({
     style: 'all',
     location: '',
-    followers: 'all'
+    followers: 'all',
+    activity: 'all'
   });
   const { user } = useAuth();
   const [, setLocation] = useLocation();
@@ -142,19 +143,48 @@ export default function CreatorsPage() {
   const creatorsToUse = creators.length > 0 ? creators : mockCreators;
 
   const filteredCreators = creatorsToUse.filter(creator => {
+    // Recherche textuelle
     if (searchTerm && !creator.name.toLowerCase().includes(searchTerm.toLowerCase()) && 
-        !creator.username.toLowerCase().includes(searchTerm.toLowerCase())) {
+        !creator.username.toLowerCase().includes(searchTerm.toLowerCase()) &&
+        !creator.styleTags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))) {
       return false;
     }
+    
+    // Filtre de style
     if (filters.style !== 'all' && !creator.styleTags.some(tag => tag.toLowerCase() === filters.style.toLowerCase())) {
       return false;
     }
+    
+    // Filtre de localisation
     if (filters.location && !creator.location.toLowerCase().includes(filters.location.toLowerCase())) {
+      return false;
+    }
+    
+    // Filtre de popularité
+    if (filters.followers === 'rising' && (creator.followersCount < 1000 || creator.followersCount >= 5000)) {
+      return false;
+    }
+    if (filters.followers === 'established' && (creator.followersCount < 5000 || creator.followersCount >= 10000)) {
       return false;
     }
     if (filters.followers === 'popular' && creator.followersCount < 10000) {
       return false;
     }
+    if (filters.followers === 'verified' && !creator.isVerified) {
+      return false;
+    }
+    
+    // Filtre d'activité
+    if (filters.activity === 'active' && creator.postsCount < 50) {
+      return false;
+    }
+    if (filters.activity === 'moderate' && (creator.postsCount < 10 || creator.postsCount >= 50)) {
+      return false;
+    }
+    if (filters.activity === 'new' && creator.postsCount >= 10) {
+      return false;
+    }
+    
     return true;
   });
 
@@ -228,7 +258,7 @@ export default function CreatorsPage() {
                 <div className="space-y-4">
                   <div>
                     <label className="text-sm font-medium text-gray-700 mb-2 block">
-                      Style
+                      Style vestimentaire
                     </label>
                     <Select value={filters.style} onValueChange={(value) => setFilters(prev => ({...prev, style: value}))}>
                       <SelectTrigger data-testid="select-style-filter">
@@ -236,11 +266,15 @@ export default function CreatorsPage() {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="all">Tous les styles</SelectItem>
-                        <SelectItem value="minimaliste">Minimaliste</SelectItem>
-                        <SelectItem value="streetwear">Streetwear</SelectItem>
-                        <SelectItem value="classique">Classique</SelectItem>
-                        <SelectItem value="bohème">Bohème</SelectItem>
-                        <SelectItem value="vintage">Vintage</SelectItem>
+                        <SelectItem value="minimaliste">🤍 Minimaliste</SelectItem>
+                        <SelectItem value="streetwear">🏙️ Streetwear</SelectItem>
+                        <SelectItem value="classique">👔 Classique</SelectItem>
+                        <SelectItem value="bohème">🌸 Bohème</SelectItem>
+                        <SelectItem value="vintage">📻 Vintage</SelectItem>
+                        <SelectItem value="sustainable">🌿 Sustainable</SelectItem>
+                        <SelectItem value="luxe">💎 Luxe</SelectItem>
+                        <SelectItem value="casual">👟 Casual</SelectItem>
+                        <SelectItem value="sportswear">⚡ Sportswear</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -253,7 +287,7 @@ export default function CreatorsPage() {
                       <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                       <Input
                         data-testid="input-location-filter"
-                        placeholder="Ville, pays..."
+                        placeholder="Paris, Lyon, Marseille..."
                         value={filters.location}
                         onChange={(e) => setFilters(prev => ({...prev, location: e.target.value}))}
                         className="pl-10"
@@ -270,8 +304,28 @@ export default function CreatorsPage() {
                         <SelectValue placeholder="Tous" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="all">Tous</SelectItem>
-                        <SelectItem value="popular">Populaires (10k+)</SelectItem>
+                        <SelectItem value="all">Tous les créateurs</SelectItem>
+                        <SelectItem value="rising">🔥 En croissance (1k-5k)</SelectItem>
+                        <SelectItem value="established">⭐ Établis (5k-10k)</SelectItem>
+                        <SelectItem value="popular">👑 Populaires (10k+)</SelectItem>
+                        <SelectItem value="verified">✓ Vérifiés uniquement</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium text-gray-700 mb-2 block">
+                      Activité
+                    </label>
+                    <Select value={filters.activity || 'all'} onValueChange={(value) => setFilters(prev => ({...prev, activity: value}))}>
+                      <SelectTrigger data-testid="select-activity-filter">
+                        <SelectValue placeholder="Toutes activités" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Toutes activités</SelectItem>
+                        <SelectItem value="active">Très actifs (50+ looks)</SelectItem>
+                        <SelectItem value="moderate">Modérés (10-50 looks)</SelectItem>
+                        <SelectItem value="new">Nouveaux créateurs</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -281,22 +335,40 @@ export default function CreatorsPage() {
                     variant="outline" 
                     size="sm"
                     className="w-full mt-4"
-                    onClick={() => setFilters({style: 'all', location: '', followers: 'all'})}
+                    onClick={() => setFilters({style: 'all', location: '', followers: 'all', activity: 'all'})}
                   >
-                    Réinitialiser
+                    🔄 Réinitialiser les filtres
                   </Button>
                 </div>
 
                 {/* Stats */}
                 <div className="mt-8 pt-6 border-t border-gray-200">
+                  <h4 className="text-sm font-semibold text-gray-700 mb-3">Statistiques</h4>
                   <div className="space-y-3 text-sm">
                     <div className="flex items-center justify-between">
-                      <span className="text-gray-600">Créateurs</span>
-                      <span className="font-semibold">{filteredCreators.length}</span>
+                      <span className="text-gray-600 flex items-center gap-1">
+                        <Users className="w-3 h-3" />
+                        Créateurs affichés
+                      </span>
+                      <span className="font-semibold text-pink-600">{filteredCreators.length}</span>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-gray-600">Tendances</span>
-                      <TrendingUp className="w-4 h-4 text-green-600" />
+                      <span className="text-gray-600 flex items-center gap-1">
+                        <TrendingUp className="w-3 h-3" />
+                        En tendance
+                      </span>
+                      <span className="font-semibold text-green-600">
+                        {filteredCreators.filter(c => c.followersCount > 5000).length}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-600 flex items-center gap-1">
+                        <Sparkles className="w-3 h-3" />
+                        Vérifiés
+                      </span>
+                      <span className="font-semibold text-blue-600">
+                        {filteredCreators.filter(c => c.isVerified).length}
+                      </span>
                     </div>
                   </div>
                 </div>
