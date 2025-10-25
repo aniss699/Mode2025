@@ -47,12 +47,18 @@ export function useAuth() {
     throw new Error('useAuth must be used within an AuthProvider');
   }
 
-  // Log pour débogage
+  // Log pour débogage avec plus de détails
   console.log('🔐 useAuth - Current user:', context.user ? {
     id: context.user.id,
     email: context.user.email,
-    name: context.user.name
+    name: context.user.name,
+    avatar: context.user.avatar_url || 'no-avatar'
   } : 'null');
+
+  // S'assurer que l'objet user est toujours bien formé
+  if (context.user && !context.user.avatar_url) {
+    context.user.avatar_url = '';
+  }
 
   return context;
 }

@@ -23,7 +23,7 @@ export const requireAuth = async (req: Request, res: Response, next: NextFunctio
     // Pour l'instant, on utilise le X-User-ID header que le client envoie
     // mais on le valide en base de données
     const userIdHeader = req.headers['x-user-id'] as string;
-    
+
     if (!userIdHeader) {
       return res.status(401).json({
         error: 'Authentication required',
@@ -70,7 +70,7 @@ export const requireAuth = async (req: Request, res: Response, next: NextFunctio
 export const optionalAuth = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const userIdHeader = req.headers['x-user-id'] as string;
-    
+
     if (userIdHeader) {
       const userId = parseInt(userIdHeader);
       if (!isNaN(userId)) {

@@ -229,7 +229,7 @@ export default function ProfilePage() {
               {/* Avatar */}
               <div className="relative group">
                 <Avatar className="w-32 h-32 sm:w-40 sm:h-40 border-4 border-white shadow-xl ring-4 ring-pink-100">
-                  <AvatarImage src={profile?.avatar_url} alt={profile?.name} />
+                  <AvatarImage src={profile?.avatar_url || undefined} alt={profile?.name || 'User'} />
                   <AvatarFallback className="text-3xl sm:text-4xl font-bold bg-gradient-to-br from-pink-500 to-purple-500 text-white">
                     {initials}
                   </AvatarFallback>

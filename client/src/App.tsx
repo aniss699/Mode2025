@@ -75,7 +75,10 @@ function App() {
                     <Route path="/collections" component={Collections} />
                     <Route path="/collections/:id" component={CollectionDetail} /> {/* New Route */}
                     <Route path="/wardrobe/:userId" component={PublicWardrobe} /> {/* New Route */}
-                    <Route path="/profile" component={Profile} />
+                    <Route path="/profile" component={ProfilePage} />
+                    <Route path="/profile/edit" component={ProfilePage} />
+                    <Route path="/profile/:userId" component={ProfilePage} />
+                    <Route path="/profil" component={ProfileView} />
                     <Route path="/dashboard" component={Dashboard} />
                     <Route path="/messages" component={Messages} />
                     <Route path="/notre-concept" component={NotreConcept} />

@@ -417,13 +417,6 @@ import fashionItemsRoutes from './routes/fashion-items-routes';
 import creatorsRoutes from './routes/creators-routes';
 // import analyticsRoutes from './routes/analytics-routes'; // This import was commented out in the original, keeping it that way.
 
-// Routes
-app.use('/api/auth', authRoutes);
-app.use('/api', apiRoutes);
-
-// Import auth middleware
-import { optionalAuth } from './middleware/auth';
-
 // Fashion & Social routes
 console.log('👗 Registering fashion routes...');
 app.use('/api/ai-fashion', aiFashionRoutes); // Alias pour cohérence
