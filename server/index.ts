@@ -270,6 +270,7 @@ app.use(cors({
 // Import middleware
 import { validateRequest, limitRequestSize } from './middleware/request-validator.js';
 import { performanceMonitor, getPerformanceStats } from './middleware/performance-monitor.js';
+import { optionalAuth } from './middleware/auth.js';
 
 // Apply middleware only to API routes to avoid interfering with Vite frontend
 app.use('/api', limitRequestSize, validateRequest, performanceMonitor, express.json({ limit: '10mb' }));

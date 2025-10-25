@@ -1,7 +1,12 @@
-import React from 'react';
-import { Navigate } from 'react-router-dom';
+import { useEffect } from 'react';
+import { useLocation } from 'wouter';
 
 export default function ProfilRedirect() {
-  // Redirect `/profil` to the new providers listing page
-  return <Navigate to="/provider-profile" replace />;
+  const [, setLocation] = useLocation();
+  
+  useEffect(() => {
+    setLocation('/provider-profile');
+  }, [setLocation]);
+
+  return null;
 }

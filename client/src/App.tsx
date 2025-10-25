@@ -23,6 +23,7 @@ const Legal = React.lazy(() => import('@/pages/legal'));
 const Sitemap = React.lazy(() => import('@/pages/sitemap'));
 const Features = React.lazy(() => import('@/pages/features'));
 const NotreConcept = React.lazy(() => import('@/pages/notre-concept'));
+const ProviderProfile = React.lazy(() => import('@/pages/provider-profile'));
 
 const AIMonitoring = React.lazy(() => import('@/pages/AIMonitoring'));
 const LoginPage = React.lazy(() => import('@/pages/login'));
@@ -75,10 +76,10 @@ function App() {
                     <Route path="/collections" component={Collections} />
                     <Route path="/collections/:id" component={CollectionDetail} /> {/* New Route */}
                     <Route path="/wardrobe/:userId" component={PublicWardrobe} /> {/* New Route */}
-                    <Route path="/profile" component={ProfilePage} />
-                    <Route path="/profile/edit" component={ProfilePage} />
-                    <Route path="/profile/:userId" component={ProfilePage} />
-                    <Route path="/profil" component={ProfileView} />
+                    <Route path="/profile" component={Profile} />
+                    <Route path="/profile/edit" component={Profile} />
+                    <Route path="/profile/:userId" component={Profile} />
+                    <Route path="/profil" component={ProviderProfile} />
                     <Route path="/dashboard" component={Dashboard} />
                     <Route path="/messages" component={Messages} />
                     <Route path="/notre-concept" component={NotreConcept} />
