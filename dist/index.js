@@ -585,17 +585,17 @@ var init_schema = __esm({
 // server/database.ts
 var database_exports = {};
 __export(database_exports, {
-  db: () => db2,
+  db: () => db,
   initializeDatabase: () => initializeDatabase,
-  pool: () => pool2,
+  pool: () => pool,
   testConnection: () => testConnection
 });
-import { Pool as Pool2 } from "pg";
-import { drizzle as drizzle2 } from "drizzle-orm/node-postgres";
+import { Pool } from "pg";
+import { drizzle } from "drizzle-orm/node-postgres";
 async function initializeDatabase() {
   try {
     console.log("\u{1F527} Initializing database tables...");
-    await pool2.query(`
+    await pool.query(`
       CREATE TABLE IF NOT EXISTS users (
         id SERIAL PRIMARY KEY,
         email TEXT NOT NULL UNIQUE,
@@ -620,7 +620,7 @@ async function initializeDatabase() {
         updated_at TIMESTAMP DEFAULT NOW()
       );
     `);
-    await pool2.query(`
+    await pool.query(`
       CREATE TABLE IF NOT EXISTS missions (
         id SERIAL PRIMARY KEY,
         user_id INTEGER REFERENCES users(id) NOT NULL,
@@ -645,7 +645,7 @@ async function initializeDatabase() {
         updated_at TIMESTAMP DEFAULT NOW()
       );
     `);
-    await pool2.query(`
+    await pool.query(`
       CREATE TABLE IF NOT EXISTS open_teams (
         id SERIAL PRIMARY KEY,
         mission_id INTEGER REFERENCES missions(id) NOT NULL,
@@ -664,7 +664,7 @@ async function initializeDatabase() {
         updated_at TIMESTAMP DEFAULT NOW()
       );
     `);
-    await pool2.query(`
+    await pool.query(`
       CREATE TABLE IF NOT EXISTS bids (
         id SERIAL PRIMARY KEY,
         mission_id INTEGER REFERENCES missions(id) NOT NULL,
@@ -683,7 +683,7 @@ async function initializeDatabase() {
         updated_at TIMESTAMP DEFAULT NOW()
       );
     `);
-    await pool2.query(`
+    await pool.query(`
       CREATE TABLE IF NOT EXISTS announcements (
         id SERIAL PRIMARY KEY,
         title TEXT NOT NULL,
@@ -701,7 +701,7 @@ async function initializeDatabase() {
         updated_at TIMESTAMP DEFAULT NOW()
       );
     `);
-    await pool2.query(`
+    await pool.query(`
       CREATE TABLE IF NOT EXISTS feed_feedback (
         id SERIAL PRIMARY KEY,
         announcement_id INTEGER REFERENCES announcements(id) NOT NULL,
@@ -710,7 +710,7 @@ async function initializeDatabase() {
         created_at TIMESTAMP DEFAULT NOW()
       );
     `);
-    await pool2.query(`
+    await pool.query(`
       CREATE TABLE IF NOT EXISTS feed_seen (
         id SERIAL PRIMARY KEY,
         announcement_id INTEGER REFERENCES announcements(id) NOT NULL,
@@ -718,7 +718,7 @@ async function initializeDatabase() {
         seen_at TIMESTAMP DEFAULT NOW()
       );
     `);
-    await pool2.query(`
+    await pool.query(`
       CREATE TABLE IF NOT EXISTS favorites (
         id SERIAL PRIMARY KEY,
         user_id INTEGER REFERENCES users(id) NOT NULL,
@@ -726,7 +726,7 @@ async function initializeDatabase() {
         created_at TIMESTAMP DEFAULT NOW()
       );
     `);
-    await pool2.query(`
+    await pool.query(`
       CREATE TABLE IF NOT EXISTS ai_events (
         id TEXT PRIMARY KEY,
         phase TEXT NOT NULL,
@@ -748,7 +748,7 @@ async function initializeDatabase() {
         updated_at TIMESTAMP DEFAULT NOW()
       );
     `);
-    await pool2.query(`
+    await pool.query(`
       CREATE TABLE IF NOT EXISTS user_availability (
         id SERIAL PRIMARY KEY,
         user_id INTEGER REFERENCES users(id) NOT NULL,
@@ -759,7 +759,7 @@ async function initializeDatabase() {
         created_at TIMESTAMP DEFAULT NOW()
       );
     `);
-    await pool2.query(`
+    await pool.query(`
       CREATE TABLE IF NOT EXISTS recurring_availability (
         id SERIAL PRIMARY KEY,
         user_id INTEGER REFERENCES users(id) NOT NULL,
@@ -777,7 +777,7 @@ async function initializeDatabase() {
 }
 async function testConnection() {
   try {
-    const result = await pool2.query("SELECT NOW() as current_time");
+    const result = await pool.query("SELECT NOW() as current_time");
     console.log("\u2705 Database connection test successful:", result.rows[0]);
   } catch (error) {
     console.error("\u274C Database connection test failed:", {
@@ -787,7 +787,7 @@ async function testConnection() {
     });
   }
 }
-var databaseUrl, pool2, db2;
+var databaseUrl, pool, db;
 var init_database = __esm({
   "server/database.ts"() {
     "use strict";
@@ -797,13 +797,13 @@ var init_database = __esm({
       console.error("\u274C DATABASE_URL not configured. Please set up Replit PostgreSQL in the Database tab.");
       process.exit(1);
     }
-    pool2 = new Pool2({
+    pool = new Pool({
       connectionString: databaseUrl,
       connectionTimeoutMillis: 5e3,
       idleTimeoutMillis: 1e4,
       max: 20
     });
-    pool2.on("error", (err) => {
+    pool.on("error", (err) => {
       console.error("\u274C Database pool error:", {
         message: err.message,
         code: err.code,
@@ -813,13 +813,13 @@ var init_database = __esm({
         console.error("Stack:", err.stack);
       }
     });
-    pool2.on("connect", () => {
+    pool.on("connect", () => {
       console.log("\u2705 Database connection established");
     });
-    pool2.on("remove", () => {
+    pool.on("remove", () => {
       console.log("\u{1F504} Database connection removed from pool");
     });
-    db2 = drizzle2(pool2, { schema: schema_exports });
+    db = drizzle(pool, { schema: schema_exports });
     console.log("\u{1F517} Database connection established:", {
       databaseUrl: databaseUrl ? "***configured***" : "missing",
       isCloudSQL: databaseUrl?.includes("/cloudsql/") || false
@@ -1662,14 +1662,82 @@ var getPerformanceStats = () => {
   };
 };
 
+// server/middleware/auth.ts
+init_database();
+init_schema();
+import { eq } from "drizzle-orm";
+var requireAuth = async (req, res, next) => {
+  try {
+    const userIdHeader = req.headers["x-user-id"];
+    if (!userIdHeader) {
+      return res.status(401).json({
+        error: "Authentication required",
+        message: "No user ID provided"
+      });
+    }
+    const userId2 = parseInt(userIdHeader);
+    if (isNaN(userId2)) {
+      return res.status(401).json({
+        error: "Authentication required",
+        message: "Invalid user ID format"
+      });
+    }
+    const [user] = await db.select({
+      id: users.id,
+      email: users.email,
+      name: users.name,
+      role: users.role,
+      rating_mean: users.rating_mean
+    }).from(users).where(eq(users.id, userId2)).limit(1);
+    if (!user) {
+      return res.status(401).json({
+        error: "Authentication required",
+        message: "Invalid user"
+      });
+    }
+    req.user = user;
+    next();
+  } catch (error) {
+    console.error("Auth middleware error:", error);
+    return res.status(500).json({
+      error: "Authentication error",
+      message: "Internal server error"
+    });
+  }
+};
+var optionalAuth = async (req, res, next) => {
+  try {
+    const userIdHeader = req.headers["x-user-id"];
+    if (userIdHeader) {
+      const userId2 = parseInt(userIdHeader);
+      if (!isNaN(userId2)) {
+        const [user] = await db.select({
+          id: users.id,
+          email: users.email,
+          name: users.name,
+          role: users.role,
+          rating_mean: users.rating_mean
+        }).from(users).where(eq(users.id, userId2)).limit(1);
+        if (user) {
+          req.user = user;
+        }
+      }
+    }
+    next();
+  } catch (error) {
+    console.error("Optional auth middleware error:", error);
+    next();
+  }
+};
+
 // server/auth-routes.ts
 init_schema();
 import express from "express";
-import { Pool } from "pg";
-import { drizzle } from "drizzle-orm/node-postgres";
-import { eq, sql as sql2 } from "drizzle-orm";
-var pool = new Pool({ connectionString: process.env.DATABASE_URL });
-var db = drizzle(pool);
+import { Pool as Pool2 } from "pg";
+import { drizzle as drizzle2 } from "drizzle-orm/node-postgres";
+import { eq as eq2, sql as sql2 } from "drizzle-orm";
+var pool2 = new Pool2({ connectionString: process.env.DATABASE_URL });
+var db2 = drizzle2(pool2);
 var router = express.Router();
 router.post("/login", async (req, res) => {
   try {
@@ -1682,7 +1750,7 @@ router.post("/login", async (req, res) => {
         success: false
       });
     }
-    const user = await db.select().from(users).where(eq(users.email, email)).limit(1);
+    const user = await db2.select().from(users).where(eq2(users.email, email)).limit(1);
     if (user.length === 0) {
       console.log("\u274C Utilisateur non trouv\xE9:", email);
       return res.status(401).json({
@@ -1760,7 +1828,7 @@ router.post("/register", async (req, res) => {
         success: false
       });
     }
-    const existingUser = await db.select().from(users).where(eq(users.email, email.toLowerCase().trim())).limit(1);
+    const existingUser = await db2.select().from(users).where(eq2(users.email, email.toLowerCase().trim())).limit(1);
     if (existingUser.length > 0) {
       console.log("\u274C Email d\xE9j\xE0 utilis\xE9:", email);
       return res.status(409).json({
@@ -1783,7 +1851,7 @@ router.post("/register", async (req, res) => {
       onboarding_completed: true,
       ...profile_data
     };
-    const [newUser] = await db.insert(users).values({
+    const [newUser] = await db2.insert(users).values({
       email: email.toLowerCase().trim(),
       password,
       // En production, hasher avec bcrypt
@@ -1827,7 +1895,7 @@ router.post("/register", async (req, res) => {
 router.get("/profile/:id", async (req, res) => {
   try {
     const userId2 = parseInt(req.params.id);
-    const user = await db.select().from(users).where(eq(users.id, userId2)).limit(1);
+    const user = await db2.select().from(users).where(eq2(users.id, userId2)).limit(1);
     if (user.length === 0) {
       return res.status(404).json({ error: "Utilisateur non trouv\xE9" });
     }
@@ -1850,7 +1918,7 @@ router.get("/profile/:id", async (req, res) => {
 });
 router.get("/demo-users", async (req, res) => {
   try {
-    const demoUsers = await db.select({
+    const demoUsers = await db2.select({
       id: users.id,
       email: users.email,
       name: users.name,
@@ -1869,7 +1937,7 @@ router.get("/demo-users", async (req, res) => {
 router.get("/demo-accounts/verify", async (req, res) => {
   try {
     const demoEmails = ["demo@swideal.com", "prestataire@swideal.com", "admin@swideal.com"];
-    const demoAccounts = await db.select({
+    const demoAccounts = await db2.select({
       id: users.id,
       email: users.email,
       name: users.name,
@@ -1898,14 +1966,14 @@ router.get("/demo-accounts/verify", async (req, res) => {
 router.get("/debug/demo-accounts", async (req, res) => {
   try {
     console.log("\u{1F50D} Diagnostic des comptes d\xE9mo...");
-    const allUsers = await db.select({
+    const allUsers = await db2.select({
       id: users.id,
       email: users.email,
       name: users.name,
       role: users.role,
       created_at: users.created_at
     }).from(users);
-    const demoUsers = await db.select().from(users).where(sql2`${users.email} IN ('demo@swideal.com', 'prestataire@swideal.com', 'admin@swideal.com')`);
+    const demoUsers = await db2.select().from(users).where(sql2`${users.email} IN ('demo@swideal.com', 'prestataire@swideal.com', 'admin@swideal.com')`);
     res.json({
       debug: true,
       timestamp: (/* @__PURE__ */ new Date()).toISOString(),
@@ -1991,7 +2059,7 @@ router.post("/debug/create-demo-accounts", async (req, res) => {
     const results = [];
     for (const account of demoAccounts) {
       try {
-        const existingUser = await db.select().from(users).where(eq(users.email, account.email)).limit(1);
+        const existingUser = await db2.select().from(users).where(eq2(users.email, account.email)).limit(1);
         if (existingUser.length > 0) {
           results.push({
             email: account.email,
@@ -1999,7 +2067,7 @@ router.post("/debug/create-demo-accounts", async (req, res) => {
             message: "Compte d\xE9j\xE0 existant"
           });
         } else {
-          const [newUser] = await db.insert(users).values(account).returning();
+          const [newUser] = await db2.insert(users).values(account).returning();
           results.push({
             email: account.email,
             status: "created",
@@ -2040,7 +2108,7 @@ init_database();
 
 // server/routes/wardrobe.ts
 init_schema();
-import { eq as eq2, and, desc } from "drizzle-orm";
+import { eq as eq3, and, desc } from "drizzle-orm";
 import multer from "multer";
 import path from "path";
 var router2 = Router();
@@ -2071,7 +2139,7 @@ router2.get("/items", async (req, res) => {
     if (!req.user?.id) {
       return res.status(401).json({ error: "Non authentifi\xE9" });
     }
-    const items = await db2.select().from(fashionItems).where(eq2(fashionItems.user_id, req.user.id)).orderBy(desc(fashionItems.created_at));
+    const items = await db.select().from(fashionItems).where(eq3(fashionItems.user_id, req.user.id)).orderBy(desc(fashionItems.created_at));
     res.json(items);
   } catch (error) {
     console.error("Erreur r\xE9cup\xE9ration garde-robe:", error);
@@ -2081,7 +2149,7 @@ router2.get("/items", async (req, res) => {
 router2.get("/items/:id", async (req, res) => {
   try {
     const itemId = parseInt(req.params.id);
-    const [item] = await db2.select().from(fashionItems).where(eq2(fashionItems.id, itemId));
+    const [item] = await db.select().from(fashionItems).where(eq3(fashionItems.id, itemId));
     if (!item) {
       return res.status(404).json({ error: "Item non trouv\xE9" });
     }
@@ -2118,7 +2186,7 @@ router2.post("/items", upload.single("image"), async (req, res) => {
       is_public
     } = req.body;
     const imageUrl = `/uploads/wardrobe/${req.file.filename}`;
-    const [item] = await db2.insert(fashionItems).values({
+    const [item] = await db.insert(fashionItems).values({
       user_id: req.user.id,
       title: title || "Nouvel article",
       description: description || null,
@@ -2147,7 +2215,7 @@ router2.put("/items/:id", upload.single("image"), async (req, res) => {
       return res.status(401).json({ error: "Non authentifi\xE9" });
     }
     const itemId = parseInt(req.params.id);
-    const [existingItem] = await db2.select().from(fashionItems).where(eq2(fashionItems.id, itemId));
+    const [existingItem] = await db.select().from(fashionItems).where(eq3(fashionItems.id, itemId));
     if (!existingItem) {
       return res.status(404).json({ error: "Item non trouv\xE9" });
     }
@@ -2174,7 +2242,7 @@ router2.put("/items/:id", upload.single("image"), async (req, res) => {
       const imageUrl = `/uploads/wardrobe/${req.file.filename}`;
       updates.images = [...existingItem.images || [], imageUrl];
     }
-    const [updatedItem] = await db2.update(fashionItems).set(updates).where(eq2(fashionItems.id, itemId)).returning();
+    const [updatedItem] = await db.update(fashionItems).set(updates).where(eq3(fashionItems.id, itemId)).returning();
     res.json(updatedItem);
   } catch (error) {
     console.error("Erreur modification item:", error);
@@ -2187,14 +2255,14 @@ router2.delete("/items/:id", async (req, res) => {
       return res.status(401).json({ error: "Non authentifi\xE9" });
     }
     const itemId = parseInt(req.params.id);
-    const [item] = await db2.select().from(fashionItems).where(eq2(fashionItems.id, itemId));
+    const [item] = await db.select().from(fashionItems).where(eq3(fashionItems.id, itemId));
     if (!item) {
       return res.status(404).json({ error: "Item non trouv\xE9" });
     }
     if (item.user_id !== req.user.id) {
       return res.status(403).json({ error: "Non autoris\xE9" });
     }
-    await db2.delete(fashionItems).where(eq2(fashionItems.id, itemId));
+    await db.delete(fashionItems).where(eq3(fashionItems.id, itemId));
     res.json({ success: true });
   } catch (error) {
     console.error("Erreur suppression item:", error);
@@ -2204,21 +2272,21 @@ router2.delete("/items/:id", async (req, res) => {
 router2.get("/users/:userId", async (req, res) => {
   try {
     const userId2 = parseInt(req.params.userId);
-    const [user] = await db2.select().from(users).where(eq2(users.id, userId2));
+    const [user] = await db.select().from(users).where(eq3(users.id, userId2));
     if (!user) {
       return res.status(404).json({ error: "Utilisateur non trouv\xE9" });
     }
-    const items = await db2.select().from(fashionItems).where(
+    const items = await db.select().from(fashionItems).where(
       and(
-        eq2(fashionItems.user_id, userId2),
-        eq2(fashionItems.is_public, true)
+        eq3(fashionItems.user_id, userId2),
+        eq3(fashionItems.is_public, true)
       )
     ).orderBy(desc(fashionItems.created_at));
     const { collections: collections2 } = await Promise.resolve().then(() => (init_schema(), schema_exports));
-    const userCollections = await db2.select().from(collections2).where(
+    const userCollections = await db.select().from(collections2).where(
       and(
-        eq2(collections2.user_id, userId2),
-        eq2(collections2.is_public, true)
+        eq3(collections2.user_id, userId2),
+        eq3(collections2.is_public, true)
       )
     ).orderBy(desc(collections2.created_at));
     res.json({
@@ -2263,7 +2331,7 @@ var wardrobe_default = router2;
 init_database();
 init_schema();
 import { Router as Router2 } from "express";
-import { eq as eq3, desc as desc2, sql as sql3 } from "drizzle-orm";
+import { eq as eq4, desc as desc2, sql as sql3 } from "drizzle-orm";
 import { randomUUID } from "crypto";
 
 // server/dto/mission-dto.ts
@@ -2582,7 +2650,7 @@ router3.post("/", asyncHandler(async (req, res) => {
       request_id: requestId
     });
   }
-  const existingUser = await db2.select({ id: users.id }).from(users).where(eq3(users.id, userIdInt)).limit(1);
+  const existingUser = await db.select({ id: users.id }).from(users).where(eq4(users.id, userIdInt)).limit(1);
   if (existingUser.length === 0) {
     console.log(JSON.stringify({
       level: "warn",
@@ -2656,7 +2724,7 @@ Exigences sp\xE9cifiques: ${req.body.requirements}` : "");
     request_id: requestId,
     action: "db_transaction_start"
   }));
-  const insertResult = await db2.insert(missions).values(newMission).returning({
+  const insertResult = await db.insert(missions).values(newMission).returning({
     id: missions.id,
     title: missions.title,
     status: missions.status,
@@ -2721,10 +2789,10 @@ router3.get("/", asyncHandler(async (req, res) => {
   console.log("\u{1F4CB} Headers:", req.headers);
   console.log("\u{1F4CB} Query params:", req.query);
   try {
-    const allMissions = await db2.select({
+    const allMissions = await db.select({
       mission: missions,
       user_name: users.name
-    }).from(missions).leftJoin(users, eq3(missions.user_id, users.id)).orderBy(desc2(missions.created_at)).limit(100);
+    }).from(missions).leftJoin(users, eq4(missions.user_id, users.id)).orderBy(desc2(missions.created_at)).limit(100);
     console.log(JSON.stringify({
       level: "info",
       timestamp: (/* @__PURE__ */ new Date()).toISOString(),
@@ -2852,7 +2920,7 @@ router3.get("/health", asyncHandler(async (req, res) => {
   const startTime = Date.now();
   console.log("\u{1F3E5} Mission health check endpoint called");
   try {
-    const dbTest = await db2.select({ count: sql3`COUNT(*)` }).from(missions).limit(1);
+    const dbTest = await db.select({ count: sql3`COUNT(*)` }).from(missions).limit(1);
     const dbConnected = dbTest.length > 0;
     const responseTime = Date.now() - startTime;
     const healthInfo = {
@@ -2885,7 +2953,7 @@ router3.get("/health", asyncHandler(async (req, res) => {
 }));
 router3.get("/debug", asyncHandler(async (req, res) => {
   console.log("\u{1F50D} Mission debug endpoint called");
-  const testQuery = await db2.select({ id: missions.id }).from(missions).limit(1);
+  const testQuery = await db.select({ id: missions.id }).from(missions).limit(1);
   const dbInfo = {
     status: "connected",
     sampleMissions: testQuery.length,
@@ -2899,14 +2967,14 @@ router3.get("/debug", asyncHandler(async (req, res) => {
 router3.get("/verify-sync", asyncHandler(async (req, res) => {
   console.log("\u{1F50D} V\xE9rification de la synchronisation missions/feed");
   try {
-    const missionCount = await db2.select({ count: sql3`COUNT(*)` }).from(missions);
-    const recentMissions = await db2.select({
+    const missionCount = await db.select({ count: sql3`COUNT(*)` }).from(missions);
+    const recentMissions = await db.select({
       id: missions.id,
       title: missions.title,
       status: missions.status,
       created_at: missions.created_at
     }).from(missions).orderBy(desc2(missions.created_at)).limit(5);
-    const announcementCount = await db2.select({ count: sql3`COUNT(*)` }).from(announcements);
+    const announcementCount = await db.select({ count: sql3`COUNT(*)` }).from(announcements);
     const syncStatus = {
       totalMissions: missionCount[0]?.count || 0,
       totalFeedItems: announcementCount[0]?.count || 0,
@@ -2953,7 +3021,7 @@ router3.get("/:id", asyncHandler(async (req, res) => {
       details: "L'ID doit \xEAtre un nombre entier positif"
     });
   }
-  const missionRaw = await db2.select().from(missions).where(eq3(missions.id, missionIdInt)).limit(1);
+  const missionRaw = await db.select().from(missions).where(eq4(missions.id, missionIdInt)).limit(1);
   if (missionRaw.length === 0) {
     console.error("\u274C API: Mission non trouv\xE9e:", missionId);
     return res.status(404).json({
@@ -2978,7 +3046,7 @@ router3.get("/:id", asyncHandler(async (req, res) => {
   });
   let missionBids = [];
   try {
-    missionBids = await db2.select({
+    missionBids = await db.select({
       id: bids.id,
       amount: bids.price,
       timeline_days: bids.timeline_days,
@@ -2989,7 +3057,7 @@ router3.get("/:id", asyncHandler(async (req, res) => {
       provider_name: users.name,
       provider_email: users.email,
       provider_rating: users.rating_mean
-    }).from(bids).leftJoin(users, eq3(bids.provider_id, users.id)).where(eq3(bids.mission_id, missionIdInt));
+    }).from(bids).leftJoin(users, eq4(bids.provider_id, users.id)).where(eq4(bids.mission_id, missionIdInt));
     console.log(`\u2705 Trouv\xE9 ${missionBids.length} candidatures pour la mission ${missionIdInt}`);
   } catch (error) {
     console.error("\u274C Erreur lors de la r\xE9cup\xE9ration des bids:", error);
@@ -3023,7 +3091,7 @@ router3.get("/users/:userId/missions", asyncHandler(async (req, res) => {
   }
   console.log("\u{1F50D} Optimized query: Fetching missions with bids in single JOIN query");
   try {
-    const missionsWithBidsData = await db2.select({
+    const missionsWithBidsData = await db.select({
       // Mission fields
       mission_id: missions.id,
       title: missions.title,
@@ -3055,7 +3123,7 @@ router3.get("/users/:userId/missions", asyncHandler(async (req, res) => {
       bid_status: bids.status,
       bid_created_at: bids.created_at,
       provider_id: bids.provider_id
-    }).from(missions).leftJoin(bids, eq3(missions.id, bids.mission_id)).where(eq3(missions.user_id, userIdInt)).orderBy(desc2(missions.created_at), desc2(bids.created_at));
+    }).from(missions).leftJoin(bids, eq4(missions.id, bids.mission_id)).where(eq4(missions.user_id, userIdInt)).orderBy(desc2(missions.created_at), desc2(bids.created_at));
     console.log("\u{1F4CA} JOIN query result: Found", missionsWithBidsData.length, "mission-bid combinations");
     const missionMap = /* @__PURE__ */ new Map();
     missionsWithBidsData.forEach((row) => {
@@ -3119,7 +3187,7 @@ router3.get("/users/:userId/missions", asyncHandler(async (req, res) => {
     res.json(missionsWithBids);
   } catch (error) {
     console.error("\u274C Error in optimized missions+bids query:", error);
-    const userMissions = await db2.select({
+    const userMissions = await db.select({
       id: missions.id,
       title: missions.title,
       description: missions.description,
@@ -3142,7 +3210,7 @@ router3.get("/users/:userId/missions", asyncHandler(async (req, res) => {
       // Added team_requirements
       created_at: missions.created_at,
       updated_at: missions.updated_at
-    }).from(missions).where(eq3(missions.user_id, userIdInt)).orderBy(desc2(missions.created_at));
+    }).from(missions).where(eq4(missions.user_id, userIdInt)).orderBy(desc2(missions.created_at));
     const fallbackMissions = userMissions.map((mission) => ({
       id: mission.id,
       title: mission.title,
@@ -3223,7 +3291,7 @@ router3.put("/:id", asyncHandler(async (req, res) => {
       field: "description"
     });
   }
-  const existingMission = await db2.select({ id: missions.id, category: missions.category, deadline: missions.deadline, tags: missions.tags, requirements: missions.requirements, currency: missions.currency, location_data: missions.location_data, is_team_mission: missions.is_team_mission, team_size: missions.team_size, team_requirements: missions.team_requirements }).from(missions).where(eq3(missions.id, missionIdInt)).limit(1);
+  const existingMission = await db.select({ id: missions.id, category: missions.category, deadline: missions.deadline, tags: missions.tags, requirements: missions.requirements, currency: missions.currency, location_data: missions.location_data, is_team_mission: missions.is_team_mission, team_size: missions.team_size, team_requirements: missions.team_requirements }).from(missions).where(eq4(missions.id, missionIdInt)).limit(1);
   if (existingMission.length === 0) {
     console.error("\u274C API: Mission non trouv\xE9e pour modification:", missionId);
     return res.status(404).json({ error: "Mission non trouv\xE9e" });
@@ -3261,7 +3329,7 @@ router3.put("/:id", asyncHandler(async (req, res) => {
     // Update team requirements
   };
   console.log("\u270F\uFE0F API: Donn\xE9es de mise \xE0 jour:", JSON.stringify(missionToUpdate, null, 2));
-  const updatedMission = await db2.update(missions).set(missionToUpdate).where(eq3(missions.id, missionIdInt)).returning();
+  const updatedMission = await db.update(missions).set(missionToUpdate).where(eq4(missions.id, missionIdInt)).returning();
   if (updatedMission.length === 0) {
     throw new Error("\xC9chec de la mise \xE0 jour de la mission");
   }
@@ -3283,18 +3351,18 @@ router3.delete("/:id", asyncHandler(async (req, res) => {
     console.error("\u274C API: Mission ID n'est pas un nombre valide:", missionId);
     return res.status(400).json({ error: "Mission ID doit \xEAtre un nombre valide" });
   }
-  const existingMission = await db2.select({ id: missions.id }).from(missions).where(eq3(missions.id, missionIdInt)).limit(1);
+  const existingMission = await db.select({ id: missions.id }).from(missions).where(eq4(missions.id, missionIdInt)).limit(1);
   if (existingMission.length === 0) {
     console.error("\u274C API: Mission non trouv\xE9e pour suppression:", missionId);
     return res.status(404).json({ error: "Mission non trouv\xE9e" });
   }
   try {
-    await db2.delete(bids).where(eq3(bids.mission_id, missionIdInt));
+    await db.delete(bids).where(eq4(bids.mission_id, missionIdInt));
     console.log("\u2705 API: Offres supprim\xE9es pour mission:", missionId);
   } catch (error) {
     console.warn("\u26A0\uFE0F Impossible de supprimer les offres:", error);
   }
-  const deletedMission = await db2.delete(missions).where(eq3(missions.id, missionIdInt)).returning();
+  const deletedMission = await db.delete(missions).where(eq4(missions.id, missionIdInt)).returning();
   if (deletedMission.length === 0) {
     throw new Error("\xC9chec de la suppression de la mission");
   }
@@ -3315,76 +3383,6 @@ init_database();
 init_schema();
 import { Router as Router3 } from "express";
 import { eq as eq5, and as and2, desc as desc3 } from "drizzle-orm";
-
-// server/middleware/auth.ts
-init_database();
-init_schema();
-import { eq as eq4 } from "drizzle-orm";
-var requireAuth = async (req, res, next) => {
-  try {
-    const userIdHeader = req.headers["x-user-id"];
-    if (!userIdHeader) {
-      return res.status(401).json({
-        error: "Authentication required",
-        message: "No user ID provided"
-      });
-    }
-    const userId2 = parseInt(userIdHeader);
-    if (isNaN(userId2)) {
-      return res.status(401).json({
-        error: "Authentication required",
-        message: "Invalid user ID format"
-      });
-    }
-    const [user] = await db2.select({
-      id: users.id,
-      email: users.email,
-      name: users.name,
-      role: users.role,
-      rating_mean: users.rating_mean
-    }).from(users).where(eq4(users.id, userId2)).limit(1);
-    if (!user) {
-      return res.status(401).json({
-        error: "Authentication required",
-        message: "Invalid user"
-      });
-    }
-    req.user = user;
-    next();
-  } catch (error) {
-    console.error("Auth middleware error:", error);
-    return res.status(500).json({
-      error: "Authentication error",
-      message: "Internal server error"
-    });
-  }
-};
-var optionalAuth2 = async (req, res, next) => {
-  try {
-    const userIdHeader = req.headers["x-user-id"];
-    if (userIdHeader) {
-      const userId2 = parseInt(userIdHeader);
-      if (!isNaN(userId2)) {
-        const [user] = await db2.select({
-          id: users.id,
-          email: users.email,
-          name: users.name,
-          role: users.role,
-          rating_mean: users.rating_mean
-        }).from(users).where(eq4(users.id, userId2)).limit(1);
-        if (user) {
-          req.user = user;
-        }
-      }
-    }
-    next();
-  } catch (error) {
-    console.error("Optional auth middleware error:", error);
-    next();
-  }
-};
-
-// server/routes/bids.ts
 import { z as z2 } from "zod";
 var router4 = Router3();
 var createBidSchema = z2.object({
@@ -3412,7 +3410,7 @@ router4.post("/", requireAuth, async (req, res) => {
       bidType: req.body.bid_type
     });
     const validatedData = createBidSchema.parse(req.body);
-    const [mission] = await db2.select().from(missions).where(eq5(missions.id, validatedData.mission_id)).limit(1);
+    const [mission] = await db.select().from(missions).where(eq5(missions.id, validatedData.mission_id)).limit(1);
     if (!mission) {
       return res.status(404).json({
         error: "Mission not found",
@@ -3425,7 +3423,7 @@ router4.post("/", requireAuth, async (req, res) => {
         message: "Cette mission n'accepte plus de candidatures"
       });
     }
-    const [existingBid] = await db2.select().from(bids).where(
+    const [existingBid] = await db.select().from(bids).where(
       and2(
         eq5(bids.mission_id, validatedData.mission_id),
         eq5(bids.provider_id, req.user.id)
@@ -3437,7 +3435,7 @@ router4.post("/", requireAuth, async (req, res) => {
         message: "Vous avez d\xE9j\xE0 soumis une candidature pour cette mission"
       });
     }
-    const [newBid] = await db2.insert(bids).values({
+    const [newBid] = await db.insert(bids).values({
       mission_id: validatedData.mission_id,
       provider_id: req.user.id,
       price: validatedData.price,
@@ -3476,7 +3474,7 @@ router4.post("/", requireAuth, async (req, res) => {
     });
   }
 });
-router4.get("/", optionalAuth2, async (req, res) => {
+router4.get("/", optionalAuth, async (req, res) => {
   try {
     const { mission_id, provider_id, status, bid_type } = req.query;
     console.log("\u{1F4CB} GET /api/bids - Recherche candidatures:", {
@@ -3485,7 +3483,7 @@ router4.get("/", optionalAuth2, async (req, res) => {
       status,
       userId: req.user?.id
     });
-    let query = db2.select({
+    let query = db.select({
       id: bids.id,
       mission_id: bids.mission_id,
       provider_id: bids.provider_id,
@@ -3540,7 +3538,7 @@ router4.get("/", optionalAuth2, async (req, res) => {
     });
   }
 });
-router4.get("/:id", optionalAuth2, async (req, res) => {
+router4.get("/:id", optionalAuth, async (req, res) => {
   try {
     const bidId = parseInt(req.params.id);
     if (isNaN(bidId)) {
@@ -3550,7 +3548,7 @@ router4.get("/:id", optionalAuth2, async (req, res) => {
       });
     }
     console.log("\u{1F50D} GET /api/bids/:id - Recherche candidature:", { bidId });
-    const [bid] = await db2.select({
+    const [bid] = await db.select({
       id: bids.id,
       mission_id: bids.mission_id,
       provider_id: bids.provider_id,
@@ -3601,7 +3599,7 @@ router4.put("/:id", requireAuth, async (req, res) => {
       userId: req.user?.id
     });
     const validatedData = updateBidSchema.parse(req.body);
-    const [existingBid] = await db2.select().from(bids).where(eq5(bids.id, bidId)).limit(1);
+    const [existingBid] = await db.select().from(bids).where(eq5(bids.id, bidId)).limit(1);
     if (!existingBid) {
       return res.status(404).json({
         error: "Bid not found",
@@ -3621,7 +3619,7 @@ router4.put("/:id", requireAuth, async (req, res) => {
         message: "Cette candidature ne peut plus \xEAtre modifi\xE9e"
       });
     }
-    const [updatedBid] = await db2.update(bids).set({
+    const [updatedBid] = await db.update(bids).set({
       ...validatedData,
       updated_at: /* @__PURE__ */ new Date()
     }).where(eq5(bids.id, bidId)).returning();
@@ -3659,7 +3657,7 @@ router4.delete("/:id", requireAuth, async (req, res) => {
       bidId,
       userId: req.user?.id
     });
-    const [existingBid] = await db2.select().from(bids).where(eq5(bids.id, bidId)).limit(1);
+    const [existingBid] = await db.select().from(bids).where(eq5(bids.id, bidId)).limit(1);
     if (!existingBid) {
       return res.status(404).json({
         error: "Bid not found",
@@ -3679,7 +3677,7 @@ router4.delete("/:id", requireAuth, async (req, res) => {
         message: "Une candidature accept\xE9e ne peut pas \xEAtre supprim\xE9e"
       });
     }
-    const [updatedBid] = await db2.update(bids).set({
+    const [updatedBid] = await db.update(bids).set({
       status: "withdrawn",
       updated_at: /* @__PURE__ */ new Date()
     }).where(eq5(bids.id, bidId)).returning();
@@ -3720,14 +3718,14 @@ router5.post("/", requireAuth, asyncHandler2(async (req, res) => {
   }));
   try {
     const validatedData = insertOpenTeamSchema.parse(req.body);
-    const missionExists = await db2.select().from(missions).where(eq6(missions.id, validatedData.mission_id));
+    const missionExists = await db.select().from(missions).where(eq6(missions.id, validatedData.mission_id));
     if (missionExists.length === 0) {
       return res.status(404).json({
         error: "Mission introuvable",
         request_id: requestId
       });
     }
-    const [newTeam] = await db2.insert(openTeams).values({
+    const [newTeam] = await db.insert(openTeams).values({
       mission_id: validatedData.mission_id,
       name: validatedData.name,
       description: validatedData.description,
@@ -3782,7 +3780,7 @@ router5.get("/", asyncHandler2(async (req, res) => {
     if (missionId && !isNaN(parseInt(missionId))) {
       whereConditions.push(eq6(openTeams.mission_id, parseInt(missionId)));
     }
-    const teams = await db2.select({
+    const teams = await db.select({
       id: openTeams.id,
       mission_id: openTeams.mission_id,
       name: openTeams.name,
@@ -3828,7 +3826,7 @@ router5.get("/:id", asyncHandler2(async (req, res) => {
     });
   }
   try {
-    const [team] = await db2.select({
+    const [team] = await db.select({
       id: openTeams.id,
       mission_id: openTeams.mission_id,
       name: openTeams.name,
@@ -3888,7 +3886,7 @@ router5.post("/:id/join", requireAuth, asyncHandler2(async (req, res) => {
     });
   }
   try {
-    const [team] = await db2.select().from(openTeams).where(eq6(openTeams.id, teamId));
+    const [team] = await db.select().from(openTeams).where(eq6(openTeams.id, teamId));
     if (!team) {
       return res.status(404).json({
         error: "\xC9quipe introuvable",
@@ -3925,7 +3923,7 @@ router5.post("/:id/join", requireAuth, asyncHandler2(async (req, res) => {
       joined_at: (/* @__PURE__ */ new Date()).toISOString()
     };
     const updatedMembers = [...currentMembers, newMember];
-    const [updatedTeam] = await db2.update(openTeams).set({
+    const [updatedTeam] = await db.update(openTeams).set({
       members: updatedMembers,
       updated_at: /* @__PURE__ */ new Date()
     }).where(eq6(openTeams.id, teamId)).returning();
@@ -3967,7 +3965,7 @@ router5.put("/:id", requireAuth, asyncHandler2(async (req, res) => {
     });
   }
   try {
-    const [team] = await db2.select().from(openTeams).where(eq6(openTeams.id, teamId));
+    const [team] = await db.select().from(openTeams).where(eq6(openTeams.id, teamId));
     if (!team) {
       return res.status(404).json({
         error: "\xC9quipe introuvable"
@@ -3991,7 +3989,7 @@ router5.put("/:id", requireAuth, asyncHandler2(async (req, res) => {
     const updates = Object.fromEntries(
       Object.entries(allowedUpdates).filter(([_, value]) => value !== void 0)
     );
-    const [updatedTeam] = await db2.update(openTeams).set(updates).where(eq6(openTeams.id, teamId)).returning();
+    const [updatedTeam] = await db.update(openTeams).set(updates).where(eq6(openTeams.id, teamId)).returning();
     res.json({
       success: true,
       team: updatedTeam
@@ -4011,7 +4009,7 @@ router5.delete("/:id", requireAuth, asyncHandler2(async (req, res) => {
     });
   }
   try {
-    const [team] = await db2.select().from(openTeams).where(eq6(openTeams.id, teamId));
+    const [team] = await db.select().from(openTeams).where(eq6(openTeams.id, teamId));
     if (!team) {
       return res.status(404).json({
         error: "\xC9quipe introuvable"
@@ -4022,7 +4020,7 @@ router5.delete("/:id", requireAuth, asyncHandler2(async (req, res) => {
         error: "Seul le cr\xE9ateur peut supprimer cette \xE9quipe"
       });
     }
-    await db2.delete(openTeams).where(eq6(openTeams.id, teamId));
+    await db.delete(openTeams).where(eq6(openTeams.id, teamId));
     res.json({
       success: true,
       message: "\xC9quipe supprim\xE9e avec succ\xE8s"
@@ -4338,7 +4336,7 @@ router6.get("/feed", async (req, res) => {
     const { cursor, limit = "10", userId: userId2 } = req.query;
     const limitNum = Math.min(parseInt(limit), 50);
     console.log("\u{1F4E1} Feed request:", { cursor, limit: limitNum, userId: userId2 });
-    const seenAnnouncements = userId2 ? await db2.select({ announcement_id: feedSeen.announcement_id }).from(feedSeen).where(eq7(feedSeen.user_id, parseInt(userId2))).catch((err) => {
+    const seenAnnouncements = userId2 ? await db.select({ announcement_id: feedSeen.announcement_id }).from(feedSeen).where(eq7(feedSeen.user_id, parseInt(userId2))).catch((err) => {
       console.warn("\u26A0\uFE0F Feed seen query failed (non-blocking):", err.message);
       return [];
     }) : [];
@@ -4353,7 +4351,7 @@ router6.get("/feed", async (req, res) => {
       const cursorId = parseInt(cursor);
       whereConditions.push(sql4`${announcements.id} < ${cursorId}`);
     }
-    const rawAnnouncements = await db2.select().from(announcements).where(and4(...whereConditions)).orderBy(desc5(announcements.created_at)).limit(limitNum + 5).catch((err) => {
+    const rawAnnouncements = await db.select().from(announcements).where(and4(...whereConditions)).orderBy(desc5(announcements.created_at)).limit(limitNum + 5).catch((err) => {
       console.error("\u274C Database query failed:", err);
       throw new Error("Database query failed: " + err.message);
     });
@@ -4361,7 +4359,7 @@ router6.get("/feed", async (req, res) => {
     const ranker = new FeedRanker(seenIds);
     const userProfile = userId2 ? {} : void 0;
     const rankedAnnouncements = ranker.rankAnnouncements(rawAnnouncements, userProfile);
-    const sponsoredAnnouncements = await db2.select().from(announcements).where(and4(
+    const sponsoredAnnouncements = await db.select().from(announcements).where(and4(
       eq7(announcements.sponsored, true),
       eq7(announcements.status, "active")
     )).limit(3).catch((err) => {
@@ -4399,9 +4397,9 @@ router6.get("/feed", async (req, res) => {
 router6.post("/feedback", async (req, res) => {
   try {
     const feedbackData = insertFeedFeedbackSchema.parse(req.body);
-    await db2.insert(feedFeedback).values(feedbackData);
+    await db.insert(feedFeedback).values(feedbackData);
     if (feedbackData.action !== "view") {
-      await db2.insert(feedSeen).values({
+      await db.insert(feedSeen).values({
         user_id: feedbackData.user_id,
         announcement_id: feedbackData.announcement_id
       }).onConflictDoNothing();
@@ -4434,7 +4432,7 @@ router6.get("/price-benchmark", async (req, res) => {
         return res.json(cached.data);
       }
     }
-    const prices = await db2.select({
+    const prices = await db.select({
       budget_min: announcements.budget_min,
       budget_max: announcements.budget_max
     }).from(announcements).where(and4(
@@ -4476,7 +4474,7 @@ router7.get("/favorites", async (req, res) => {
     if (!req.user?.id) {
       return res.status(401).json({ error: "Non authentifi\xE9" });
     }
-    const userFavorites = await db2.select({
+    const userFavorites = await db.select({
       look: looks
     }).from(savedLooks).innerJoin(looks, eq8(savedLooks.look_id, looks.id)).where(eq8(savedLooks.user_id, req.user.id));
     const favoriteLooks = userFavorites.map((f) => f.look);
@@ -4495,7 +4493,7 @@ router7.post("/favorites", async (req, res) => {
     if (!look_id) {
       return res.status(400).json({ error: "look_id requis" });
     }
-    const existing = await db2.select().from(savedLooks).where(
+    const existing = await db.select().from(savedLooks).where(
       and5(
         eq8(savedLooks.user_id, req.user.id),
         eq8(savedLooks.look_id, look_id)
@@ -4504,7 +4502,7 @@ router7.post("/favorites", async (req, res) => {
     if (existing.length > 0) {
       return res.status(200).json({ message: "D\xE9j\xE0 en favori" });
     }
-    await db2.insert(savedLooks).values({
+    await db.insert(savedLooks).values({
       user_id: req.user.id,
       look_id,
       created_at: /* @__PURE__ */ new Date()
@@ -4521,7 +4519,7 @@ router7.delete("/favorites/:lookId", async (req, res) => {
       return res.status(401).json({ error: "Non authentifi\xE9" });
     }
     const { lookId } = req.params;
-    await db2.delete(savedLooks).where(
+    await db.delete(savedLooks).where(
       and5(
         eq8(savedLooks.user_id, req.user.id),
         eq8(savedLooks.look_id, parseInt(lookId))
@@ -4587,7 +4585,7 @@ async function uploadFile(fileData, userId2, context) {
     const filepath = path2.join(UPLOAD_DIR, filename);
     const fileUrl = `/uploads/${filename}`;
     await fs.writeFile(filepath, fileData.buffer);
-    const [file] = await db2.insert(files).values({
+    const [file] = await db.insert(files).values({
       user_id: userId2,
       filename,
       original_filename: fileData.originalname,
@@ -4605,7 +4603,7 @@ async function uploadFile(fileData, userId2, context) {
 }
 async function deleteFile(fileId, userId2) {
   try {
-    const file = await db2.query.files.findFirst({
+    const file = await db.query.files.findFirst({
       where: and6(
         eq9(files.id, fileId),
         eq9(files.user_id, userId2)
@@ -4620,7 +4618,7 @@ async function deleteFile(fileId, userId2) {
     } catch (error) {
       console.warn("Impossible de supprimer le fichier physique:", error);
     }
-    await db2.delete(files).where(eq9(files.id, fileId));
+    await db.delete(files).where(eq9(files.id, fileId));
     return { success: true };
   } catch (error) {
     console.error("Erreur suppression fichier:", error);
@@ -4629,7 +4627,7 @@ async function deleteFile(fileId, userId2) {
 }
 async function getFilesByContext(contextType, contextId) {
   try {
-    const contextFiles = await db2.query.files.findMany({
+    const contextFiles = await db.query.files.findMany({
       where: and6(
         eq9(files.context_type, contextType),
         eq9(files.context_id, contextId)
@@ -4648,7 +4646,7 @@ async function getUserFiles(userId2, contextType) {
     if (contextType) {
       whereClause = and6(whereClause, eq9(files.context_type, contextType));
     }
-    const userFiles = await db2.query.files.findMany({
+    const userFiles = await db.query.files.findMany({
       where: whereClause,
       orderBy: [files.created_at]
     });
@@ -4740,7 +4738,7 @@ router11.get("/conversations", async (req, res) => {
     if (!userId2) {
       return res.status(400).json({ error: "userId required" });
     }
-    const userConversations = await db2.select({
+    const userConversations = await db.select({
       id: conversations.id,
       mission_id: conversations.mission_id,
       participant1_id: conversations.participant1_id,
@@ -4784,7 +4782,7 @@ router11.get("/conversations/:id/messages", async (req, res) => {
     if (!userId2) {
       return res.status(400).json({ error: "userId required" });
     }
-    const conversation = await db2.select().from(conversations).where(
+    const conversation = await db.select().from(conversations).where(
       and7(
         eq10(conversations.id, conversationId),
         or(
@@ -4796,7 +4794,7 @@ router11.get("/conversations/:id/messages", async (req, res) => {
     if (conversation.length === 0) {
       return res.status(403).json({ error: "Access denied" });
     }
-    const conversationMessages = await db2.select({
+    const conversationMessages = await db.select({
       id: messages.id,
       content: messages.content,
       message_type: messages.message_type,
@@ -4819,7 +4817,7 @@ router11.get("/conversations/:id/messages", async (req, res) => {
 router11.post("/conversations", async (req, res) => {
   try {
     const { participant1_id, participant2_id, mission_id } = req.body;
-    const existingConversation = await db2.select().from(conversations).where(
+    const existingConversation = await db.select().from(conversations).where(
       and7(
         or(
           and7(
@@ -4837,7 +4835,7 @@ router11.post("/conversations", async (req, res) => {
     if (existingConversation.length > 0) {
       return res.json({ conversation: existingConversation[0] });
     }
-    const newConversation = await db2.insert(conversations).values({
+    const newConversation = await db.insert(conversations).values({
       participant1_id,
       participant2_id,
       mission_id,
@@ -4853,7 +4851,7 @@ router11.post("/conversations", async (req, res) => {
 router11.post("/messages", async (req, res) => {
   try {
     const { conversation_id, sender_id, content, message_type = "text" } = req.body;
-    const conversation = await db2.select().from(conversations).where(
+    const conversation = await db.select().from(conversations).where(
       and7(
         eq10(conversations.id, conversation_id),
         or(
@@ -4865,14 +4863,14 @@ router11.post("/messages", async (req, res) => {
     if (conversation.length === 0) {
       return res.status(403).json({ error: "Access denied" });
     }
-    const newMessage = await db2.insert(messages).values({
+    const newMessage = await db.insert(messages).values({
       conversation_id,
       sender_id,
       content,
       message_type,
       created_at: /* @__PURE__ */ new Date()
     }).returning();
-    await db2.update(conversations).set({ last_message_at: /* @__PURE__ */ new Date() }).where(eq10(conversations.id, conversation_id));
+    await db.update(conversations).set({ last_message_at: /* @__PURE__ */ new Date() }).where(eq10(conversations.id, conversation_id));
     res.status(201).json({ message: newMessage[0] });
   } catch (error) {
     console.error("Error sending message:", error);
@@ -4883,7 +4881,7 @@ router11.patch("/messages/:id/read", async (req, res) => {
   try {
     const messageId = parseInt(req.params.id);
     const userId2 = parseInt(req.body.userId);
-    const updatedMessage = await db2.update(messages).set({ read_at: /* @__PURE__ */ new Date() }).where(eq10(messages.id, messageId)).returning();
+    const updatedMessage = await db.update(messages).set({ read_at: /* @__PURE__ */ new Date() }).where(eq10(messages.id, messageId)).returning();
     res.json({ message: updatedMessage[0] });
   } catch (error) {
     console.error("Error marking message as read:", error);
@@ -4990,7 +4988,7 @@ var WebSocketManager = class {
   async handleSendMessage(userId2, message) {
     try {
       const { conversationId, content, messageType = "text" } = message;
-      const conversation = await db2.select().from(conversations).where(
+      const conversation = await db.select().from(conversations).where(
         and8(
           eq11(conversations.id, conversationId),
           or2(
@@ -5002,14 +5000,14 @@ var WebSocketManager = class {
       if (conversation.length === 0) {
         throw new Error("Conversation not found or access denied");
       }
-      const newMessage = await db2.insert(messages).values({
+      const newMessage = await db.insert(messages).values({
         conversation_id: conversationId,
         sender_id: userId2,
         content,
         message_type: messageType,
         created_at: /* @__PURE__ */ new Date()
       }).returning();
-      await db2.update(conversations).set({ last_message_at: /* @__PURE__ */ new Date() }).where(eq11(conversations.id, conversationId));
+      await db.update(conversations).set({ last_message_at: /* @__PURE__ */ new Date() }).where(eq11(conversations.id, conversationId));
       const participants = [conversation[0].participant1_id, conversation[0].participant2_id];
       const messageData = {
         type: "new_message",
@@ -5041,7 +5039,7 @@ var WebSocketManager = class {
   }
   async handleTyping(userId2, message) {
     const { conversationId, isTyping } = message;
-    const conversation = await db2.select().from(conversations).where(eq11(conversations.id, conversationId)).limit(1);
+    const conversation = await db.select().from(conversations).where(eq11(conversations.id, conversationId)).limit(1);
     if (conversation.length > 0) {
       const otherParticipant = conversation[0].participant1_id === userId2 ? conversation[0].participant2_id : conversation[0].participant1_id;
       this.sendToUser(otherParticipant, {
@@ -5054,8 +5052,8 @@ var WebSocketManager = class {
   }
   async handleReadMessage(userId2, message) {
     const { messageId } = message;
-    await db2.update(messages).set({ read_at: /* @__PURE__ */ new Date() }).where(eq11(messages.id, messageId));
-    const messageData = await db2.select().from(messages).where(eq11(messages.id, messageId)).limit(1);
+    await db.update(messages).set({ read_at: /* @__PURE__ */ new Date() }).where(eq11(messages.id, messageId));
+    const messageData = await db.select().from(messages).where(eq11(messages.id, messageId)).limit(1);
     if (messageData.length > 0) {
       this.sendToUser(messageData[0].sender_id, {
         type: "message_read",
@@ -5067,7 +5065,7 @@ var WebSocketManager = class {
   }
   async handleJoinConversation(userId2, message) {
     const { conversationId } = message;
-    const conversation = await db2.select().from(conversations).where(
+    const conversation = await db.select().from(conversations).where(
       and8(
         eq11(conversations.id, conversationId),
         or2(
@@ -5077,7 +5075,7 @@ var WebSocketManager = class {
       )
     ).limit(1);
     if (conversation.length > 0) {
-      const recentMessages = await db2.select().from(messages).where(eq11(messages.conversation_id, conversationId)).orderBy(messages.created_at).limit(50);
+      const recentMessages = await db.select().from(messages).where(eq11(messages.conversation_id, conversationId)).orderBy(messages.created_at).limit(50);
       this.sendToUser(userId2, {
         type: "conversation_history",
         conversationId,
@@ -5112,7 +5110,7 @@ var WebSocketManager = class {
   }
   async createNotification(userId2, notificationData) {
     try {
-      const notification = await db2.insert(notifications).values({
+      const notification = await db.insert(notifications).values({
         user_id: userId2,
         ...notificationData,
         created_at: /* @__PURE__ */ new Date()
@@ -5149,7 +5147,7 @@ var websocketManager = new WebSocketManager();
 var NotificationService = class {
   async createNotification(data) {
     try {
-      const notification = await db2.insert(notifications).values({
+      const notification = await db.insert(notifications).values({
         ...data,
         created_at: /* @__PURE__ */ new Date()
       }).returning();
@@ -5165,7 +5163,7 @@ var NotificationService = class {
   }
   async getUserNotifications(userId2, limit = 50, offset = 0) {
     try {
-      const userNotifications = await db2.select().from(notifications).where(eq12(notifications.user_id, userId2)).orderBy(desc7(notifications.created_at)).limit(limit).offset(offset);
+      const userNotifications = await db.select().from(notifications).where(eq12(notifications.user_id, userId2)).orderBy(desc7(notifications.created_at)).limit(limit).offset(offset);
       return userNotifications;
     } catch (error) {
       console.error("Error fetching notifications:", error);
@@ -5174,7 +5172,7 @@ var NotificationService = class {
   }
   async markAsRead(notificationId, userId2) {
     try {
-      const updatedNotification = await db2.update(notifications).set({ read_at: /* @__PURE__ */ new Date() }).where(
+      const updatedNotification = await db.update(notifications).set({ read_at: /* @__PURE__ */ new Date() }).where(
         and9(
           eq12(notifications.id, notificationId),
           eq12(notifications.user_id, userId2)
@@ -5188,7 +5186,7 @@ var NotificationService = class {
   }
   async markAllAsRead(userId2) {
     try {
-      await db2.update(notifications).set({ read_at: /* @__PURE__ */ new Date() }).where(
+      await db.update(notifications).set({ read_at: /* @__PURE__ */ new Date() }).where(
         and9(
           eq12(notifications.user_id, userId2),
           eq12(notifications.read_at, null)
@@ -5202,7 +5200,7 @@ var NotificationService = class {
   }
   async getUnreadCount(userId2) {
     try {
-      const result = await db2.select({ count: notifications.id }).from(notifications).where(
+      const result = await db.select({ count: notifications.id }).from(notifications).where(
         and9(
           eq12(notifications.user_id, userId2),
           eq12(notifications.read_at, null)
@@ -5354,7 +5352,7 @@ router13.get("/user-settings", async (req, res) => {
     if (!userId2) {
       return res.status(401).json({ error: "Utilisateur non authentifi\xE9" });
     }
-    const settings = await db2.select().from(userSettings).where(eq13(userSettings.user_id, parseInt(userId2))).limit(1);
+    const settings = await db.select().from(userSettings).where(eq13(userSettings.user_id, parseInt(userId2))).limit(1);
     const userSettingsData = settings[0] || {
       // Valeurs par défaut
       notifications: {
@@ -5399,7 +5397,7 @@ router13.put("/user-settings", async (req, res) => {
     if (!userId2) {
       return res.status(401).json({ error: "Utilisateur non authentifi\xE9" });
     }
-    const existingSettings = await db2.select().from(userSettings).where(eq13(userSettings.user_id, parseInt(userId2))).limit(1);
+    const existingSettings = await db.select().from(userSettings).where(eq13(userSettings.user_id, parseInt(userId2))).limit(1);
     const settingsData = {
       user_id: parseInt(userId2),
       notifications: notifications3,
@@ -5408,9 +5406,9 @@ router13.put("/user-settings", async (req, res) => {
       updated_at: /* @__PURE__ */ new Date()
     };
     if (existingSettings.length > 0) {
-      await db2.update(userSettings).set(settingsData).where(eq13(userSettings.user_id, parseInt(userId2)));
+      await db.update(userSettings).set(settingsData).where(eq13(userSettings.user_id, parseInt(userId2)));
     } else {
-      await db2.insert(userSettings).values({
+      await db.insert(userSettings).values({
         ...settingsData,
         created_at: /* @__PURE__ */ new Date()
       });
@@ -5613,7 +5611,7 @@ router15.get("/profile/me", async (req, res) => {
     }
     const userId2 = req.user.id;
     console.log("\u{1F4CB} GET /api/profile/me - Requ\xEAte pour userId:", userId2);
-    const user = await db2.select().from(users).where(eq15(users.id, userId2)).limit(1);
+    const user = await db.select().from(users).where(eq15(users.id, userId2)).limit(1);
     if (!user.length) {
       console.warn("\u26A0\uFE0F Utilisateur non trouv\xE9:", userId2);
       return res.status(404).json({ error: "Utilisateur non trouv\xE9" });
@@ -5655,7 +5653,7 @@ router15.patch("/profile/update", async (req, res) => {
     if (bio !== void 0) updateData.bio = bio;
     if (avatar_url !== void 0) updateData.avatar_url = avatar_url;
     if (style_tags !== void 0) updateData.style_tags = style_tags;
-    await db2.update(users).set(updateData).where(eq15(users.id, userId2));
+    await db.update(users).set(updateData).where(eq15(users.id, userId2));
     console.log("\u2705 Profil mis \xE0 jour avec succ\xE8s");
     res.json({
       message: "Profil mis \xE0 jour avec succ\xE8s",
@@ -5680,7 +5678,7 @@ router15.get("/profile/:userId", async (req, res) => {
       console.error("\u274C ID utilisateur invalide:", req.params.userId);
       return res.status(400).json({ error: "ID utilisateur invalide" });
     }
-    const user = await db2.select().from(users).where(eq15(users.id, userId2)).limit(1);
+    const user = await db.select().from(users).where(eq15(users.id, userId2)).limit(1);
     if (!user.length) {
       console.warn("\u26A0\uFE0F Utilisateur non trouv\xE9:", userId2);
       return res.status(404).json({ error: "Utilisateur non trouv\xE9" });
@@ -5777,7 +5775,7 @@ router15.put("/profile/:userId", async (req, res) => {
       console.log(`\u2705 Mise \xE0 jour du r\xF4le: ${role}`);
     }
     console.log("\u{1F4BE} Donn\xE9es \xE0 sauvegarder:", updateData);
-    await db2.update(users).set(updateData).where(eq15(users.id, userId2));
+    await db.update(users).set(updateData).where(eq15(users.id, userId2));
     res.json({
       message: "Profil mis \xE0 jour avec succ\xE8s",
       userId: userId2,
@@ -5857,7 +5855,7 @@ router15.put("/users/:id", async (req, res) => {
     if (role && (role === "CLIENT" || role === "PRO")) {
       updateData.role = role;
     }
-    await db2.update(users).set(updateData).where(eq15(users.id, userId2));
+    await db.update(users).set(updateData).where(eq15(users.id, userId2));
     res.json({
       message: "Profil mis \xE0 jour avec succ\xE8s",
       userId: userId2,
@@ -5989,7 +5987,7 @@ import { sql as sql5 } from "drizzle-orm";
 var router16 = Router11();
 router16.get("/popular-users", async (req, res) => {
   try {
-    const popularUsers = await db2.select().from(users).orderBy(sql5`followers_count DESC`).limit(12);
+    const popularUsers = await db.select().from(users).orderBy(sql5`followers_count DESC`).limit(12);
     res.json(popularUsers);
   } catch (error) {
     console.error("Error fetching popular users:", error);
@@ -6276,7 +6274,7 @@ router17.post("/recommend-outfits", async (req, res) => {
     if (!userId2) {
       return res.status(401).json({ error: "Unauthorized" });
     }
-    const items = await db2.select().from(fashionItems).where(eq17(fashionItems.user_id, userId2));
+    const items = await db.select().from(fashionItems).where(eq17(fashionItems.user_id, userId2));
     const recommendations = await aiFashionService.recommendOutfits(items, preferences);
     res.json({
       success: true,
@@ -6358,7 +6356,7 @@ router17.post("/items/:itemId/tags", async (req, res) => {
     if (!itemId || !tagList || !Array.isArray(tagList)) {
       return res.status(400).json({ error: "itemId and a valid tag list are required" });
     }
-    await db2.update(looks).set({ style_tags: tagList }).where(eq17(looks.id, itemId));
+    await db.update(looks).set({ style_tags: tagList }).where(eq17(looks.id, itemId));
     res.json({
       success: true,
       message: "Tags updated successfully"
@@ -6373,8 +6371,8 @@ router17.post("/items/:itemId/tags", async (req, res) => {
 });
 router17.get("/explore/trending", async (req, res) => {
   try {
-    const trendingLooks = await db2.select().from(looks).orderBy(sql6`${looks.likes_count} DESC`).limit(10);
-    const trendingItems = await db2.select().from(fashionItems).where(eq17(fashionItems.is_public, true)).orderBy(sql6`${fashionItems.worn_count} DESC`).limit(10);
+    const trendingLooks = await db.select().from(looks).orderBy(sql6`${looks.likes_count} DESC`).limit(10);
+    const trendingItems = await db.select().from(fashionItems).where(eq17(fashionItems.is_public, true)).orderBy(sql6`${fashionItems.worn_count} DESC`).limit(10);
     res.json({
       success: true,
       trending: {
@@ -6393,7 +6391,7 @@ router17.get("/explore/trending", async (req, res) => {
 router17.get("/explore/search", async (req, res) => {
   try {
     const { q, category, color, style, sortBy, limit = 10, page = 1 } = req.query;
-    let query = db2.select({
+    let query = db.select({
       id: fashionItems.id,
       title: fashionItems.title,
       description: fashionItems.description,
@@ -6428,7 +6426,7 @@ router17.get("/explore/search", async (req, res) => {
     const offset = (parseInt(page) - 1) * parseInt(limit);
     query = query.limit(parseInt(limit)).offset(offset);
     const results = await query;
-    const totalCount = await db2.select({ count: sql6`count(*)` }).from(fashionItems).where(filters.length > 0 ? sql6.and(...filters) : void 0).then((rows) => rows[0]?.count || 0);
+    const totalCount = await db.select({ count: sql6`count(*)` }).from(fashionItems).where(filters.length > 0 ? sql6.and(...filters) : void 0).then((rows) => rows[0]?.count || 0);
     res.json({
       success: true,
       results,
@@ -6449,7 +6447,7 @@ router17.get("/explore/search", async (req, res) => {
 });
 router17.get("/trending-tags", async (req, res) => {
   try {
-    const trendingTags = await db2.select({
+    const trendingTags = await db.select({
       tag: sql6`unnest(tags)`,
       count: sql6`count(*)`
     }).from(fashionItems).where(sql6`tags IS NOT NULL AND array_length(tags, 1) > 0`).groupBy(sql6`unnest(tags)`).orderBy(sql6`count(*) DESC`).limit(20);
@@ -6462,7 +6460,7 @@ router17.get("/trending-tags", async (req, res) => {
 router17.get("/search", async (req, res) => {
   try {
     const { q, category, color, style, sortBy = "newest", limit = 20, page = 1 } = req.query;
-    let query = db2.select({
+    let query = db.select({
       id: fashionItems.id,
       title: fashionItems.title,
       description: fashionItems.description,
@@ -6498,7 +6496,7 @@ router17.get("/search", async (req, res) => {
     const offset = (parseInt(page) - 1) * parseInt(limit);
     query = query.limit(parseInt(limit)).offset(offset);
     const results = await query;
-    const [{ count: totalCount }] = await db2.select({ count: sql6`count(*)` }).from(fashionItems).where(filters.length > 0 ? sql6.and(...filters) : sql6`true`);
+    const [{ count: totalCount }] = await db.select({ count: sql6`count(*)` }).from(fashionItems).where(filters.length > 0 ? sql6.and(...filters) : sql6`true`);
     res.json({
       results,
       pagination: {
@@ -6527,7 +6525,7 @@ router18.post("/", requireAuth, async (req, res) => {
     if (!title || title.trim().length === 0) {
       return res.status(400).json({ error: "Le nom de la collection est requis" });
     }
-    const [collection] = await db2.insert(collections).values({
+    const [collection] = await db.insert(collections).values({
       user_id: userId2,
       title: title.trim(),
       description: description?.trim() || null,
@@ -6548,7 +6546,7 @@ router18.get("/user/:userId", async (req, res) => {
       eq18(collections.user_id, userId2),
       eq18(collections.is_public, true)
     );
-    const userCollections = await db2.select().from(collections).where(whereClause).orderBy(desc9(collections.created_at));
+    const userCollections = await db.select().from(collections).where(whereClause).orderBy(desc9(collections.created_at));
     res.json(userCollections);
   } catch (error) {
     console.error("Erreur r\xE9cup\xE9ration collections:", error);
@@ -6559,14 +6557,14 @@ router18.get("/:id", async (req, res) => {
   try {
     const collectionId = parseInt(req.params.id);
     const requestingUserId = req.user?.id;
-    const [collection] = await db2.select().from(collections).where(eq18(collections.id, collectionId));
+    const [collection] = await db.select().from(collections).where(eq18(collections.id, collectionId));
     if (!collection) {
       return res.status(404).json({ error: "Collection non trouv\xE9e" });
     }
     if (!collection.is_public && collection.user_id !== requestingUserId) {
       return res.status(403).json({ error: "Collection priv\xE9e" });
     }
-    const items = collection.items && collection.items.length > 0 ? await db2.select().from(fashionItems).where(eq18(fashionItems.id, parseInt(collection.items[0]))) : [];
+    const items = collection.items && collection.items.length > 0 ? await db.select().from(fashionItems).where(eq18(fashionItems.id, parseInt(collection.items[0]))) : [];
     res.json({ ...collection, fashionItems: items });
   } catch (error) {
     console.error("Erreur r\xE9cup\xE9ration collection:", error);
@@ -6578,14 +6576,14 @@ router18.put("/:id", requireAuth, async (req, res) => {
     const collectionId = parseInt(req.params.id);
     const userId2 = req.user.id;
     const { name, description, coverImageUrl, isPublic } = req.body;
-    const [collection] = await db2.select().from(collections).where(eq18(collections.id, collectionId));
+    const [collection] = await db.select().from(collections).where(eq18(collections.id, collectionId));
     if (!collection) {
       return res.status(404).json({ error: "Collection non trouv\xE9e" });
     }
     if (collection.user_id !== userId2) {
       return res.status(403).json({ error: "Non autoris\xE9" });
     }
-    const [updated] = await db2.update(collections).set({
+    const [updated] = await db.update(collections).set({
       name: name?.trim() || collection.name,
       description: description?.trim(),
       coverImageUrl: coverImageUrl || collection.cover_image,
@@ -6603,7 +6601,7 @@ router18.put("/:id/items", requireAuth, async (req, res) => {
     const collectionId = parseInt(req.params.id);
     const userId2 = req.user.id;
     const { itemIds, action = "add" } = req.body;
-    const [collection] = await db2.select().from(collections).where(eq18(collections.id, collectionId));
+    const [collection] = await db.select().from(collections).where(eq18(collections.id, collectionId));
     if (!collection) {
       return res.status(404).json({ error: "Collection non trouv\xE9e" });
     }
@@ -6617,7 +6615,7 @@ router18.put("/:id/items", requireAuth, async (req, res) => {
     } else if (action === "remove") {
       updatedItems = updatedItems.filter((id) => !itemIds.map(String).includes(id));
     }
-    const [updated] = await db2.update(collections).set({
+    const [updated] = await db.update(collections).set({
       items: updatedItems,
       updatedAt: /* @__PURE__ */ new Date()
     }).where(eq18(collections.id, collectionId)).returning();
@@ -6631,14 +6629,14 @@ router18.delete("/:id", requireAuth, async (req, res) => {
   try {
     const collectionId = parseInt(req.params.id);
     const userId2 = req.user.id;
-    const [collection] = await db2.select().from(collections).where(eq18(collections.id, collectionId));
+    const [collection] = await db.select().from(collections).where(eq18(collections.id, collectionId));
     if (!collection) {
       return res.status(404).json({ error: "Collection non trouv\xE9e" });
     }
     if (collection.user_id !== userId2) {
       return res.status(403).json({ error: "Non autoris\xE9" });
     }
-    await db2.delete(collections).where(eq18(collections.id, collectionId));
+    await db.delete(collections).where(eq18(collections.id, collectionId));
     res.json({ success: true });
   } catch (error) {
     console.error("Erreur suppression collection:", error);
@@ -6673,7 +6671,7 @@ router19.get("/my-looks", async (req, res) => {
     if (!req.user?.id) {
       return res.status(401).json({ error: "Non authentifi\xE9" });
     }
-    const userLooks = await db2.select().from(outfitsTable2).where(eq19(outfitsTable2.user_id, req.user.id)).orderBy(desc10(outfitsTable2.created_at));
+    const userLooks = await db.select().from(outfitsTable2).where(eq19(outfitsTable2.user_id, req.user.id)).orderBy(desc10(outfitsTable2.created_at));
     res.json(userLooks);
   } catch (error) {
     console.error("Erreur r\xE9cup\xE9ration looks utilisateur:", error);
@@ -6682,7 +6680,7 @@ router19.get("/my-looks", async (req, res) => {
 });
 router19.get("/trending", async (req, res) => {
   try {
-    const trendingOutfits = await db2.select().from(outfitsTable2).where(sql7`${outfitsTable2.created_at} > NOW() - INTERVAL '7 days'`).orderBy(desc10(outfitsTable2.engagement_score)).limit(12);
+    const trendingOutfits = await db.select().from(outfitsTable2).where(sql7`${outfitsTable2.created_at} > NOW() - INTERVAL '7 days'`).orderBy(desc10(outfitsTable2.engagement_score)).limit(12);
     res.json(trendingOutfits);
   } catch (error) {
     console.error("Erreur r\xE9cup\xE9ration outfits tendance:", error);
@@ -6693,7 +6691,7 @@ router19.get("/", async (req, res) => {
   try {
     const limit = parseInt(req.query.limit) || 20;
     const offset = parseInt(req.query.offset) || 0;
-    const outfitsList = await db2.select().from(outfitsTable2).where(eq19(outfitsTable2.isPublic, true)).orderBy(desc10(outfitsTable2.createdAt)).limit(limit).offset(offset);
+    const outfitsList = await db.select().from(outfitsTable2).where(eq19(outfitsTable2.isPublic, true)).orderBy(desc10(outfitsTable2.createdAt)).limit(limit).offset(offset);
     res.json(outfitsList);
   } catch (error) {
     console.error("Erreur r\xE9cup\xE9ration outfits:", error);
@@ -6703,14 +6701,14 @@ router19.get("/", async (req, res) => {
 router19.get("/:id", async (req, res) => {
   try {
     const outfitId = parseInt(req.params.id);
-    const [outfit] = await db2.select().from(outfitsTable2).where(eq19(outfitsTable2.id, outfitId));
+    const [outfit] = await db.select().from(outfitsTable2).where(eq19(outfitsTable2.id, outfitId));
     if (!outfit) {
       return res.status(404).json({ error: "Outfit non trouv\xE9" });
     }
     if (!outfit.isPublic && outfit.userId !== req.user?.id) {
       return res.status(403).json({ error: "Acc\xE8s interdit" });
     }
-    await db2.update(outfitsTable2).set({ viewsCount: (outfit.viewsCount || 0) + 1 }).where(eq19(outfitsTable2.id, outfitId));
+    await db.update(outfitsTable2).set({ viewsCount: (outfit.viewsCount || 0) + 1 }).where(eq19(outfitsTable2.id, outfitId));
     res.json({ ...outfit, viewsCount: (outfit.viewsCount || 0) + 1 });
   } catch (error) {
     console.error("Erreur d\xE9tails outfit:", error);
@@ -6735,7 +6733,7 @@ router19.post("/", upload3.single("photo"), async (req, res) => {
       isPublic
     } = req.body;
     const photoUrl = req.file ? `/uploads/outfits/${req.file.filename}` : null;
-    const [outfit] = await db2.insert(outfitsTable2).values({
+    const [outfit] = await db.insert(outfitsTable2).values({
       userId: req.user.id,
       title,
       description,
@@ -6758,7 +6756,7 @@ router19.post("/", upload3.single("photo"), async (req, res) => {
       commentsCount: 0
       // Initialize commentsCount
     }).returning();
-    await db2.update(users).set({ postsCount: db2.raw("posts_count + 1") }).where(eq19(users.id, req.user.id));
+    await db.update(users).set({ postsCount: db.raw("posts_count + 1") }).where(eq19(users.id, req.user.id));
     res.status(201).json(outfit);
   } catch (error) {
     console.error("Erreur cr\xE9ation outfit:", error);
@@ -6771,27 +6769,27 @@ router19.post("/:id/like", async (req, res) => {
       return res.status(401).json({ error: "Non authentifi\xE9" });
     }
     const outfitId = parseInt(req.params.id);
-    const existingLike = await db2.select().from(outfitLikesTable2).where(
+    const existingLike = await db.select().from(outfitLikesTable2).where(
       and12(
         eq19(outfitLikesTable2.outfitId, outfitId),
         eq19(outfitLikesTable2.userId, req.user.id)
       )
     );
     if (existingLike.length > 0) {
-      await db2.delete(outfitLikesTable2).where(
+      await db.delete(outfitLikesTable2).where(
         and12(
           eq19(outfitLikesTable2.outfitId, outfitId),
           eq19(outfitLikesTable2.userId, req.user.id)
         )
       );
-      await db2.update(outfitsTable2).set({ engagementScore: db2.raw("engagement_score - 1"), likesCount: db2.raw("likes_count - 1") }).where(eq19(outfitsTable2.id, outfitId));
+      await db.update(outfitsTable2).set({ engagementScore: db.raw("engagement_score - 1"), likesCount: db.raw("likes_count - 1") }).where(eq19(outfitsTable2.id, outfitId));
       return res.json({ liked: false });
     } else {
-      await db2.insert(outfitLikesTable2).values({
+      await db.insert(outfitLikesTable2).values({
         outfitId,
         userId: req.user.id
       });
-      await db2.update(outfitsTable2).set({ engagementScore: db2.raw("engagement_score + 1"), likesCount: db2.raw("likes_count + 1") }).where(eq19(outfitsTable2.id, outfitId));
+      await db.update(outfitsTable2).set({ engagementScore: db.raw("engagement_score + 1"), likesCount: db.raw("likes_count + 1") }).where(eq19(outfitsTable2.id, outfitId));
       return res.json({ liked: true });
     }
   } catch (error) {
@@ -6809,13 +6807,13 @@ router19.post("/:id/comments", async (req, res) => {
     if (!content || content.trim().length === 0) {
       return res.status(400).json({ error: "Commentaire vide" });
     }
-    const [comment] = await db2.insert(outfitCommentsTable2).values({
+    const [comment] = await db.insert(outfitCommentsTable2).values({
       outfitId,
       userId: req.user.id,
       parentCommentId: parentCommentId || null,
       content: content.trim()
     }).returning();
-    await db2.update(outfitsTable2).set({ engagementScore: db2.raw("engagement_score + 1"), commentsCount: db2.raw("comments_count + 1") }).where(eq19(outfitsTable2.id, outfitId));
+    await db.update(outfitsTable2).set({ engagementScore: db.raw("engagement_score + 1"), commentsCount: db.raw("comments_count + 1") }).where(eq19(outfitsTable2.id, outfitId));
     res.status(201).json(comment);
   } catch (error) {
     console.error("Erreur ajout commentaire:", error);
@@ -6825,7 +6823,7 @@ router19.post("/:id/comments", async (req, res) => {
 router19.get("/:id/comments", async (req, res) => {
   try {
     const outfitId = parseInt(req.params.id);
-    const comments3 = await db2.select().from(outfitCommentsTable2).where(eq19(outfitCommentsTable2.outfitId, outfitId)).orderBy(desc10(outfitCommentsTable2.createdAt));
+    const comments3 = await db.select().from(outfitCommentsTable2).where(eq19(outfitCommentsTable2.outfitId, outfitId)).orderBy(desc10(outfitCommentsTable2.createdAt));
     res.json(comments3);
   } catch (error) {
     console.error("Erreur r\xE9cup\xE9ration commentaires:", error);
@@ -6844,7 +6842,7 @@ router20.get("/my-items", async (req, res) => {
     if (!req.user?.id) {
       return res.status(401).json({ error: "Non authentifi\xE9" });
     }
-    const userItems = await db2.select().from(fashionItems).where(eq20(fashionItems.user_id, req.user.id)).orderBy(desc11(fashionItems.created_at));
+    const userItems = await db.select().from(fashionItems).where(eq20(fashionItems.user_id, req.user.id)).orderBy(desc11(fashionItems.created_at));
     res.json(userItems);
   } catch (error) {
     console.error("Erreur r\xE9cup\xE9ration items utilisateur:", error);
@@ -6860,7 +6858,7 @@ import { desc as desc12, sql as sql8 } from "drizzle-orm";
 var router21 = Router16();
 router21.get("/", async (req, res) => {
   try {
-    const creators = await db2.select({
+    const creators = await db.select({
       id: users.id,
       name: users.name,
       username: users.username,
@@ -6907,7 +6905,7 @@ router21.get("/", async (req, res) => {
 });
 router21.get("/top", async (req, res) => {
   try {
-    const topCreators = await db2.select({
+    const topCreators = await db.select({
       id: users.id,
       name: users.name,
       username: users.username,

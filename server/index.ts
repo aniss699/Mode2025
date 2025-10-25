@@ -404,8 +404,10 @@ app.use('/api', (req, res, next) => {
 }, notificationsRoutes);
 
 console.log('👤 Registering profile routes...');
-app.use('/api', (req, res, next) => {
-  console.log(`👤 Profile request: ${req.method} ${req.path}`);
+app.use('/api', optionalAuth, (req, res, next) => {
+  console.log(`👤 Profile request: ${req.method} ${req.path}`, {
+    userId: req.user?.id || 'not authenticated'
+  });
   next();
 }, profileRoutes);
 
