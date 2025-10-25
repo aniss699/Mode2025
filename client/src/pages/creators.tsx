@@ -211,21 +211,21 @@ export default function CreatorsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-purple-50">
+    <div className="min-h-screen bg-gradient-to-b from-stone-50 to-white dark:from-gray-900 dark:to-gray-950">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200">
+      <div className="bg-white dark:bg-gray-950 border-b border-stone-200 dark:border-stone-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="text-center mb-6">
-            <div className="inline-flex items-center gap-2 bg-gradient-to-r from-pink-100 to-purple-100 rounded-full px-4 py-2 mb-4">
-              <Sparkles className="w-5 h-5 text-pink-600" />
-              <span className="text-sm font-semibold text-purple-700">
+            <div className="inline-flex items-center gap-2 bg-stone-100 dark:bg-stone-800 rounded-md px-4 py-2 mb-4">
+              <Sparkles className="w-5 h-5 text-stone-600 dark:text-stone-400" />
+              <span className="text-xs font-medium text-stone-600 dark:text-stone-400 tracking-wide uppercase">
                 Découvre les fashionistas
               </span>
             </div>
-            <h1 className="text-4xl font-bold mb-3 bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
+            <h1 className="text-4xl font-display font-bold mb-3 text-stone-900 dark:text-stone-50">
               Créateurs Mode
             </h1>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            <p className="text-lg text-stone-600 dark:text-stone-400 max-w-2xl mx-auto">
               Suis les passionnés de mode, inspire-toi de leurs looks et construis ta communauté style
             </p>
           </div>
@@ -253,13 +253,13 @@ export default function CreatorsPage() {
             <div className="flex items-center gap-3">
               <Button 
                 variant={showFilters ? "default" : "outline"} 
-                className="gap-2 bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white"
+                className={showFilters ? "gap-2 btn-fashion-primary" : "gap-2 btn-fashion-secondary"}
                 onClick={() => setShowFilters(!showFilters)}
               >
                 <Filter className="h-4 w-4" />
                 Filtres
                 {(filters.style !== 'all' || filters.location || filters.followers !== 'all' || filters.activity !== 'all') && (
-                  <Badge variant="secondary" className="ml-1 bg-white text-pink-600">
+                  <Badge variant="secondary" className="ml-1 bg-stone-200 text-stone-900">
                     {[
                       filters.style !== 'all',
                       filters.location,

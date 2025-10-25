@@ -199,25 +199,22 @@ export default function NotreConcept() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50">
+    <div className="min-h-screen bg-gradient-to-b from-stone-50 to-white dark:from-gray-900 dark:to-gray-950">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         
         <div className="relative text-center py-12 px-4 overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-r from-pink-400/10 via-purple-500/10 to-blue-600/10 rounded-3xl blur-3xl"></div>
-          <div className="absolute top-8 left-12 text-3xl opacity-60 animate-bounce">✨</div>
-          <div className="absolute top-12 right-16 text-3xl opacity-50 animate-pulse">💕</div>
-          <div className="absolute bottom-8 left-1/4 text-3xl opacity-40">👗</div>
+          <div className="absolute inset-0 bg-gradient-to-r from-stone-100/50 via-stone-200/50 to-stone-100/50 dark:from-stone-800/50 dark:via-stone-700/50 dark:to-stone-800/50 rounded-3xl blur-3xl"></div>
           
           <div className="relative z-10">
-            <div className="inline-flex items-center bg-gradient-to-r from-pink-500 to-purple-600 text-white px-6 py-2 rounded-full text-sm font-semibold mb-6 shadow-lg" data-testid="badge-hero">
+            <div className="inline-flex items-center bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 px-6 py-2 rounded-md text-xs font-medium mb-6 tracking-wide uppercase" data-testid="badge-hero">
               <Sparkles className="w-4 h-4 mr-2" />
               Le réseau social de la mode et du style
             </div>
             
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl font-display font-bold text-stone-900 dark:text-stone-50 mb-6 leading-tight">
               Votre dressing virtuel,
               <br />
-              <span className="bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
+              <span className="text-stone-700 dark:text-stone-300">
                 votre communauté mode
               </span>
             </h1>
@@ -263,23 +260,22 @@ export default function NotreConcept() {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-6">
-              <Button 
+              <button 
                 onClick={() => setLocation('/profile')}
-                className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-bold text-lg px-8 py-6 rounded-full shadow-xl transform hover:scale-105 transition-all duration-300"
+                className="btn-fashion-primary text-base sm:text-lg"
                 data-testid="button-start"
               >
-                <Camera className="w-5 h-5 mr-2" />
+                <Camera className="w-5 h-5 mr-2 inline" />
                 Créer mon dressing
-              </Button>
-              <Button 
-                variant="outline" 
+              </button>
+              <button 
                 onClick={() => setLocation('/explore')}
-                className="border-2 border-purple-600 text-purple-600 hover:bg-purple-600 hover:text-white font-semibold px-8 py-6 rounded-full transition-all duration-300"
+                className="btn-fashion-secondary text-base sm:text-lg"
                 data-testid="button-explore"
               >
-                <Eye className="w-5 h-5 mr-2" />
+                <Eye className="w-5 h-5 mr-2 inline" />
                 Explorer les looks
-              </Button>
+              </button>
             </div>
 
             <div className="flex justify-center items-center space-x-2 text-sm">
