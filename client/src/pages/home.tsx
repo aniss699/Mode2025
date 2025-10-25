@@ -10,53 +10,54 @@ export default function Home() {
   const { user } = useAuth();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-purple-900">
-      {/* Hero Section */}
-      <div className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-pink-500/10 to-purple-500/10"></div>
+    <div className="min-h-screen bg-white dark:bg-gray-950">
+      {/* Hero Section - Minimalist & Clean */}
+      <div className="relative overflow-hidden bg-gradient-to-b from-stone-50 to-white dark:from-gray-900 dark:to-gray-950">
         
-        {/* Decorative Elements */}
-        <div className="absolute top-20 left-10 w-72 h-72 bg-pink-400/20 rounded-full blur-3xl animate-pulse-slow"></div>
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-purple-400/20 rounded-full blur-3xl animate-pulse-slow"></div>
-        
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 md:py-28">
-          <div className="text-center">
-            <div className="inline-flex items-center gap-2 glass rounded-full px-5 sm:px-7 py-3 sm:py-4 shadow-fashion-md mb-8 sm:mb-10 animate-fade-in-scale">
-              <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-pink-500 animate-pulse" />
-              <span className="text-xs sm:text-sm font-semibold fashion-gradient-pink-purple bg-clip-text text-transparent tracking-wide">
-                TON RÉSEAU SOCIAL DE LA MODE
+        <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-24 md:py-32">
+          <div className="text-center space-y-8">
+            
+            {/* Subtle Badge */}
+            <div className="inline-flex items-center gap-2 bg-stone-100 dark:bg-stone-800 rounded-md px-4 py-2 mb-2">
+              <Sparkles className="w-4 h-4 text-stone-600 dark:text-stone-400" />
+              <span className="text-xs font-medium text-stone-600 dark:text-stone-400 tracking-wide uppercase">
+                Réseau social de la mode
               </span>
             </div>
             
-            <h1 className="font-display text-5xl sm:text-6xl md:text-8xl mb-6 sm:mb-8 fashion-gradient-pink-purple bg-clip-text text-transparent leading-tight animate-slide-in-bottom">
+            {/* Main Heading - Sober Typography */}
+            <h1 className="font-display text-5xl sm:text-6xl md:text-7xl text-stone-900 dark:text-stone-50 leading-tight tracking-tight">
               FashionHub
             </h1>
             
-            <p className="text-xl sm:text-2xl md:text-3xl text-gray-800 dark:text-gray-200 mb-4 sm:mb-5 max-w-3xl mx-auto px-2 font-medium animate-slide-in-bottom" style={{animationDelay: '0.1s'}}>
+            {/* Subtitle - Clear & Concise */}
+            <p className="text-xl sm:text-2xl text-stone-700 dark:text-stone-300 max-w-2xl mx-auto font-light leading-relaxed">
               Crée ton dressing virtuel, partage tes looks, inspire la communauté
             </p>
             
-            <p className="text-base sm:text-lg md:text-xl text-gray-600 dark:text-gray-400 mb-10 sm:mb-14 max-w-2xl mx-auto px-2 animate-slide-in-bottom" style={{animationDelay: '0.2s'}}>
-              Organise ta garde-robe, compose des tenues, découvre des styles inspirants et connecte avec des passionnés de mode du monde entier.
+            {/* Description */}
+            <p className="text-base sm:text-lg text-stone-600 dark:text-stone-400 max-w-xl mx-auto">
+              Organise ta garde-robe, compose des tenues et connecte avec des passionnés de mode.
             </p>
             
-            <div className="flex flex-col sm:flex-row gap-4 sm:gap-5 justify-center px-4 animate-slide-in-bottom" style={{animationDelay: '0.3s'}}>
+            {/* CTA Buttons - Minimalist Style */}
+            <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
               {!user ? (
                 <>
                   <button 
                     onClick={() => setLocation('/login')}
-                    className="btn-fashion-primary text-base sm:text-lg px-8 py-4 sm:px-10 sm:py-5 micro-interaction"
+                    className="btn-fashion-primary text-sm sm:text-base"
                     data-testid="button-start-wardrobe"
                   >
-                    <Camera className="w-5 h-5 sm:w-6 sm:h-6 mr-2 inline" />
+                    <Camera className="w-4 h-4 sm:w-5 sm:h-5 mr-2 inline" />
                     Commencer mon dressing
                   </button>
                   <button 
                     onClick={() => setLocation('/feed')}
-                    className="btn-fashion-secondary text-base sm:text-lg px-8 py-4 sm:px-10 sm:py-5 micro-interaction"
+                    className="btn-fashion-secondary text-sm sm:text-base"
                     data-testid="button-explore-trends"
                   >
-                    <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6 mr-2 inline" />
+                    <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 mr-2 inline" />
                     Explorer les tendances
                   </button>
                 </>
@@ -64,18 +65,18 @@ export default function Home() {
                 <>
                   <button 
                     onClick={() => setLocation('/dashboard')}
-                    className="btn-fashion-primary text-base sm:text-lg px-8 py-4 sm:px-10 sm:py-5 micro-interaction"
+                    className="btn-fashion-primary text-sm sm:text-base"
                     data-testid="button-my-wardrobe"
                   >
-                    <Shirt className="w-5 h-5 sm:w-6 sm:h-6 mr-2 inline" />
+                    <Shirt className="w-4 h-4 sm:w-5 sm:h-5 mr-2 inline" />
                     Mon dressing
                   </button>
                   <button 
                     onClick={() => setLocation('/feed')}
-                    className="btn-fashion-secondary text-base sm:text-lg px-8 py-4 sm:px-10 sm:py-5 micro-interaction"
+                    className="btn-fashion-secondary text-sm sm:text-base"
                     data-testid="button-view-feed"
                   >
-                    <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6 mr-2 inline" />
+                    <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 mr-2 inline" />
                     Voir le feed
                   </button>
                 </>
@@ -85,98 +86,92 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Features Section */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 md:py-24">
-        <div className="text-center mb-12 sm:mb-20">
-          <h2 className="font-display text-3xl sm:text-4xl md:text-5xl text-gray-900 dark:text-white mb-4 sm:mb-5">
+      {/* Features Section - Clean Grid */}
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 md:py-24 bg-white dark:bg-gray-950">
+        <div className="text-center mb-16">
+          <h2 className="font-display text-3xl sm:text-4xl text-stone-900 dark:text-stone-50 mb-4">
             Pourquoi FashionHub ?
           </h2>
-          <p className="text-lg sm:text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto px-2">
-            Une plateforme complète pour gérer ton style et t'inspirer au quotidien
+          <p className="text-lg text-stone-600 dark:text-stone-400 max-w-2xl mx-auto">
+            Une plateforme complète pour gérer ton style au quotidien
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 sm:gap-10">
           {/* Feature 1 */}
-          <div className="instagram-card glass p-6 sm:p-8 shadow-fashion-lg group" data-testid="card-feature-wardrobe">
-            <div className="w-14 h-14 sm:w-16 sm:h-16 fashion-gradient-pink-purple rounded-2xl flex items-center justify-center mb-5 sm:mb-6 shadow-fashion-md micro-interaction">
-              <Shirt className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
+          <div className="group" data-testid="card-feature-wardrobe">
+            <div className="mb-4 p-3 bg-stone-100 dark:bg-stone-800 rounded-lg inline-block">
+              <Shirt className="w-6 h-6 text-stone-700 dark:text-stone-300" />
             </div>
-            <h3 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-4">
+            <h3 className="text-xl font-semibold text-stone-900 dark:text-stone-50 mb-3">
               Dressing Virtuel
             </h3>
-            <p className="text-base text-gray-600 dark:text-gray-300 leading-relaxed">
-              Catalogue tous tes vêtements avec photos. Organise par catégorie, couleur, saison. 
-              Ne perds plus jamais de vue ce que tu possèdes.
+            <p className="text-base text-stone-600 dark:text-stone-400 leading-relaxed">
+              Catalogue tous tes vêtements avec photos. Organise par catégorie, couleur, saison.
             </p>
           </div>
 
           {/* Feature 2 */}
-          <div className="instagram-card glass p-6 sm:p-8 shadow-fashion-lg group" data-testid="card-feature-looks">
-            <div className="w-14 h-14 sm:w-16 sm:h-16 fashion-gradient-pink-purple rounded-2xl flex items-center justify-center mb-5 sm:mb-6 shadow-fashion-md micro-interaction">
-              <Camera className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
+          <div className="group" data-testid="card-feature-looks">
+            <div className="mb-4 p-3 bg-stone-100 dark:bg-stone-800 rounded-lg inline-block">
+              <Camera className="w-6 h-6 text-stone-700 dark:text-stone-300" />
             </div>
-            <h3 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-4">
+            <h3 className="text-xl font-semibold text-stone-900 dark:text-stone-50 mb-3">
               Création de Looks
             </h3>
-            <p className="text-base text-gray-600 dark:text-gray-300 leading-relaxed">
-              Assemble tes articles pour créer des tenues complètes. 
-              Partage tes looks préférés avec la communauté et inspire les autres.
+            <p className="text-base text-stone-600 dark:text-stone-400 leading-relaxed">
+              Assemble tes articles pour créer des tenues complètes et partage-les.
             </p>
           </div>
 
           {/* Feature 3 */}
-          <div className="instagram-card glass p-6 sm:p-8 shadow-fashion-lg group" data-testid="card-feature-feed">
-            <div className="w-14 h-14 sm:w-16 sm:h-16 fashion-gradient-pink-purple rounded-2xl flex items-center justify-center mb-5 sm:mb-6 shadow-fashion-md micro-interaction">
-              <Heart className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
+          <div className="group" data-testid="card-feature-feed">
+            <div className="mb-4 p-3 bg-stone-100 dark:bg-stone-800 rounded-lg inline-block">
+              <Heart className="w-6 h-6 text-stone-700 dark:text-stone-300" />
             </div>
-            <h3 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-4">
+            <h3 className="text-xl font-semibold text-stone-900 dark:text-stone-50 mb-3">
               Feed Inspirant
             </h3>
-            <p className="text-base text-gray-600 dark:text-gray-300 leading-relaxed">
-              Découvre des looks tendance de la communauté. 
-              Like, commente et sauvegarde tes tenues favorites pour t'en inspirer.
+            <p className="text-base text-stone-600 dark:text-stone-400 leading-relaxed">
+              Découvre des looks tendance et sauvegarde tes tenues favorites.
             </p>
           </div>
 
           {/* Feature 4 */}
-          <div className="instagram-card glass p-6 sm:p-8 shadow-fashion-lg group" data-testid="card-feature-community">
-            <div className="w-14 h-14 sm:w-16 sm:h-16 fashion-gradient-pink-purple rounded-2xl flex items-center justify-center mb-5 sm:mb-6 shadow-fashion-md micro-interaction">
-              <Users className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
+          <div className="group" data-testid="card-feature-community">
+            <div className="mb-4 p-3 bg-stone-100 dark:bg-stone-800 rounded-lg inline-block">
+              <Users className="w-6 h-6 text-stone-700 dark:text-stone-300" />
             </div>
-            <h3 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-4">
+            <h3 className="text-xl font-semibold text-stone-900 dark:text-stone-50 mb-3">
               Communauté Mode
             </h3>
-            <p className="text-base text-gray-600 dark:text-gray-300 leading-relaxed">
-              Connecte avec d'autres passionnés de mode. 
-              Suis tes fashionistas préférés et partage ta passion pour le style.
+            <p className="text-base text-stone-600 dark:text-stone-400 leading-relaxed">
+              Connecte avec d'autres passionnés et partage ta passion pour le style.
             </p>
           </div>
 
           {/* Feature 5 */}
-          <div className="instagram-card glass p-6 sm:p-8 shadow-fashion-lg group" data-testid="card-feature-collections">
-            <div className="w-14 h-14 sm:w-16 sm:h-16 fashion-gradient-pink-purple rounded-2xl flex items-center justify-center mb-5 sm:mb-6 shadow-fashion-md micro-interaction">
-              <Star className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
+          <div className="group" data-testid="card-feature-collections">
+            <div className="mb-4 p-3 bg-stone-100 dark:bg-stone-800 rounded-lg inline-block">
+              <Star className="w-6 h-6 text-stone-700 dark:text-stone-300" />
             </div>
-            <h3 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-4">
+            <h3 className="text-xl font-semibold text-stone-900 dark:text-stone-50 mb-3">
               Collections Thématiques
             </h3>
-            <p className="text-base text-gray-600 dark:text-gray-300 leading-relaxed">
-              Crée des boards Pinterest-style pour organiser tes looks par occasion, saison ou style. 
-              Planifie tes tenues à l'avance.
+            <p className="text-base text-stone-600 dark:text-stone-400 leading-relaxed">
+              Crée des boards pour organiser tes looks par occasion ou style.
             </p>
           </div>
 
           {/* Feature 6 */}
-          <div className="instagram-card glass p-6 sm:p-8 shadow-fashion-lg group" data-testid="card-feature-ai">
-            <div className="w-14 h-14 sm:w-16 sm:h-16 fashion-gradient-pink-purple rounded-2xl flex items-center justify-center mb-5 sm:mb-6 shadow-fashion-md micro-interaction">
-              <Sparkles className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
+          <div className="group" data-testid="card-feature-ai">
+            <div className="mb-4 p-3 bg-stone-100 dark:bg-stone-800 rounded-lg inline-block">
+              <Sparkles className="w-6 h-6 text-stone-700 dark:text-stone-300" />
             </div>
-            <h3 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-4">
+            <h3 className="text-xl font-semibold text-stone-900 dark:text-stone-50 mb-3">
               Suggestions IA
             </h3>
-            <p className="text-base text-gray-600 dark:text-gray-300 leading-relaxed">
-              Reçois des suggestions de combinaisons basées sur tes articles. 
+            <p className="text-base text-stone-600 dark:text-stone-400 leading-relaxed">
               Découvre de nouvelles façons de porter ce que tu as déjà.
             </p>
           </div>

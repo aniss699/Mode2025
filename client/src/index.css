@@ -103,66 +103,83 @@
 
 @layer base {
   :root {
+    /* Palette Sobre - Inspired by minimalist fashion apps */
     --background: 0 0% 100%;
-    --foreground: 0 0% 10%;
+    --foreground: 0 0% 9%;
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 10%;
+    --card-foreground: 0 0% 9%;
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 10%;
-    --primary: 330 81% 60%;
+    --popover-foreground: 0 0% 9%;
+    
+    /* Primary: Charcoal elegant */
+    --primary: 0 0% 15%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 270 70% 65%;
-    --secondary-foreground: 0 0% 100%;
+    
+    /* Secondary: Warm beige/taupe */
+    --secondary: 30 15% 85%;
+    --secondary-foreground: 0 0% 15%;
+    
+    /* Muted: Soft grays */
     --muted: 0 0% 96%;
-    --muted-foreground: 0 0% 45%;
-    --accent: 330 81% 95%;
-    --accent-foreground: 330 81% 30%;
-    --destructive: 0 84% 60%;
+    --muted-foreground: 0 0% 40%;
+    
+    /* Accent: Subtle terracotta/rust */
+    --accent: 15 25% 70%;
+    --accent-foreground: 0 0% 15%;
+    
+    --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
     --border: 0 0% 90%;
     --input: 0 0% 94%;
-    --ring: 330 81% 60%;
-    --radius: 1rem;
+    --ring: 0 0% 20%;
+    --radius: 0.5rem;
 
-    --fashion-pink: hsl(330, 81%, 60%);
-    --fashion-purple: hsl(270, 70%, 65%);
-    --fashion-rose: hsl(350, 80%, 70%);
-    --fashion-lavender: hsl(270, 50%, 90%);
-    --fashion-dark: hsl(0, 0%, 10%);
-    --fashion-light: hsl(0, 0%, 98%);
-    --glass-bg: rgba(255, 255, 255, 0.7);
-    --glass-border: rgba(255, 255, 255, 0.18);
+    /* Sophisticated Fashion Colors - Sober Palette */
+    --fashion-charcoal: hsl(0, 0%, 15%);
+    --fashion-warm-gray: hsl(20, 5%, 45%);
+    --fashion-beige: hsl(30, 15%, 85%);
+    --fashion-cream: hsl(40, 20%, 96%);
+    --fashion-terracotta: hsl(15, 35%, 65%);
+    --fashion-sage: hsl(95, 15%, 70%);
+    --fashion-taupe: hsl(25, 10%, 60%);
+    --fashion-offwhite: hsl(40, 20%, 98%);
+    
+    --glass-bg: rgba(255, 255, 255, 0.85);
+    --glass-border: rgba(0, 0, 0, 0.08);
   }
 
   .dark {
-    --background: 0 0% 10%;
+    --background: 0 0% 9%;
     --foreground: 0 0% 98%;
     --card: 0 0% 12%;
     --card-foreground: 0 0% 98%;
     --popover: 0 0% 12%;
     --popover-foreground: 0 0% 98%;
-    --primary: 330 81% 65%;
+    --primary: 0 0% 95%;
     --primary-foreground: 0 0% 10%;
-    --secondary: 270 70% 70%;
-    --secondary-foreground: 0 0% 10%;
+    --secondary: 30 8% 25%;
+    --secondary-foreground: 0 0% 98%;
     --muted: 0 0% 18%;
     --muted-foreground: 0 0% 65%;
-    --accent: 330 81% 20%;
+    --accent: 15 20% 40%;
     --accent-foreground: 0 0% 98%;
-    --destructive: 0 72% 55%;
+    --destructive: 0 62% 45%;
     --destructive-foreground: 0 0% 98%;
     --border: 0 0% 20%;
     --input: 0 0% 18%;
-    --ring: 330 81% 65%;
+    --ring: 0 0% 80%;
 
-    --fashion-pink: hsl(330, 81%, 65%);
-    --fashion-purple: hsl(270, 70%, 70%);
-    --fashion-rose: hsl(350, 80%, 75%);
-    --fashion-lavender: hsl(270, 50%, 25%);
-    --fashion-dark: hsl(0, 0%, 98%);
-    --fashion-light: hsl(0, 0%, 10%);
-    --glass-bg: rgba(0, 0, 0, 0.5);
-    --glass-border: rgba(255, 255, 255, 0.08);
+    --fashion-charcoal: hsl(0, 0%, 95%);
+    --fashion-warm-gray: hsl(20, 5%, 70%);
+    --fashion-beige: hsl(30, 10%, 30%);
+    --fashion-cream: hsl(40, 15%, 12%);
+    --fashion-terracotta: hsl(15, 30%, 55%);
+    --fashion-sage: hsl(95, 12%, 50%);
+    --fashion-taupe: hsl(25, 8%, 50%);
+    --fashion-offwhite: hsl(0, 0%, 10%);
+    
+    --glass-bg: rgba(0, 0, 0, 0.6);
+    --glass-border: rgba(255, 255, 255, 0.1);
   }
 }
 
@@ -635,21 +652,21 @@
   box-shadow: 0 8px 40px 0 rgba(31, 38, 135, 0.2);
 }
 
-/* Fashion-Forward Gradients */
-.fashion-gradient-pink-purple {
-  background: linear-gradient(135deg, var(--fashion-pink) 0%, var(--fashion-purple) 100%);
+/* Subtle Sophisticated Gradients */
+.fashion-gradient-neutral {
+  background: linear-gradient(135deg, var(--fashion-cream) 0%, var(--fashion-beige) 100%);
 }
 
-.fashion-gradient-rose-pink {
-  background: linear-gradient(135deg, var(--fashion-rose) 0%, var(--fashion-pink) 100%);
+.fashion-gradient-warm {
+  background: linear-gradient(135deg, var(--fashion-offwhite) 0%, var(--fashion-beige) 100%);
 }
 
-.fashion-gradient-lavender {
-  background: linear-gradient(135deg, var(--fashion-lavender) 0%, rgba(255, 255, 255, 0.5) 100%);
+.fashion-gradient-charcoal {
+  background: linear-gradient(135deg, var(--fashion-charcoal) 0%, var(--fashion-warm-gray) 100%);
 }
 
 .fashion-gradient-overlay {
-  background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.7) 100%);
+  background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.5) 100%);
 }
 
 /* Editorial Typography - Bold & Fashion-Forward */
@@ -706,56 +723,57 @@
   transform: scale(0.95);
 }
 
-/* Premium Button Styles */
+/* Minimalist Button Styles - Sober & Elegant */
 .btn-fashion-primary {
-  background: linear-gradient(135deg, var(--fashion-pink) 0%, var(--fashion-purple) 100%);
+  background: var(--fashion-charcoal);
   color: white;
   border: none;
-  padding: 0.75rem 2rem;
-  border-radius: 9999px;
-  font-weight: 600;
-  letter-spacing: 0.025em;
-  box-shadow: 0 10px 25px -5px rgba(236, 72, 153, 0.3);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 0.875rem 2.5rem;
+  border-radius: 0.375rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
 }
 
 .btn-fashion-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 15px 35px -5px rgba(236, 72, 153, 0.4);
+  background: var(--fashion-warm-gray);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .btn-fashion-secondary {
   background: white;
-  color: var(--fashion-pink);
-  border: 2px solid var(--fashion-pink);
-  padding: 0.75rem 2rem;
-  border-radius: 9999px;
-  font-weight: 600;
-  letter-spacing: 0.025em;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  color: var(--fashion-charcoal);
+  border: 1.5px solid var(--fashion-charcoal);
+  padding: 0.875rem 2.5rem;
+  border-radius: 0.375rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  transition: all 0.2s ease;
 }
 
 .btn-fashion-secondary:hover {
-  background: var(--fashion-pink);
+  background: var(--fashion-charcoal);
   color: white;
-  transform: translateY(-2px);
+  transform: translateY(-1px);
 }
 
-/* Premium Shadow System */
+/* Subtle Shadow System - Minimalist */
 .shadow-fashion-sm {
-  box-shadow: 0 2px 8px rgba(236, 72, 153, 0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
 .shadow-fashion-md {
-  box-shadow: 0 8px 24px rgba(236, 72, 153, 0.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .shadow-fashion-lg {
-  box-shadow: 0 16px 48px rgba(236, 72, 153, 0.2);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
 }
 
 .shadow-fashion-xl {
-  box-shadow: 0 24px 64px rgba(236, 72, 153, 0.25);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.12);
 }
 
 /* Elegant Animations - Fashion Editorial Style */
