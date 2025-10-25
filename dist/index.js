@@ -3359,7 +3359,7 @@ var requireAuth = async (req, res, next) => {
     });
   }
 };
-var optionalAuth = async (req, res, next) => {
+var optionalAuth2 = async (req, res, next) => {
   try {
     const userIdHeader = req.headers["x-user-id"];
     if (userIdHeader) {
@@ -3476,7 +3476,7 @@ router4.post("/", requireAuth, async (req, res) => {
     });
   }
 });
-router4.get("/", optionalAuth, async (req, res) => {
+router4.get("/", optionalAuth2, async (req, res) => {
   try {
     const { mission_id, provider_id, status, bid_type } = req.query;
     console.log("\u{1F4CB} GET /api/bids - Recherche candidatures:", {
@@ -3540,7 +3540,7 @@ router4.get("/", optionalAuth, async (req, res) => {
     });
   }
 });
-router4.get("/:id", optionalAuth, async (req, res) => {
+router4.get("/:id", optionalAuth2, async (req, res) => {
   try {
     const bidId = parseInt(req.params.id);
     if (isNaN(bidId)) {
@@ -7174,8 +7174,6 @@ app.use("/api", (req, res, next) => {
   console.log(`\u{1F464} Profile request: ${req.method} ${req.path}`);
   next();
 }, profile_routes_default);
-app.use("/api/auth", auth_routes_default);
-app.use("/api", api_routes_default);
 console.log("\u{1F457} Registering fashion routes...");
 app.use("/api/ai-fashion", ai_fashion_routes_default);
 app.use("/api/fashion", ai_fashion_routes_default);
