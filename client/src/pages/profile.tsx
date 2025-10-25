@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Camera, Settings, Heart, Grid3x3, Users, Sparkles, Edit, Check, MapPin, Link as LinkIcon, Calendar, Shirt, Image as ImageIcon } from 'lucide-react';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
@@ -62,6 +63,7 @@ export default function ProfilePage() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isAddItemDialogOpen, setIsAddItemDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('wardrobe');
   const [, navigate] = useLocation();
 
@@ -72,6 +74,18 @@ export default function ProfilePage() {
     bio: '',
     avatar_url: '',
     style_tags: [] as string[],
+  });
+
+  // Formulaire d'ajout de vêtement
+  const [itemForm, setItemForm] = useState({
+    title: '',
+    description: '',
+    category: 'top',
+    brand: '',
+    color: '',
+    size: '',
+    season: 'all',
+    occasion: 'casual',
   });
 
   // Récupération du profil complet
@@ -140,6 +154,38 @@ export default function ProfilePage() {
     },
   });
 
+  // Mutation pour ajouter un vêtement
+  const addItemMutation = useMutation({
+    mutationFn: async (data: any) => {
+      return await apiRequest('POST', '/api/fashion-items', data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/fashion-items/my-items'] });
+      toast({
+        title: "Vêtement ajouté",
+        description: "Votre vêtement a été ajouté à votre garde-robe.",
+      });
+      setIsAddItemDialogOpen(false);
+      setItemForm({
+        title: '',
+        description: '',
+        category: 'top',
+        brand: '',
+        color: '',
+        size: '',
+        season: 'all',
+        occasion: 'casual',
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erreur",
+        description: error.message || "Une erreur s'est produite lors de l'ajout.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleUpdateProfile = () => {
     updateProfileMutation.mutate(editForm);
   };
@@ -152,6 +198,18 @@ export default function ProfilePage() {
 
   const handleRemoveStyleTag = (tag: string) => {
     setEditForm({ ...editForm, style_tags: editForm.style_tags.filter(t => t !== tag) });
+  };
+
+  const handleAddItem = () => {
+    if (!itemForm.title.trim()) {
+      toast({
+        title: "Erreur",
+        description: "Le nom du vêtement est requis.",
+        variant: "destructive",
+      });
+      return;
+    }
+    addItemMutation.mutate(itemForm);
   };
 
   // Rediriger vers la page de connexion si non authentifié
@@ -462,12 +520,27 @@ export default function ProfilePage() {
                   <Shirt className="w-16 h-16 mx-auto text-gray-400 mb-4" />
                   <h3 className="text-xl font-semibold text-gray-700 mb-2">Votre garde-robe est vide</h3>
                   <p className="text-gray-500 mb-6">Commencez à ajouter vos vêtements pour créer votre dressing virtuel</p>
-                  <Button className="bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600" data-testid="button-add-first-item">
+                  <Button 
+                    className="bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600" 
+                    data-testid="button-add-first-item"
+                    onClick={() => setIsAddItemDialogOpen(true)}
+                  >
                     <Camera className="w-4 h-4 mr-2" />
                     Ajouter mon premier vêtement
                   </Button>
                 </div>
               ) : (
+                <div>
+                  <div className="flex justify-end mb-4">
+                    <Button 
+                      className="bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600" 
+                      data-testid="button-add-item"
+                      onClick={() => setIsAddItemDialogOpen(true)}
+                    >
+                      <Camera className="w-4 h-4 mr-2" />
+                      Ajouter un vêtement
+                    </Button>
+                  </div>
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                   {fashionItems.map((item) => (
                     <Card key={item.id} className="overflow-hidden hover:shadow-xl transition-shadow cursor-pointer group" data-testid={`card-item-${item.id}`}>
@@ -501,6 +574,7 @@ export default function ProfilePage() {
                       </div>
                     </Card>
                   ))}
+                </div>
                 </div>
               )}
             </TabsContent>
@@ -588,6 +662,147 @@ export default function ProfilePage() {
           </Tabs>
         </Card>
       </div>
+
+      {/* Dialog d'ajout de vêtement */}
+      <Dialog open={isAddItemDialogOpen} onOpenChange={setIsAddItemDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Ajouter un vêtement</DialogTitle>
+            <DialogDescription>
+              Ajoutez un nouveau vêtement à votre garde-robe virtuelle
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="item-title">Nom du vêtement *</Label>
+              <Input
+                id="item-title"
+                value={itemForm.title}
+                onChange={(e) => setItemForm({ ...itemForm, title: e.target.value })}
+                placeholder="Ex: T-shirt blanc basique"
+                data-testid="input-item-title"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="item-category">Catégorie *</Label>
+              <Select value={itemForm.category} onValueChange={(value) => setItemForm({ ...itemForm, category: value })}>
+                <SelectTrigger data-testid="select-category">
+                  <SelectValue placeholder="Sélectionner une catégorie" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="top">Haut</SelectItem>
+                  <SelectItem value="bottom">Bas</SelectItem>
+                  <SelectItem value="shoes">Chaussures</SelectItem>
+                  <SelectItem value="dress">Robe</SelectItem>
+                  <SelectItem value="outerwear">Veste/Manteau</SelectItem>
+                  <SelectItem value="accessory">Accessoire</SelectItem>
+                  <SelectItem value="bag">Sac</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="item-brand">Marque</Label>
+                <Input
+                  id="item-brand"
+                  value={itemForm.brand}
+                  onChange={(e) => setItemForm({ ...itemForm, brand: e.target.value })}
+                  placeholder="Ex: Zara, H&M..."
+                  data-testid="input-item-brand"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="item-size">Taille</Label>
+                <Input
+                  id="item-size"
+                  value={itemForm.size}
+                  onChange={(e) => setItemForm({ ...itemForm, size: e.target.value })}
+                  placeholder="Ex: M, 38..."
+                  data-testid="input-item-size"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="item-color">Couleur</Label>
+              <Input
+                id="item-color"
+                value={itemForm.color}
+                onChange={(e) => setItemForm({ ...itemForm, color: e.target.value })}
+                placeholder="Ex: blanc, noir, bleu marine..."
+                data-testid="input-item-color"
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="item-season">Saison</Label>
+                <Select value={itemForm.season} onValueChange={(value) => setItemForm({ ...itemForm, season: value })}>
+                  <SelectTrigger data-testid="select-season">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Toute l'année</SelectItem>
+                    <SelectItem value="spring">Printemps</SelectItem>
+                    <SelectItem value="summer">Été</SelectItem>
+                    <SelectItem value="fall">Automne</SelectItem>
+                    <SelectItem value="winter">Hiver</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="item-occasion">Occasion</Label>
+                <Select value={itemForm.occasion} onValueChange={(value) => setItemForm({ ...itemForm, occasion: value })}>
+                  <SelectTrigger data-testid="select-occasion">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="casual">Décontracté</SelectItem>
+                    <SelectItem value="formal">Formel</SelectItem>
+                    <SelectItem value="sport">Sport</SelectItem>
+                    <SelectItem value="party">Soirée</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="item-description">Description</Label>
+              <Textarea
+                id="item-description"
+                value={itemForm.description}
+                onChange={(e) => setItemForm({ ...itemForm, description: e.target.value })}
+                placeholder="Décrivez votre vêtement..."
+                rows={3}
+                data-testid="textarea-item-description"
+              />
+            </div>
+          </div>
+
+          <div className="flex gap-3 justify-end">
+            <Button 
+              variant="outline" 
+              onClick={() => setIsAddItemDialogOpen(false)}
+              data-testid="button-cancel-add-item"
+            >
+              Annuler
+            </Button>
+            <Button 
+              onClick={handleAddItem}
+              disabled={addItemMutation.isPending}
+              className="bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600"
+              data-testid="button-save-item"
+            >
+              {addItemMutation.isPending ? 'Ajout...' : 'Ajouter'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

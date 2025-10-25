@@ -7168,8 +7168,10 @@ app.use("/api", (req, res, next) => {
   next();
 }, notifications_default);
 console.log("\u{1F464} Registering profile routes...");
-app.use("/api", (req, res, next) => {
-  console.log(`\u{1F464} Profile request: ${req.method} ${req.path}`);
+app.use("/api", optionalAuth, (req, res, next) => {
+  console.log(`\u{1F464} Profile request: ${req.method} ${req.path}`, {
+    userId: req.user?.id || "not authenticated"
+  });
   next();
 }, profile_routes_default);
 console.log("\u{1F457} Registering fashion routes...");
