@@ -15,7 +15,7 @@ export default function LoginPage() {
   const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  
+
   // Utilisation de l'architecture centralisée pour éliminer la duplication
   const loginApi = useCreateApi<any, { email: string; password: string }>('/api/auth/login', {
     successMessage: 'Connexion réussie ! Bienvenue sur Swideal',

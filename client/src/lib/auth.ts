@@ -11,7 +11,11 @@ export const authService = {
   },
 
   setCurrentUser(user: AuthUser): void {
-    localStorage.setItem('currentUser', JSON.stringify(user));
+    this.currentUser = user;
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('currentUser', JSON.stringify(user));
+      console.log('✅ User saved to localStorage:', user);
+    }
   },
 
   logout(): void {

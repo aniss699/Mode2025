@@ -9,13 +9,13 @@ async function throwIfResNotOk(res: Response) {
 
 export async function apiRequest(method: string, endpoint: string, body?: any) {
   const url = endpoint.startsWith('/api') ? endpoint : `/api${endpoint}`;
-  
+
   // Get current user for authentication header
   const currentUser = localStorage.getItem('currentUser');
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
   };
-  
+
   if (currentUser) {
     const user = JSON.parse(currentUser);
     if (user.id) {
@@ -52,14 +52,14 @@ export const getQueryFn: <T>(options: {
     // Get current user for authentication header
     const currentUser = localStorage.getItem('currentUser');
     const headers: Record<string, string> = {};
-    
+
     if (currentUser) {
       const user = JSON.parse(currentUser);
       if (user.id) {
         headers['X-User-ID'] = user.id.toString();
       }
     }
-    
+
     const res = await fetch(queryKey.join("/") as string, {
       credentials: "include",
       headers,
