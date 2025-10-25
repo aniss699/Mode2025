@@ -6849,6 +6849,53 @@ router20.get("/my-items", async (req, res) => {
     res.status(500).json({ error: "Erreur serveur" });
   }
 });
+router20.post("/", async (req, res) => {
+  try {
+    if (!req.user?.id) {
+      return res.status(401).json({ error: "Non authentifi\xE9" });
+    }
+    const validationResult = insertFashionItemSchema.safeParse({
+      ...req.body,
+      user_id: req.user.id
+    });
+    if (!validationResult.success) {
+      return res.status(400).json({
+        error: "Donn\xE9es invalides",
+        details: validationResult.error.errors
+      });
+    }
+    const [newItem] = await db.insert(fashionItems).values(validationResult.data).returning();
+    console.log("\u2705 Nouveau v\xEAtement cr\xE9\xE9:", newItem.id);
+    res.status(201).json(newItem);
+  } catch (error) {
+    console.error("Erreur cr\xE9ation v\xEAtement:", error);
+    res.status(500).json({ error: "Erreur serveur" });
+  }
+});
+router20.delete("/:id", async (req, res) => {
+  try {
+    if (!req.user?.id) {
+      return res.status(401).json({ error: "Non authentifi\xE9" });
+    }
+    const itemId = parseInt(req.params.id);
+    if (isNaN(itemId)) {
+      return res.status(400).json({ error: "ID invalide" });
+    }
+    const [item] = await db.select().from(fashionItems).where(eq20(fashionItems.id, itemId)).limit(1);
+    if (!item) {
+      return res.status(404).json({ error: "V\xEAtement non trouv\xE9" });
+    }
+    if (item.user_id !== req.user.id) {
+      return res.status(403).json({ error: "Non autoris\xE9" });
+    }
+    await db.delete(fashionItems).where(eq20(fashionItems.id, itemId));
+    console.log("\u2705 V\xEAtement supprim\xE9:", itemId);
+    res.json({ success: true, message: "V\xEAtement supprim\xE9" });
+  } catch (error) {
+    console.error("Erreur suppression v\xEAtement:", error);
+    res.status(500).json({ error: "Erreur serveur" });
+  }
+});
 var fashion_items_routes_default = router20;
 
 // server/routes/creators-routes.ts
