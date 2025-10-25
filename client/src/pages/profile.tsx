@@ -73,8 +73,9 @@ export default function ProfilePage() {
   });
 
   // Récupération du profil complet
-  const { data: profile, isLoading: profileLoading } = useQuery<UserProfile>({
+  const { data: profile, isLoading: profileLoading, error: profileError } = useQuery<UserProfile>({
     queryKey: ['/api/profile/me'],
+    enabled: !!user, // Ne lance la requête que si l'utilisateur est connecté
   });
 
   // Mise à jour du formulaire quand le profil est chargé
@@ -151,6 +152,19 @@ export default function ProfilePage() {
     setEditForm({ ...editForm, style_tags: editForm.style_tags.filter(t => t !== tag) });
   };
 
+  if (!user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-gray-500 mb-4">Vous devez être connecté pour voir votre profil</p>
+          <Button onClick={() => window.location.href = '/login'}>
+            Se connecter
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   if (profileLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -159,10 +173,30 @@ export default function ProfilePage() {
     );
   }
 
+  if (profileError) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-500 mb-2">Erreur lors du chargement du profil</p>
+          <p className="text-gray-500 mb-4">{profileError instanceof Error ? profileError.message : 'Erreur inconnue'}</p>
+          <Button onClick={() => window.location.reload()}>
+            Réessayer
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   if (!profile) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p className="text-gray-500">Profil non trouvé</p>
+        <div className="text-center">
+          <p className="text-gray-500 mb-4">Profil non trouvé</p>
+          <p className="text-sm text-gray-400 mb-4">User ID: {user?.id}</p>
+          <Button onClick={() => window.location.reload()}>
+            Réessayer
+          </Button>
+        </div>
       </div>
     );
   }

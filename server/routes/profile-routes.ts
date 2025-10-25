@@ -8,7 +8,10 @@ const router = Router();
 // GET /api/profile/me - Récupérer le profil de l'utilisateur connecté
 router.get('/profile/me', async (req, res) => {
   try {
+    console.log('📋 GET /api/profile/me - req.user:', req.user);
+    
     if (!req.user?.id) {
+      console.error('❌ Utilisateur non authentifié - req.user:', req.user);
       return res.status(401).json({ error: 'Non authentifié' });
     }
 
