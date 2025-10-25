@@ -13,6 +13,7 @@ import { Label } from '@/components/ui/label';
 import { Camera, Settings, Heart, Grid3x3, Users, Sparkles, Edit, Check, MapPin, Link as LinkIcon, Calendar, Shirt, Image as ImageIcon } from 'lucide-react';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
+import { useLocation } from 'react-router-dom'; // Assuming useLocation is from react-router-dom
 
 interface UserProfile {
   id: number;
@@ -62,6 +63,7 @@ export default function ProfilePage() {
   const { toast } = useToast();
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('wardrobe');
+  const [, setLocation] = useLocation(); // Correctly import and use useLocation
 
   // Formulaire d'édition
   const [editForm, setEditForm] = useState({
@@ -152,14 +154,24 @@ export default function ProfilePage() {
     setEditForm({ ...editForm, style_tags: editForm.style_tags.filter(t => t !== tag) });
   };
 
+  // Rediriger vers la page de connexion si non authentifié
   if (!user) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-gray-500 mb-4">Vous devez être connecté pour voir votre profil</p>
-          <Button onClick={() => window.location.href = '/login'}>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-50 to-purple-50">
+        <div className="text-center p-8 bg-white rounded-lg shadow-lg max-w-md">
+          <div className="mb-4">
+            <svg className="w-16 h-16 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Non authentifié</h2>
+          <p className="text-gray-600 mb-6">Vous devez vous connecter pour accéder à votre profil.</p>
+          <button
+            onClick={() => setLocation('/login')}
+            className="px-6 py-3 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-lg font-medium hover:shadow-lg transition-all"
+          >
             Se connecter
-          </Button>
+          </button>
         </div>
       </div>
     );
@@ -207,7 +219,7 @@ export default function ProfilePage() {
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-purple-50">
       {/* Header du profil */}
       <div className="bg-gradient-to-r from-pink-500 to-purple-500 h-48 sm:h-64"></div>
-      
+
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Card principale du profil */}
         <Card className="relative -mt-32 sm:-mt-40 bg-white shadow-2xl rounded-2xl overflow-hidden">
@@ -303,7 +315,7 @@ export default function ProfilePage() {
                         Personnalisez votre profil FashionHub
                       </DialogDescription>
                     </DialogHeader>
-                    
+
                     <div className="space-y-4 py-4">
                       <div className="space-y-2">
                         <Label htmlFor="name">Nom</Label>
