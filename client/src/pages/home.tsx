@@ -10,76 +10,74 @@ export default function Home() {
   const { user } = useAuth();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-purple-50">
+    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-purple-900">
       {/* Hero Section */}
       <div className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-r from-pink-500/10 to-purple-500/10"></div>
         
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 md:py-20">
+        {/* Decorative Elements */}
+        <div className="absolute top-20 left-10 w-72 h-72 bg-pink-400/20 rounded-full blur-3xl animate-pulse-slow"></div>
+        <div className="absolute bottom-20 right-10 w-96 h-96 bg-purple-400/20 rounded-full blur-3xl animate-pulse-slow"></div>
+        
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 md:py-28">
           <div className="text-center">
-            <div className="inline-flex items-center gap-2 bg-white/80 backdrop-blur-sm rounded-full px-4 sm:px-6 py-2 sm:py-3 shadow-lg mb-6 sm:mb-8">
-              <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-pink-500" />
-              <span className="text-xs sm:text-sm font-semibold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
-                Ton réseau social de la mode
+            <div className="inline-flex items-center gap-2 glass rounded-full px-5 sm:px-7 py-3 sm:py-4 shadow-fashion-md mb-8 sm:mb-10 animate-fade-in-scale">
+              <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-pink-500 animate-pulse" />
+              <span className="text-xs sm:text-sm font-semibold fashion-gradient-pink-purple bg-clip-text text-transparent tracking-wide">
+                TON RÉSEAU SOCIAL DE LA MODE
               </span>
             </div>
             
-            <h1 className="text-4xl sm:text-5xl md:text-7xl font-bold mb-4 sm:mb-6 bg-gradient-to-r from-pink-600 via-purple-600 to-pink-600 bg-clip-text text-transparent leading-tight">
+            <h1 className="font-display text-5xl sm:text-6xl md:text-8xl mb-6 sm:mb-8 fashion-gradient-pink-purple bg-clip-text text-transparent leading-tight animate-slide-in-bottom">
               FashionHub
             </h1>
             
-            <p className="text-lg sm:text-xl md:text-2xl text-gray-700 mb-3 sm:mb-4 max-w-3xl mx-auto px-2">
+            <p className="text-xl sm:text-2xl md:text-3xl text-gray-800 dark:text-gray-200 mb-4 sm:mb-5 max-w-3xl mx-auto px-2 font-medium animate-slide-in-bottom" style={{animationDelay: '0.1s'}}>
               Crée ton dressing virtuel, partage tes looks, inspire la communauté
             </p>
             
-            <p className="text-base sm:text-lg text-gray-600 mb-8 sm:mb-12 max-w-2xl mx-auto px-2">
+            <p className="text-base sm:text-lg md:text-xl text-gray-600 dark:text-gray-400 mb-10 sm:mb-14 max-w-2xl mx-auto px-2 animate-slide-in-bottom" style={{animationDelay: '0.2s'}}>
               Organise ta garde-robe, compose des tenues, découvre des styles inspirants et connecte avec des passionnés de mode du monde entier.
             </p>
             
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-4">
+            <div className="flex flex-col sm:flex-row gap-4 sm:gap-5 justify-center px-4 animate-slide-in-bottom" style={{animationDelay: '0.3s'}}>
               {!user ? (
                 <>
-                  <Button 
+                  <button 
                     onClick={() => setLocation('/login')}
-                    size="lg"
-                    className="bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all text-base sm:text-lg px-6 py-5 sm:px-8 sm:py-6"
+                    className="btn-fashion-primary text-base sm:text-lg px-8 py-4 sm:px-10 sm:py-5 micro-interaction"
                     data-testid="button-start-wardrobe"
                   >
-                    <Camera className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+                    <Camera className="w-5 h-5 sm:w-6 sm:h-6 mr-2 inline" />
                     Commencer mon dressing
-                  </Button>
-                  <Button 
+                  </button>
+                  <button 
                     onClick={() => setLocation('/feed')}
-                    variant="outline"
-                    size="lg"
-                    className="border-2 border-purple-300 hover:bg-purple-50 text-base sm:text-lg px-6 py-5 sm:px-8 sm:py-6"
+                    className="btn-fashion-secondary text-base sm:text-lg px-8 py-4 sm:px-10 sm:py-5 micro-interaction"
                     data-testid="button-explore-trends"
                   >
-                    <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+                    <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6 mr-2 inline" />
                     Explorer les tendances
-                  </Button>
+                  </button>
                 </>
               ) : (
                 <>
-                  <Button 
+                  <button 
                     onClick={() => setLocation('/dashboard')}
-                    size="lg"
-                    className="bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all text-base sm:text-lg px-6 py-5 sm:px-8 sm:py-6"
+                    className="btn-fashion-primary text-base sm:text-lg px-8 py-4 sm:px-10 sm:py-5 micro-interaction"
                     data-testid="button-my-wardrobe"
                   >
-                    <Shirt className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+                    <Shirt className="w-5 h-5 sm:w-6 sm:h-6 mr-2 inline" />
                     Mon dressing
-                  </Button>
-                  <Button 
+                  </button>
+                  <button 
                     onClick={() => setLocation('/feed')}
-                    variant="outline"
-                    size="lg"
-                    className="border-2 border-purple-300 hover:bg-purple-50 text-base sm:text-lg px-6 py-5 sm:px-8 sm:py-6"
+                    className="btn-fashion-secondary text-base sm:text-lg px-8 py-4 sm:px-10 sm:py-5 micro-interaction"
                     data-testid="button-view-feed"
                   >
-                    <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+                    <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6 mr-2 inline" />
                     Voir le feed
-                  </Button>
+                  </button>
                 </>
               )}
             </div>
@@ -88,100 +86,100 @@ export default function Home() {
       </div>
 
       {/* Features Section */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 md:py-20">
-        <div className="text-center mb-10 sm:mb-16">
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-3 sm:mb-4">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 md:py-24">
+        <div className="text-center mb-12 sm:mb-20">
+          <h2 className="font-display text-3xl sm:text-4xl md:text-5xl text-gray-900 dark:text-white mb-4 sm:mb-5">
             Pourquoi FashionHub ?
           </h2>
-          <p className="text-base sm:text-lg text-gray-600 max-w-2xl mx-auto px-2">
+          <p className="text-lg sm:text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto px-2">
             Une plateforme complète pour gérer ton style et t'inspirer au quotidien
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
           {/* Feature 1 */}
-          <Card className="p-5 sm:p-6 md:p-8 hover:shadow-2xl transition-shadow duration-300 border-2 border-pink-100 hover:border-pink-300" data-testid="card-feature-wardrobe">
-            <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-gradient-to-br from-pink-500 to-pink-600 rounded-2xl flex items-center justify-center mb-4 sm:mb-5 md:mb-6 shadow-lg">
-              <Shirt className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 text-white" />
+          <div className="instagram-card glass p-6 sm:p-8 shadow-fashion-lg group" data-testid="card-feature-wardrobe">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 fashion-gradient-pink-purple rounded-2xl flex items-center justify-center mb-5 sm:mb-6 shadow-fashion-md micro-interaction">
+              <Shirt className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
             </div>
-            <h3 className="text-xl sm:text-xl md:text-2xl font-bold text-gray-900 mb-3 sm:mb-4">
+            <h3 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-4">
               Dressing Virtuel
             </h3>
-            <p className="text-sm sm:text-base text-gray-600 leading-relaxed">
+            <p className="text-base text-gray-600 dark:text-gray-300 leading-relaxed">
               Catalogue tous tes vêtements avec photos. Organise par catégorie, couleur, saison. 
               Ne perds plus jamais de vue ce que tu possèdes.
             </p>
-          </Card>
+          </div>
 
           {/* Feature 2 */}
-          <Card className="p-5 sm:p-6 md:p-8 hover:shadow-2xl transition-shadow duration-300 border-2 border-purple-100 hover:border-purple-300" data-testid="card-feature-looks">
-            <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center mb-4 sm:mb-5 md:mb-6 shadow-lg">
-              <Camera className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 text-white" />
+          <div className="instagram-card glass p-6 sm:p-8 shadow-fashion-lg group" data-testid="card-feature-looks">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 fashion-gradient-pink-purple rounded-2xl flex items-center justify-center mb-5 sm:mb-6 shadow-fashion-md micro-interaction">
+              <Camera className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
             </div>
-            <h3 className="text-xl sm:text-xl md:text-2xl font-bold text-gray-900 mb-3 sm:mb-4">
+            <h3 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-4">
               Création de Looks
             </h3>
-            <p className="text-sm sm:text-base text-gray-600 leading-relaxed">
+            <p className="text-base text-gray-600 dark:text-gray-300 leading-relaxed">
               Assemble tes articles pour créer des tenues complètes. 
               Partage tes looks préférés avec la communauté et inspire les autres.
             </p>
-          </Card>
+          </div>
 
           {/* Feature 3 */}
-          <Card className="p-5 sm:p-6 md:p-8 hover:shadow-2xl transition-shadow duration-300 border-2 border-pink-100 hover:border-pink-300" data-testid="card-feature-feed">
-            <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-gradient-to-br from-pink-400 to-purple-500 rounded-2xl flex items-center justify-center mb-4 sm:mb-5 md:mb-6 shadow-lg">
-              <Heart className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 text-white" />
+          <div className="instagram-card glass p-6 sm:p-8 shadow-fashion-lg group" data-testid="card-feature-feed">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 fashion-gradient-pink-purple rounded-2xl flex items-center justify-center mb-5 sm:mb-6 shadow-fashion-md micro-interaction">
+              <Heart className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
             </div>
-            <h3 className="text-xl sm:text-xl md:text-2xl font-bold text-gray-900 mb-3 sm:mb-4">
+            <h3 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-4">
               Feed Inspirant
             </h3>
-            <p className="text-sm sm:text-base text-gray-600 leading-relaxed">
+            <p className="text-base text-gray-600 dark:text-gray-300 leading-relaxed">
               Découvre des looks tendance de la communauté. 
               Like, commente et sauvegarde tes tenues favorites pour t'en inspirer.
             </p>
-          </Card>
+          </div>
 
           {/* Feature 4 */}
-          <Card className="p-5 sm:p-6 md:p-8 hover:shadow-2xl transition-shadow duration-300 border-2 border-purple-100 hover:border-purple-300" data-testid="card-feature-community">
-            <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-gradient-to-br from-purple-400 to-pink-500 rounded-2xl flex items-center justify-center mb-4 sm:mb-5 md:mb-6 shadow-lg">
-              <Users className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 text-white" />
+          <div className="instagram-card glass p-6 sm:p-8 shadow-fashion-lg group" data-testid="card-feature-community">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 fashion-gradient-pink-purple rounded-2xl flex items-center justify-center mb-5 sm:mb-6 shadow-fashion-md micro-interaction">
+              <Users className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
             </div>
-            <h3 className="text-xl sm:text-xl md:text-2xl font-bold text-gray-900 mb-3 sm:mb-4">
+            <h3 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-4">
               Communauté Mode
             </h3>
-            <p className="text-sm sm:text-base text-gray-600 leading-relaxed">
+            <p className="text-base text-gray-600 dark:text-gray-300 leading-relaxed">
               Connecte avec d'autres passionnés de mode. 
               Suis tes fashionistas préférés et partage ta passion pour le style.
             </p>
-          </Card>
+          </div>
 
           {/* Feature 5 */}
-          <Card className="p-5 sm:p-6 md:p-8 hover:shadow-2xl transition-shadow duration-300 border-2 border-pink-100 hover:border-pink-300" data-testid="card-feature-collections">
-            <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-gradient-to-br from-pink-500 to-purple-400 rounded-2xl flex items-center justify-center mb-4 sm:mb-5 md:mb-6 shadow-lg">
-              <Star className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 text-white" />
+          <div className="instagram-card glass p-6 sm:p-8 shadow-fashion-lg group" data-testid="card-feature-collections">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 fashion-gradient-pink-purple rounded-2xl flex items-center justify-center mb-5 sm:mb-6 shadow-fashion-md micro-interaction">
+              <Star className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
             </div>
-            <h3 className="text-xl sm:text-xl md:text-2xl font-bold text-gray-900 mb-3 sm:mb-4">
+            <h3 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-4">
               Collections Thématiques
             </h3>
-            <p className="text-sm sm:text-base text-gray-600 leading-relaxed">
+            <p className="text-base text-gray-600 dark:text-gray-300 leading-relaxed">
               Crée des boards Pinterest-style pour organiser tes looks par occasion, saison ou style. 
               Planifie tes tenues à l'avance.
             </p>
-          </Card>
+          </div>
 
           {/* Feature 6 */}
-          <Card className="p-5 sm:p-6 md:p-8 hover:shadow-2xl transition-shadow duration-300 border-2 border-purple-100 hover:border-purple-300" data-testid="card-feature-ai">
-            <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 bg-gradient-to-br from-purple-500 to-pink-400 rounded-2xl flex items-center justify-center mb-4 sm:mb-5 md:mb-6 shadow-lg">
-              <Sparkles className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 text-white" />
+          <div className="instagram-card glass p-6 sm:p-8 shadow-fashion-lg group" data-testid="card-feature-ai">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 fashion-gradient-pink-purple rounded-2xl flex items-center justify-center mb-5 sm:mb-6 shadow-fashion-md micro-interaction">
+              <Sparkles className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
             </div>
-            <h3 className="text-xl sm:text-xl md:text-2xl font-bold text-gray-900 mb-3 sm:mb-4">
+            <h3 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-4">
               Suggestions IA
             </h3>
-            <p className="text-sm sm:text-base text-gray-600 leading-relaxed">
+            <p className="text-base text-gray-600 dark:text-gray-300 leading-relaxed">
               Reçois des suggestions de combinaisons basées sur tes articles. 
               Découvre de nouvelles façons de porter ce que tu as déjà.
             </p>
-          </Card>
+          </div>
         </div>
       </div>
 

@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:wght@400;500;600;700;800;900&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -104,47 +104,65 @@
 @layer base {
   :root {
     --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --foreground: 0 0% 10%;
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 0 0% 10%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 221.2 83.2% 53.3%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 222.2 84% 4.9%;
-    --muted: 210 40% 96%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96%;
-    --accent-foreground: 222.2 84% 4.9%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 221.2 83.2% 53.3%;
-    --radius: 0.5rem;
+    --popover-foreground: 0 0% 10%;
+    --primary: 330 81% 60%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 270 70% 65%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 45%;
+    --accent: 330 81% 95%;
+    --accent-foreground: 330 81% 30%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 90%;
+    --input: 0 0% 94%;
+    --ring: 330 81% 60%;
+    --radius: 1rem;
+
+    --fashion-pink: hsl(330, 81%, 60%);
+    --fashion-purple: hsl(270, 70%, 65%);
+    --fashion-rose: hsl(350, 80%, 70%);
+    --fashion-lavender: hsl(270, 50%, 90%);
+    --fashion-dark: hsl(0, 0%, 10%);
+    --fashion-light: hsl(0, 0%, 98%);
+    --glass-bg: rgba(255, 255, 255, 0.7);
+    --glass-border: rgba(255, 255, 255, 0.18);
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 222.2 84% 4.9%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 224.3 76.3% 94.1%;
+    --background: 0 0% 10%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 12%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 12%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 330 81% 65%;
+    --primary-foreground: 0 0% 10%;
+    --secondary: 270 70% 70%;
+    --secondary-foreground: 0 0% 10%;
+    --muted: 0 0% 18%;
+    --muted-foreground: 0 0% 65%;
+    --accent: 330 81% 20%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 72% 55%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 20%;
+    --input: 0 0% 18%;
+    --ring: 330 81% 65%;
+
+    --fashion-pink: hsl(330, 81%, 65%);
+    --fashion-purple: hsl(270, 70%, 70%);
+    --fashion-rose: hsl(350, 80%, 75%);
+    --fashion-lavender: hsl(270, 50%, 25%);
+    --fashion-dark: hsl(0, 0%, 98%);
+    --fashion-light: hsl(0, 0%, 10%);
+    --glass-bg: rgba(0, 0, 0, 0.5);
+    --glass-border: rgba(255, 255, 255, 0.08);
   }
 }
 
@@ -593,7 +611,291 @@
 
 /* Focus styles */
 .focus-ring {
-  @apply focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2;
+  @apply focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2;
+}
+
+/* ========================================
+   MODERN FASHION APP STYLES - INSTAGRAM INSPIRED
+   ======================================== */
+
+/* Glassmorphism Effect - Premium Modern Look */
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+}
+
+.glass-strong {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(30px) saturate(200%);
+  -webkit-backdrop-filter: blur(30px) saturate(200%);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 8px 40px 0 rgba(31, 38, 135, 0.2);
+}
+
+/* Fashion-Forward Gradients */
+.fashion-gradient-pink-purple {
+  background: linear-gradient(135deg, var(--fashion-pink) 0%, var(--fashion-purple) 100%);
+}
+
+.fashion-gradient-rose-pink {
+  background: linear-gradient(135deg, var(--fashion-rose) 0%, var(--fashion-pink) 100%);
+}
+
+.fashion-gradient-lavender {
+  background: linear-gradient(135deg, var(--fashion-lavender) 0%, rgba(255, 255, 255, 0.5) 100%);
+}
+
+.fashion-gradient-overlay {
+  background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.7) 100%);
+}
+
+/* Editorial Typography - Bold & Fashion-Forward */
+.font-display {
+  font-family: 'Playfair Display', serif;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.font-display-light {
+  font-family: 'Playfair Display', serif;
+  font-weight: 400;
+  letter-spacing: -0.01em;
+}
+
+/* Instagram-Inspired Card Hover Effects */
+.instagram-card {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 1rem;
+  cursor: pointer;
+}
+
+.instagram-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.3) 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 1;
+}
+
+.instagram-card:hover::before {
+  opacity: 1;
+}
+
+.instagram-card:hover {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+}
+
+/* Smooth Micro-Interactions */
+.micro-interaction {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.micro-interaction:hover {
+  transform: scale(1.05);
+}
+
+.micro-interaction:active {
+  transform: scale(0.95);
+}
+
+/* Premium Button Styles */
+.btn-fashion-primary {
+  background: linear-gradient(135deg, var(--fashion-pink) 0%, var(--fashion-purple) 100%);
+  color: white;
+  border: none;
+  padding: 0.75rem 2rem;
+  border-radius: 9999px;
+  font-weight: 600;
+  letter-spacing: 0.025em;
+  box-shadow: 0 10px 25px -5px rgba(236, 72, 153, 0.3);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-fashion-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 15px 35px -5px rgba(236, 72, 153, 0.4);
+}
+
+.btn-fashion-secondary {
+  background: white;
+  color: var(--fashion-pink);
+  border: 2px solid var(--fashion-pink);
+  padding: 0.75rem 2rem;
+  border-radius: 9999px;
+  font-weight: 600;
+  letter-spacing: 0.025em;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-fashion-secondary:hover {
+  background: var(--fashion-pink);
+  color: white;
+  transform: translateY(-2px);
+}
+
+/* Premium Shadow System */
+.shadow-fashion-sm {
+  box-shadow: 0 2px 8px rgba(236, 72, 153, 0.1);
+}
+
+.shadow-fashion-md {
+  box-shadow: 0 8px 24px rgba(236, 72, 153, 0.15);
+}
+
+.shadow-fashion-lg {
+  box-shadow: 0 16px 48px rgba(236, 72, 153, 0.2);
+}
+
+.shadow-fashion-xl {
+  box-shadow: 0 24px 64px rgba(236, 72, 153, 0.25);
+}
+
+/* Elegant Animations - Fashion Editorial Style */
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes slideInBottom {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes shimmer-fashion {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.animate-fade-in-scale {
+  animation: fadeInScale 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.animate-slide-in-bottom {
+  animation: slideInBottom 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Refined Scrollbar - Minimalist & Elegant */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, var(--fashion-pink), var(--fashion-purple));
+  border-radius: 100px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--fashion-pink);
+}
+
+/* Image Overlays - Magazine Style */
+.image-overlay-gradient {
+  position: relative;
+}
+
+.image-overlay-gradient::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 50%, rgba(0,0,0,0.6) 100%);
+  pointer-events: none;
+}
+
+/* Badge Styles - Fashion Labels */
+.badge-fashion {
+  background: linear-gradient(135deg, var(--fashion-pink), var(--fashion-purple));
+  color: white;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+/* Premium Input Styles */
+.input-fashion {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  border: 2px solid transparent;
+  border-radius: 1rem;
+  padding: 0.875rem 1.25rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.input-fashion:focus {
+  border-color: var(--fashion-pink);
+  background: white;
+  box-shadow: 0 8px 24px rgba(236, 72, 153, 0.15);
+  outline: none;
+}
+
+/* Grid Layouts - Pinterest/Instagram Style */
+.masonry-grid {
+  column-count: 3;
+  column-gap: 1rem;
+}
+
+@media (max-width: 1024px) {
+  .masonry-grid {
+    column-count: 2;
+  }
+}
+
+@media (max-width: 640px) {
+  .masonry-grid {
+    column-count: 1;
+  }
+}
+
+.masonry-item {
+  break-inside: avoid;
+  margin-bottom: 1rem;
+}
+
+/* Dark Mode Enhancements */
+.dark .glass {
+  background: var(--glass-bg);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+}
+
+.dark .input-fashion {
+  background: rgba(255, 255, 255, 0.05);
+  color: white;
+}
+
+.dark .input-fashion:focus {
+  background: rgba(255, 255, 255, 0.1);
 }
 
 /* TikTok-like Feed Mobile Experience */
