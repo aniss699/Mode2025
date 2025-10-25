@@ -5606,7 +5606,9 @@ import { eq as eq15 } from "drizzle-orm";
 var router15 = Router10();
 router15.get("/profile/me", async (req, res) => {
   try {
+    console.log("\u{1F4CB} GET /api/profile/me - req.user:", req.user);
     if (!req.user?.id) {
+      console.error("\u274C Utilisateur non authentifi\xE9 - req.user:", req.user);
       return res.status(401).json({ error: "Non authentifi\xE9" });
     }
     const userId2 = req.user.id;
