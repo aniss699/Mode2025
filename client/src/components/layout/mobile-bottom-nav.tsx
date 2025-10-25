@@ -75,7 +75,7 @@ export default function MobileBottomNav() {
   };
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 shadow-lg">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-gray-950 border-t border-stone-200 dark:border-stone-800 shadow-sm">
       <div className="flex justify-around items-center h-16 px-2 relative">
         {mainNavItems.slice(0, 2).map((item) => {
           const isActive = location === item.path;
@@ -87,8 +87,8 @@ export default function MobileBottomNav() {
               onClick={() => handleNavigation(item.path)}
               className={`flex flex-col items-center justify-center flex-1 h-full space-y-1 transition-all duration-200 ${
                 isActive 
-                  ? 'text-pink-600' 
-                  : 'text-gray-600 hover:text-pink-500'
+                  ? 'text-stone-900 dark:text-stone-50' 
+                  : 'text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100'
               }`}
               data-testid={item.testId}
             >
@@ -105,10 +105,10 @@ export default function MobileBottomNav() {
           className="flex flex-col items-center justify-center -mt-6 transition-transform duration-200 active:scale-95"
           data-testid="button-new-look-central"
         >
-          <div className="bg-gradient-to-br from-pink-500 to-purple-600 rounded-full p-4 shadow-lg">
-            <Plus className="w-8 h-8 text-white" strokeWidth={2.5} />
+          <div className="bg-stone-900 dark:bg-stone-100 rounded-full p-4 shadow-lg">
+            <Plus className="w-8 h-8 text-white dark:text-stone-900" strokeWidth={2.5} />
           </div>
-          <span className="text-[0.65rem] font-semibold text-gray-700 mt-1">
+          <span className="text-[0.65rem] font-semibold text-stone-700 dark:text-stone-300 mt-1">
             Nouveau
           </span>
         </button>
@@ -123,8 +123,8 @@ export default function MobileBottomNav() {
               onClick={() => handleNavigation(item.path)}
               className={`flex flex-col items-center justify-center flex-1 h-full space-y-1 transition-all duration-200 ${
                 isActive 
-                  ? 'text-pink-600' 
-                  : 'text-gray-600 hover:text-pink-500'
+                  ? 'text-stone-900 dark:text-stone-50' 
+                  : 'text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100'
               }`}
               data-testid={item.testId}
             >
@@ -139,7 +139,7 @@ export default function MobileBottomNav() {
         <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
           <SheetTrigger asChild>
             <button
-              className="flex flex-col items-center justify-center flex-1 h-full space-y-1 text-gray-600 hover:text-blue-500 transition-all duration-200"
+              className="flex flex-col items-center justify-center flex-1 h-full space-y-1 text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 transition-all duration-200"
               data-testid="nav-menu"
             >
               <Menu className="w-6 h-6" />
@@ -148,9 +148,9 @@ export default function MobileBottomNav() {
               </span>
             </button>
           </SheetTrigger>
-          <SheetContent side="bottom" className="h-auto rounded-t-2xl">
+          <SheetContent side="bottom" className="h-auto rounded-t-2xl bg-white dark:bg-gray-950">
             <SheetHeader>
-              <SheetTitle>Menu</SheetTitle>
+              <SheetTitle className="text-stone-900 dark:text-stone-50">Menu</SheetTitle>
             </SheetHeader>
             <div className="py-4 space-y-1">
               {menuItems.map((item) => {
@@ -163,8 +163,8 @@ export default function MobileBottomNav() {
                     onClick={() => handleNavigation(item.path)}
                     className={`w-full flex items-center gap-4 px-4 py-3 rounded-lg transition-colors duration-200 ${
                       isActive 
-                        ? 'bg-pink-50 text-pink-600' 
-                        : 'text-gray-700 hover:bg-gray-50'
+                        ? 'bg-stone-100 dark:bg-stone-800 text-stone-900 dark:text-stone-50' 
+                        : 'text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-900'
                     }`}
                     data-testid={item.testId}
                   >
