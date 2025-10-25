@@ -13,7 +13,7 @@ import { Label } from '@/components/ui/label';
 import { Camera, Settings, Heart, Grid3x3, Users, Sparkles, Edit, Check, MapPin, Link as LinkIcon, Calendar, Shirt, Image as ImageIcon } from 'lucide-react';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
-import { useLocation } from 'react-router-dom'; // Assuming useLocation is from react-router-dom
+import { useLocation } from 'wouter';
 
 interface UserProfile {
   id: number;
@@ -63,7 +63,7 @@ export default function ProfilePage() {
   const { toast } = useToast();
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('wardrobe');
-  const [, setLocation] = useLocation(); // Correctly import and use useLocation
+  const [, navigate] = useLocation();
 
   // Formulaire d'édition
   const [editForm, setEditForm] = useState({
@@ -167,7 +167,7 @@ export default function ProfilePage() {
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Non authentifié</h2>
           <p className="text-gray-600 mb-6">Vous devez vous connecter pour accéder à votre profil.</p>
           <button
-            onClick={() => setLocation('/login')}
+            onClick={() => navigate('/login')}
             className="px-6 py-3 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-lg font-medium hover:shadow-lg transition-all"
           >
             Se connecter

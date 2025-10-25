@@ -17,13 +17,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const currentUser = authService.getCurrentUser();
+    console.log('🔐 AuthProvider - Loading user from localStorage:', currentUser);
     setUser(currentUser);
     setIsLoading(false);
   }, []);
 
   const login = (user: AuthUser) => {
+    console.log('🔐 AuthProvider - Login called with user:', user);
     authService.setCurrentUser(user);
     setUser(user);
+    console.log('🔐 AuthProvider - User set in state');
   };
 
   const logout = () => {
