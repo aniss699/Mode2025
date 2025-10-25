@@ -41,23 +41,23 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-cream dark:bg-gray-950 flex items-center justify-center p-4">
       <div className="max-w-4xl w-full">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2 flex items-center justify-center">
-            <LogIn className="w-10 h-10 mr-3 text-blue-600" />
-            Connexion Swideal
+          <h1 className="text-4xl font-display font-bold text-stone-900 dark:text-stone-50 mb-2 flex items-center justify-center">
+            <LogIn className="w-10 h-10 mr-3 text-stone-600 dark:text-stone-400" />
+            Connexion FashionHub
           </h1>
-          <p className="text-xl text-gray-600">
+          <p className="text-xl text-stone-600 dark:text-stone-400">
             Accédez à votre espace personnel
           </p>
         </div>
 
         <div className="max-w-md mx-auto">
           {/* Formulaire de connexion */}
-          <Card className="shadow-lg">
+          <Card className="shadow-sm border border-stone-200 dark:border-stone-800 bg-white dark:bg-gray-950">
             <CardHeader>
-              <CardTitle className="text-2xl text-center">Se connecter</CardTitle>
+              <CardTitle className="text-2xl font-display text-center text-stone-900 dark:text-stone-50">Se connecter</CardTitle>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleLogin} className="space-y-4">
@@ -107,13 +107,13 @@ export default function LoginPage() {
 
                 <Button
                   type="submit"
-                  className="w-full bg-blue-600 hover:bg-blue-700"
+                  className="w-full bg-stone-900 dark:bg-stone-100 hover:bg-stone-800 dark:hover:bg-stone-200 text-white dark:text-stone-900"
                   disabled={authSubmit.isSubmitting}
                   data-testid="button-login"
                 >
                   {authSubmit.isSubmitting ? (
                     <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 border border-white border-t-transparent rounded-full animate-spin"></div>
+                      <div className="w-4 h-4 border border-white dark:border-stone-900 border-t-transparent rounded-full animate-spin"></div>
                       Connexion...
                     </div>
                   ) : (
