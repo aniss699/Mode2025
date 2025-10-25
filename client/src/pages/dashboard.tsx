@@ -53,17 +53,17 @@ export default function Dashboard() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-pink-50 to-purple-50 flex items-center justify-center">
-        <Card className="max-w-md w-full mx-4 shadow-xl border-2 border-pink-200">
+      <div className="min-h-screen bg-cream dark:bg-gray-950 flex items-center justify-center">
+        <Card className="max-w-md w-full mx-4 shadow-sm border border-stone-200 dark:border-stone-800">
           <CardContent className="p-8 text-center">
-            <div className="w-16 h-16 bg-gradient-to-br from-pink-500 to-purple-500 rounded-full flex items-center justify-center mx-auto mb-6">
-              <Users className="w-8 h-8 text-white" />
+            <div className="w-16 h-16 bg-stone-100 dark:bg-stone-800 rounded-full flex items-center justify-center mx-auto mb-6">
+              <Users className="w-8 h-8 text-stone-600 dark:text-stone-400" />
             </div>
-            <h2 className="text-2xl font-bold text-gray-800 mb-4">Connexion requise</h2>
-            <p className="text-gray-600 mb-6">Connecte-toi pour accéder à ton dressing virtuel</p>
+            <h2 className="text-2xl font-display font-bold text-stone-900 dark:text-stone-50 mb-4">Connexion requise</h2>
+            <p className="text-stone-600 dark:text-stone-400 mb-6">Connecte-toi pour accéder à ton dressing virtuel</p>
             <Button 
               onClick={() => setLocation('/login')}
-              className="w-full bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white"
+              className="w-full bg-stone-900 dark:bg-stone-100 hover:bg-stone-800 dark:hover:bg-stone-200 text-white dark:text-stone-900"
             >
               Se connecter
             </Button>
@@ -74,22 +74,22 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-purple-50">
-      <div className="bg-gradient-to-r from-pink-500 to-purple-500 text-white">
+    <div className="min-h-screen bg-cream dark:bg-gray-950">
+      <div className="bg-stone-900 dark:bg-stone-100 text-white dark:text-stone-900">
         <div className="max-w-7xl mx-auto px-4 py-8">
           <div className="flex flex-col md:flex-row items-center gap-6">
             <div className="relative">
-              <div className="w-24 h-24 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center text-3xl font-bold border-4 border-white/50">
+              <div className="w-24 h-24 rounded-full bg-stone-800 dark:bg-stone-200 flex items-center justify-center text-3xl font-bold border-4 border-stone-700 dark:border-stone-300">
                 {user.name?.split(' ').map((n:any)=>n[0]).join('').toUpperCase() || 'U'}
               </div>
-              <div className="absolute -bottom-1 -right-1 w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center border-2 border-white">
-                <Crown className="w-4 h-4 text-yellow-900" />
+              <div className="absolute -bottom-1 -right-1 w-8 h-8 bg-amber-600 dark:bg-amber-500 rounded-full flex items-center justify-center border-2 border-stone-900 dark:border-stone-100">
+                <Crown className="w-4 h-4 text-amber-50 dark:text-amber-950" />
               </div>
             </div>
 
             <div className="flex-1 text-center md:text-left">
-              <h1 className="text-3xl font-bold mb-2">{user.name}</h1>
-              <p className="text-white/80 mb-4">Passionné(e) de mode et de style</p>
+              <h1 className="text-3xl font-display font-bold mb-2">{user.name}</h1>
+              <p className="text-stone-200 dark:text-stone-700 mb-4">Passionné(e) de mode et de style</p>
               
               <div className="flex flex-wrap gap-6 justify-center md:justify-start">
                 <div>
@@ -115,7 +115,7 @@ export default function Dashboard() {
               <Button 
                 onClick={() => setLocation('/profile')}
                 variant="secondary"
-                className="bg-white/20 hover:bg-white/30 text-white border-white/50"
+                className="bg-stone-800 dark:bg-stone-200 hover:bg-stone-700 dark:hover:bg-stone-300 text-white dark:text-stone-900 border-stone-700 dark:border-stone-300"
               >
                 Voir mon profil
               </Button>

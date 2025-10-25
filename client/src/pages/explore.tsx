@@ -52,11 +52,11 @@ export default function Explore() {
     <div className="container mx-auto px-4 py-8 max-w-7xl">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-          <Sparkles className="inline-block w-8 h-8 mr-2 text-purple-600" />
+        <h1 className="text-3xl font-display font-bold text-stone-900 dark:text-stone-50 mb-2">
+          <Sparkles className="inline-block w-8 h-8 mr-2 text-stone-600 dark:text-stone-400" />
           Explorer
         </h1>
-        <p className="text-gray-600 dark:text-gray-300">
+        <p className="text-stone-600 dark:text-stone-400">
           Découvrez les tendances, styles et fashionistas du moment
         </p>
       </div>
@@ -64,12 +64,12 @@ export default function Explore() {
       {/* Search Bar */}
       <div className="mb-8">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-stone-400 w-5 h-5" />
           <Input
             placeholder="Rechercher des looks, utilisateurs, marques..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 py-6 text-lg"
+            className="pl-10 py-6 text-lg bg-white dark:bg-gray-900 border-stone-300 dark:border-stone-700"
           />
         </div>
       </div>

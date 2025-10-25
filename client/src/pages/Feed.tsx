@@ -54,24 +54,24 @@ export default function FeedPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-purple-50">
+    <div className="min-h-screen bg-cream dark:bg-gray-950">
       {/* Header avec recherche et filtres */}
-      <div className="sticky top-0 z-10 bg-white/80 backdrop-blur-md border-b border-gray-200 shadow-sm">
+      <div className="sticky top-0 z-10 bg-white/90 dark:bg-gray-950/90 backdrop-blur-md border-b border-stone-200 dark:border-stone-800 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
             <div className="flex items-center gap-3">
-              <Sparkles className="w-6 h-6 text-pink-500" />
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
+              <Sparkles className="w-6 h-6 text-stone-600 dark:text-stone-400" />
+              <h1 className="text-2xl font-display font-bold text-stone-900 dark:text-stone-50">
                 Feed Mode
               </h1>
             </div>
 
             <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
               <div className="relative flex-1 md:w-80">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-stone-400" />
                 <Input 
                   placeholder="Rechercher un style, une couleur..." 
-                  className="pl-10 bg-white border-gray-300"
+                  className="pl-10 bg-white dark:bg-gray-900 border-stone-300 dark:border-stone-700"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -79,7 +79,7 @@ export default function FeedPage() {
               
               <Button 
                 onClick={() => setShowAddForm(!showAddForm)}
-                className="bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white"
+                className="bg-stone-900 dark:bg-stone-100 hover:bg-stone-800 dark:hover:bg-stone-200 text-white dark:text-stone-900"
               >
                 + Ajouter un look
               </Button>
@@ -120,7 +120,7 @@ export default function FeedPage() {
         {/* Formulaire d'ajout */}
         {showAddForm && (
           <div className="mb-8 animate-in fade-in slide-in-from-top duration-300">
-            <Card className="p-6 border-2 border-pink-200 bg-white/80 backdrop-blur">
+            <Card className="p-6 border border-stone-200 dark:border-stone-800 bg-white dark:bg-gray-950 shadow-sm">
               <ArticleFormMVP onSaved={()=>{ refresh(); setShowAddForm(false); }} />
             </Card>
           </div>
@@ -129,18 +129,18 @@ export default function FeedPage() {
         {/* Message si pas de looks */}
         {filteredArticles.length === 0 && !showAddForm && (
           <div className="text-center py-20">
-            <div className="w-24 h-24 mx-auto mb-6 bg-gradient-to-br from-pink-100 to-purple-100 rounded-full flex items-center justify-center">
-              <Sparkles className="w-12 h-12 text-pink-500" />
+            <div className="w-24 h-24 mx-auto mb-6 bg-stone-100 dark:bg-stone-800 rounded-full flex items-center justify-center">
+              <Sparkles className="w-12 h-12 text-stone-600 dark:text-stone-400" />
             </div>
-            <h3 className="text-2xl font-bold text-gray-700 mb-2">
+            <h3 className="text-2xl font-display font-bold text-stone-900 dark:text-stone-50 mb-2">
               Aucun look pour le moment
             </h3>
-            <p className="text-gray-500 mb-6">
+            <p className="text-stone-600 dark:text-stone-400 mb-6">
               Sois le premier à partager ton style !
             </p>
             <Button 
               onClick={() => setShowAddForm(true)}
-              className="bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white"
+              className="bg-stone-900 dark:bg-stone-100 hover:bg-stone-800 dark:hover:bg-stone-200 text-white dark:text-stone-900"
             >
               + Créer mon premier look
             </Button>
@@ -157,7 +157,7 @@ export default function FeedPage() {
             return (
               <Card 
                 key={article.id} 
-                className="group overflow-hidden hover:shadow-2xl transition-all duration-300 border-2 border-transparent hover:border-pink-200 cursor-pointer"
+                className="group overflow-hidden hover:shadow-lg transition-all duration-300 border border-stone-200 dark:border-stone-800 hover:border-stone-400 dark:hover:border-stone-600 cursor-pointer bg-white dark:bg-gray-950"
               >
                 {/* Image principale */}
                 <div className="relative aspect-[3/4] overflow-hidden bg-gray-100">

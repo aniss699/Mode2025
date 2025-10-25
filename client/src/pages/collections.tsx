@@ -259,22 +259,22 @@ export default function CollectionsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-purple-50">
+    <div className="min-h-screen bg-cream dark:bg-gray-950">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200">
+      <div className="bg-white dark:bg-gray-950 border-b border-stone-200 dark:border-stone-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
             <div>
-              <div className="inline-flex items-center gap-2 bg-gradient-to-r from-pink-100 to-purple-100 rounded-full px-4 py-2 mb-3">
-                <Bookmark className="w-4 h-4 text-pink-600" />
-                <span className="text-sm font-semibold text-purple-700">
+              <div className="inline-flex items-center gap-2 bg-stone-100 dark:bg-stone-800 rounded-full px-4 py-2 mb-3">
+                <Bookmark className="w-4 h-4 text-stone-600 dark:text-stone-400" />
+                <span className="text-sm font-semibold text-stone-700 dark:text-stone-300">
                   Organisez votre inspiration
                 </span>
               </div>
-              <h1 className="text-3xl sm:text-4xl font-bold mb-2 bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
+              <h1 className="text-3xl sm:text-4xl font-display font-bold mb-2 text-stone-900 dark:text-stone-50">
                 Mes Collections
               </h1>
-              <p className="text-lg text-gray-600">
+              <p className="text-lg text-stone-600 dark:text-stone-400">
                 Créez des collections thématiques et organisez vos looks préférés
               </p>
             </div>
@@ -283,7 +283,7 @@ export default function CollectionsPage() {
                 <Button 
                   data-testid="button-create-collection"
                   size="lg"
-                  className="bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white"
+                  className="bg-stone-900 dark:bg-stone-100 hover:bg-stone-800 dark:hover:bg-stone-200 text-white dark:text-stone-900"
                 >
                   <Plus className="mr-2 h-5 w-5" />
                   Nouvelle Collection
