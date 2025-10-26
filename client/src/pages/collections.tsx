@@ -337,7 +337,7 @@ export default function CollectionsPage() {
                     data-testid="button-submit-collection"
                     onClick={handleCreateCollection}
                     disabled={createCollectionMutation.isPending}
-                    className="w-full bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white"
+                    className="w-full bg-stone-900 dark:bg-stone-100 hover:bg-stone-800 dark:hover:bg-stone-200 text-white dark:text-stone-900"
                   >
                     {createCollectionMutation.isPending ? 'Création...' : 'Créer la collection'}
                   </Button>
@@ -402,7 +402,7 @@ export default function CollectionsPage() {
                 data-testid="button-update-collection"
                 onClick={handleUpdateCollection}
                 disabled={updateCollectionMutation.isPending}
-                className="w-full bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white"
+                className="w-full bg-stone-900 dark:bg-stone-100 hover:bg-stone-800 dark:hover:bg-stone-200 text-white dark:text-stone-900"
               >
                 {updateCollectionMutation.isPending ? 'Modification...' : 'Enregistrer les modifications'}
               </Button>
@@ -420,8 +420,8 @@ export default function CollectionsPage() {
               onClick={() => setActiveTab('my-collections')}
               className={`py-3 px-1 border-b-2 font-medium text-sm sm:text-base ${
                 activeTab === 'my-collections'
-                  ? 'border-pink-500 text-pink-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
+                  ? 'border-stone-900 dark:border-stone-100 text-stone-900 dark:text-stone-100'
+                  : 'border-transparent text-stone-500 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-300'
               }`}
             >
               Mes collections ({collectionsToUse.length})
@@ -431,8 +431,8 @@ export default function CollectionsPage() {
               onClick={() => setActiveTab('saved')}
               className={`py-3 px-1 border-b-2 font-medium text-sm sm:text-base ${
                 activeTab === 'saved'
-                  ? 'border-pink-500 text-pink-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
+                  ? 'border-stone-900 dark:border-stone-100 text-stone-900 dark:text-stone-100'
+                  : 'border-transparent text-stone-500 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-300'
               }`}
             >
               Looks sauvegardés ({savedLooksToUse.length})
@@ -445,8 +445,8 @@ export default function CollectionsPage() {
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {collectionsLoading ? (
               <div className="col-span-full text-center py-12">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-600 mx-auto"></div>
-                <p className="text-gray-500 mt-4">Chargement...</p>
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-stone-900 dark:border-stone-100 mx-auto"></div>
+                <p className="text-stone-500 dark:text-stone-400 mt-4">Chargement...</p>
               </div>
             ) : collectionsToUse.length > 0 ? (
               collectionsToUse.map((collection) => (
@@ -532,7 +532,7 @@ export default function CollectionsPage() {
                 <Button
                   data-testid="button-create-first-collection"
                   onClick={() => setIsCreateDialogOpen(true)}
-                  className="bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white"
+                  className="bg-stone-900 dark:bg-stone-100 hover:bg-stone-800 dark:hover:bg-stone-200 text-white dark:text-stone-900"
                 >
                   <Plus className="w-4 h-4 mr-2" />
                   Créer ma première collection
@@ -547,8 +547,8 @@ export default function CollectionsPage() {
           <div className="grid md:grid-cols-3 lg:grid-cols-4 gap-6">
             {savedLoading ? (
               <div className="col-span-full text-center py-12">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-600 mx-auto"></div>
-                <p className="text-gray-500 mt-4">Chargement...</p>
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-stone-900 dark:border-stone-100 mx-auto"></div>
+                <p className="text-stone-500 dark:text-stone-400 mt-4">Chargement...</p>
               </div>
             ) : savedLooksToUse.length > 0 ? (
               savedLooksToUse.map((look) => (
@@ -565,7 +565,7 @@ export default function CollectionsPage() {
                     <p className="text-xs text-gray-500 mb-2">par {look.creator.username}</p>
                     <div className="flex items-center justify-between text-xs text-gray-500">
                       <div className="flex items-center gap-1">
-                        <Heart className="w-3 h-3 fill-current text-pink-500" />
+                        <Heart className="w-3 h-3 fill-current text-stone-700 dark:text-stone-300" />
                         <span>{look.likesCount}</span>
                       </div>
                       <Button 
