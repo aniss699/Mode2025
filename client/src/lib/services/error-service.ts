@@ -44,8 +44,8 @@ export class ErrorService {
 
   // Messages de succès standardisés
   private static readonly SUCCESS_MESSAGES = {
-    LOGIN_SUCCESS: 'Connexion réussie ! Bienvenue sur Swideal.',
-    REGISTER_SUCCESS: '🎉 Bienvenue sur Swideal ! Votre compte a été créé.',
+    LOGIN_SUCCESS: 'Connexion réussie ! Bienvenue sur FashionHub.',
+    REGISTER_SUCCESS: '🎉 Bienvenue sur FashionHub ! Votre compte a été créé.',
     MISSION_CREATED: '✅ Mission créée avec succès !',
     BID_SUBMITTED: '🚀 Offre envoyée avec succès !',
     PROFILE_UPDATED: 'Profil mis à jour avec succès.',

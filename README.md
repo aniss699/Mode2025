@@ -1,7 +1,7 @@
 
-# 🚀 Swideal - Plateforme d'Appels d'Offres Inversés avec IA
+# 👗 FashionHub - Réseau Social de Mode et Style
 
-Plateforme française moderne qui révolutionne la mise en relation entre clients et prestataires grâce à l'intelligence artificielle et un système d'enchères inversées.
+Plateforme française moderne dédiée à la mode et au style personnel. Créez votre dressing virtuel, composez des looks stylés et partagez votre passion avec une communauté inspirante.
 
 ## 📋 Table des matières
 
@@ -18,7 +18,7 @@ Plateforme française moderne qui révolutionne la mise en relation entre client
 
 ## 🎯 Vue d'ensemble
 
-Swideal est une plateforme innovante qui inverse le processus traditionnel de recherche de prestataires. Au lieu que les clients cherchent des professionnels, ils publient leurs besoins et les prestataires viennent à eux avec leurs meilleures offres.
+FashionHub est un réseau social innovant dédié à la mode et au style personnel. Organisez votre garde-robe en ligne, créez des looks stylés et partagez votre passion avec une communauté de fashionistas.
 
 ### Principe de fonctionnement
 
