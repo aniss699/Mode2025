@@ -18,7 +18,7 @@ export default function LoginPage() {
 
   // Utilisation de l'architecture centralisée pour éliminer la duplication
   const loginApi = useCreateApi<any, { email: string; password: string }>('/api/auth/login', {
-    successMessage: 'Connexion réussie ! Bienvenue sur Swideal',
+    successMessage: 'Connexion réussie ! Bienvenue sur FashionHub',
     errorContext: 'Connexion utilisateur',
     onSuccess: (data) => {
       login(data.user);

@@ -1,5 +1,5 @@
 /**
- * Tableau de bord de monitoring IA - AppelsPro
+ * Tableau de bord de monitoring IA - FashionHub
  * Interface pour surveiller les performances des algorithmes IA
  */
 
