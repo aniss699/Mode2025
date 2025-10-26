@@ -102,7 +102,7 @@ export default function NotreConcept() {
       icon: Palette,
       title: "Explorez votre créativité",
       subtitle: "Libérez le styliste en vous",
-      description: "Testez mille et une combinaisons sans sortir de chez vous. Votre dressing devient votre terrain de jeu mode !",
+      description: "Testez mille et une combinaisons sans sortir de chez vous. Votre dressing devient votre terrain de jeu mode ! Expérimentez avec les couleurs, les textures et les styles pour découvrir des tenues que vous n'auriez jamais imaginées.",
       color: "purple",
       stat: "Style illimité"
     },
@@ -110,7 +110,7 @@ export default function NotreConcept() {
       icon: Users,
       title: "Rejoignez une communauté passionnée",
       subtitle: "Partagez votre passion",
-      description: "Connectez-vous avec des milliers de fashionistas qui vibrent mode comme vous. Échangez, inspirez, apprenez !",
+      description: "Connectez-vous avec des milliers de fashionistas qui vibrent mode comme vous. Échangez, inspirez, apprenez ! Participez à des défis mode, suivez vos créateurs préférés et construisez votre propre communauté de passionnés.",
       color: "pink",
       stat: "Connexions authentiques"
     },
@@ -118,7 +118,7 @@ export default function NotreConcept() {
       icon: TrendingUp,
       title: "Restez toujours tendance",
       subtitle: "Les looks du moment",
-      description: "Découvrez en temps réel ce qui cartonne chez les créateurs mode. Ne ratez plus jamais une tendance !",
+      description: "Découvrez en temps réel ce qui cartonne chez les créateurs mode. Ne ratez plus jamais une tendance ! Notre IA analyse les looks les plus populaires et vous suggère comment adapter les tendances à votre style personnel.",
       color: "blue",
       stat: "Toujours à la pointe"
     },
@@ -126,7 +126,7 @@ export default function NotreConcept() {
       icon: ShoppingBag,
       title: "Optimisez votre garde-robe",
       subtitle: "Moins acheter, mieux porter",
-      description: "Visualisez vos articles, identifiez ceux que vous ne portez jamais, et faites de meilleurs choix shopping.",
+      description: "Visualisez vos articles, identifiez ceux que vous ne portez jamais, et faites de meilleurs choix shopping. Statistiques détaillées sur l'utilisation de vos pièces pour une mode plus consciente et durable.",
       color: "green",
       stat: "Mode durable"
     }
@@ -225,35 +225,35 @@ export default function NotreConcept() {
               et partagez votre passion pour la mode avec une communauté inspirante.
             </p>
 
-            <div className="bg-white/90 backdrop-blur rounded-2xl p-6 max-w-2xl mx-auto mb-8 shadow-xl">
-              <h2 className="text-lg font-bold text-gray-900 mb-4">Ce que vous allez adorer :</h2>
+            <div className="bg-white/90 dark:bg-gray-900/90 backdrop-blur rounded-2xl p-6 max-w-2xl mx-auto mb-8 shadow-xl border border-stone-200 dark:border-stone-800">
+              <h2 className="text-lg font-bold text-stone-900 dark:text-stone-50 mb-4">Ce que vous allez adorer :</h2>
               <div className="grid grid-cols-2 gap-4">
                 <div className="flex items-start space-x-3 text-left" data-testid="feature-virtual-wardrobe">
                   <div className="text-2xl">👗</div>
                   <div>
-                    <div className="font-semibold text-sm">Dressing virtuel</div>
-                    <div className="text-gray-600 text-xs">Organisez votre garde-robe</div>
+                    <div className="font-semibold text-sm text-stone-900 dark:text-stone-50">Dressing virtuel</div>
+                    <div className="text-stone-600 dark:text-stone-400 text-xs">Organisez votre garde-robe</div>
                   </div>
                 </div>
                 <div className="flex items-start space-x-3 text-left" data-testid="feature-create-looks">
                   <div className="text-2xl">✨</div>
                   <div>
-                    <div className="font-semibold text-sm">Créez des looks</div>
-                    <div className="text-gray-600 text-xs">Mix & match créatif</div>
+                    <div className="font-semibold text-sm text-stone-900 dark:text-stone-50">Créez des looks</div>
+                    <div className="text-stone-600 dark:text-stone-400 text-xs">Mix & match créatif</div>
                   </div>
                 </div>
                 <div className="flex items-start space-x-3 text-left" data-testid="feature-community">
                   <div className="text-2xl">💕</div>
                   <div>
-                    <div className="font-semibold text-sm">Communauté mode</div>
-                    <div className="text-gray-600 text-xs">Partagez et inspirez</div>
+                    <div className="font-semibold text-sm text-stone-900 dark:text-stone-50">Communauté mode</div>
+                    <div className="text-stone-600 dark:text-stone-400 text-xs">Partagez et inspirez</div>
                   </div>
                 </div>
                 <div className="flex items-start space-x-3 text-left" data-testid="feature-ai-assistant">
                   <div className="text-2xl">🤖</div>
                   <div>
-                    <div className="font-semibold text-sm">Assistant IA</div>
-                    <div className="text-gray-600 text-xs">Suggestions personnalisées</div>
+                    <div className="font-semibold text-sm text-stone-900 dark:text-stone-50">Assistant IA</div>
+                    <div className="text-stone-600 dark:text-stone-400 text-xs">Suggestions personnalisées</div>
                   </div>
                 </div>
               </div>
@@ -283,6 +283,30 @@ export default function NotreConcept() {
                 <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
               ))}
               <span className="text-gray-600 ml-2">Rejoignez des milliers de fashionistas</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Stats Section */}
+        <div className="mb-16">
+          <div className="bg-white dark:bg-gray-900 border border-stone-200 dark:border-stone-800 rounded-3xl p-8 shadow-xl">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+              <div className="text-center" data-testid="stat-users">
+                <div className="text-4xl font-display font-bold text-stone-900 dark:text-stone-50 mb-2">10K+</div>
+                <div className="text-sm text-stone-600 dark:text-stone-400">Utilisateurs actifs</div>
+              </div>
+              <div className="text-center" data-testid="stat-looks">
+                <div className="text-4xl font-display font-bold text-stone-900 dark:text-stone-50 mb-2">50K+</div>
+                <div className="text-sm text-stone-600 dark:text-stone-400">Looks partagés</div>
+              </div>
+              <div className="text-center" data-testid="stat-items">
+                <div className="text-4xl font-display font-bold text-stone-900 dark:text-stone-50 mb-2">100K+</div>
+                <div className="text-sm text-stone-600 dark:text-stone-400">Articles catalogués</div>
+              </div>
+              <div className="text-center" data-testid="stat-collections">
+                <div className="text-4xl font-display font-bold text-stone-900 dark:text-stone-50 mb-2">25K+</div>
+                <div className="text-sm text-stone-600 dark:text-stone-400">Collections créées</div>
+              </div>
             </div>
           </div>
         </div>

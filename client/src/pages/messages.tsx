@@ -147,11 +147,11 @@ export default function Messages() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
-        <Card className="max-w-md w-full mx-4">
+      <div className="min-h-screen bg-stone-50 dark:bg-gray-950 flex items-center justify-center">
+        <Card className="max-w-md w-full mx-4 border-stone-200 dark:border-stone-800">
           <CardContent className="p-8 text-center">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Connexion requise</h2>
-            <p className="text-gray-600">Connectez-vous pour accéder à vos messages</p>
+            <h2 className="text-2xl font-bold text-stone-900 dark:text-stone-50 mb-4">Connexion requise</h2>
+            <p className="text-stone-600 dark:text-stone-400">Connectez-vous pour accéder à vos messages</p>
           </CardContent>
         </Card>
       </div>
@@ -159,11 +159,11 @@ export default function Messages() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-stone-50 dark:bg-gray-950">
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Messages</h1>
-          <p className="text-gray-600">Communiquez avec vos clients et prestataires</p>
+          <h1 className="font-display text-3xl font-bold text-stone-900 dark:text-stone-50 mb-2">Messages</h1>
+          <p className="text-stone-600 dark:text-stone-400">Communiquez avec vos clients et prestataires</p>
         </div>
 
         <div className="grid lg:grid-cols-12 gap-6 h-[calc(100vh-12rem)]">
@@ -191,9 +191,9 @@ export default function Messages() {
                     <div
                       key={conversation.id}
                       onClick={() => setSelectedConversation(conversation.id)}
-                      className={`p-4 cursor-pointer hover:bg-gray-50 border-l-4 transition-all ${
+                      className={`p-4 cursor-pointer hover:bg-stone-50 dark:hover:bg-stone-800 border-l-4 transition-all ${
                         selectedConversation === conversation.id
-                          ? 'bg-blue-50 border-l-blue-500'
+                          ? 'bg-stone-100 dark:bg-stone-800 border-l-stone-900 dark:border-l-stone-100'
                           : 'border-l-transparent'
                       }`}
                     >
@@ -219,7 +219,7 @@ export default function Messages() {
                             </span>
                           </div>
                           {conversation.missionTitle && (
-                            <p className="text-xs text-blue-600 mb-1">{conversation.missionTitle}</p>
+                            <p className="text-xs text-stone-700 dark:text-stone-300 mb-1">{conversation.missionTitle}</p>
                           )}
                           <div className="flex items-center justify-between">
                             <p className="text-sm text-gray-600 truncate">{conversation.lastMessage}</p>
