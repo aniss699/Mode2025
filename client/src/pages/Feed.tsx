@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Heart, MessageCircle, Bookmark, Share2, Search, Filter, TrendingUp, Sparkles, User } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { useLocation } from 'wouter';
+import { useLanguage } from '@/hooks/use-language';
 
 /**
  * Feed de mode: affiche les looks et articles de la communauté
@@ -22,6 +23,7 @@ export default function FeedPage() {
   const [selectedFilter, setSelectedFilter] = useState<'all' | 'trending' | 'following'>('all');
   const { user } = useAuth();
   const [, setLocation] = useLocation();
+  const { t } = useLanguage();
 
   function refresh() {
     const publicArticles = mvpStore.getArticles().filter((a:any)=>a.isPublic);
@@ -62,7 +64,7 @@ export default function FeedPage() {
             <div className="flex items-center gap-3">
               <Sparkles className="w-6 h-6 text-stone-600 dark:text-stone-400" />
               <h1 className="text-2xl font-display font-bold text-stone-900 dark:text-stone-50">
-                Feed Mode
+                {t('feed.title')}
               </h1>
             </div>
 
@@ -70,7 +72,7 @@ export default function FeedPage() {
               <div className="relative flex-1 md:w-80">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-stone-400" />
                 <Input 
-                  placeholder="Rechercher un style, une couleur..." 
+                  placeholder={t('feed.searchPlaceholder')}
                   className="pl-10 bg-white dark:bg-gray-900 border-stone-300 dark:border-stone-700"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
@@ -81,7 +83,7 @@ export default function FeedPage() {
                 onClick={() => setShowAddForm(!showAddForm)}
                 className="bg-stone-900 dark:bg-stone-100 hover:bg-stone-800 dark:hover:bg-stone-200 text-white dark:text-stone-900"
               >
-                + Ajouter un look
+                + {t('feed.addLook')}
               </Button>
             </div>
           </div>
@@ -94,7 +96,7 @@ export default function FeedPage() {
               onClick={() => setSelectedFilter('all')}
             >
               <Filter className="w-3 h-3 mr-1" />
-              Tous les looks
+              {t('feed.allLooks')}
             </Badge>
             <Badge 
               variant={selectedFilter === 'trending' ? 'default' : 'outline'}
@@ -102,7 +104,7 @@ export default function FeedPage() {
               onClick={() => setSelectedFilter('trending')}
             >
               <TrendingUp className="w-3 h-3 mr-1" />
-              Tendances
+              {t('feed.trending')}
             </Badge>
             <Badge 
               variant={selectedFilter === 'following' ? 'default' : 'outline'}
@@ -110,7 +112,7 @@ export default function FeedPage() {
               onClick={() => setSelectedFilter('following')}
             >
               <User className="w-3 h-3 mr-1" />
-              Abonnements
+              {t('feed.following')}
             </Badge>
           </div>
         </div>
