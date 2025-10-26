@@ -215,18 +215,18 @@ export default function ProfilePage() {
   // Rediriger vers la page de connexion si non authentifié
   if (!user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pink-50 to-purple-50">
-        <div className="text-center p-8 bg-white rounded-lg shadow-lg max-w-md">
+      <div className="min-h-screen flex items-center justify-center bg-stone-50 dark:bg-gray-950">
+        <div className="text-center p-8 bg-white dark:bg-gray-900 border border-stone-200 dark:border-stone-800 rounded-lg shadow-lg max-w-md">
           <div className="mb-4">
-            <svg className="w-16 h-16 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-16 h-16 mx-auto text-stone-400 dark:text-stone-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
             </svg>
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Non authentifié</h2>
-          <p className="text-gray-600 mb-6">Vous devez vous connecter pour accéder à votre profil.</p>
+          <h2 className="text-2xl font-bold text-stone-900 dark:text-stone-50 mb-2">Non authentifié</h2>
+          <p className="text-stone-600 dark:text-stone-400 mb-6">Vous devez vous connecter pour accéder à votre profil.</p>
           <button
             onClick={() => navigate('/login')}
-            className="px-6 py-3 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-lg font-medium hover:shadow-lg transition-all"
+            className="px-6 py-3 bg-stone-900 dark:bg-stone-100 text-white dark:text-stone-900 rounded-lg font-medium hover:bg-stone-800 dark:hover:bg-stone-200 hover:shadow-lg transition-all"
           >
             Se connecter
           </button>
