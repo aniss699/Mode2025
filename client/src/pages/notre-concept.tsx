@@ -289,30 +289,30 @@ export default function NotreConcept() {
 
         <div className="mb-16">
           <div className="text-center mb-10">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Pourquoi FashionHub ?</h2>
-            <p className="text-lg text-gray-600">Bien plus qu'un simple dressing virtuel</p>
+            <h2 className="font-display text-3xl md:text-4xl text-stone-900 dark:text-stone-50 mb-4">Pourquoi FashionHub ?</h2>
+            <p className="text-lg text-stone-600 dark:text-stone-400">Bien plus qu'un simple dressing virtuel</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {emotionalBenefits.map((benefit, index) => (
               <div 
                 key={index}
-                className={`bg-white rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer ${
-                  hoveredBenefit === index ? 'ring-4 ring-purple-200' : ''
+                className={`bg-white dark:bg-gray-900 border border-stone-200 dark:border-stone-800 rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer ${
+                  hoveredBenefit === index ? 'ring-4 ring-stone-300 dark:ring-stone-700' : ''
                 }`}
                 onMouseEnter={() => setHoveredBenefit(index)}
                 onMouseLeave={() => setHoveredBenefit(null)}
                 data-testid={`benefit-card-${index}`}
               >
                 <div className="flex items-start space-x-4">
-                  <div className={`p-3 rounded-xl bg-${benefit.color}-100`}>
-                    <benefit.icon className={`w-6 h-6 text-${benefit.color}-600`} />
+                  <div className="p-3 rounded-xl bg-stone-100 dark:bg-stone-800">
+                    <benefit.icon className="w-6 h-6 text-stone-700 dark:text-stone-300" />
                   </div>
                   <div className="flex-1">
-                    <h3 className="text-xl font-bold text-gray-900 mb-2">{benefit.title}</h3>
-                    <p className={`text-sm font-semibold text-${benefit.color}-600 mb-3`}>{benefit.subtitle}</p>
-                    <p className="text-gray-700 text-base mb-3 leading-relaxed">{benefit.description}</p>
-                    <div className={`inline-block bg-${benefit.color}-50 text-${benefit.color}-700 px-3 py-1 rounded-full font-semibold text-sm`}>
+                    <h3 className="text-xl font-bold text-stone-900 dark:text-stone-50 mb-2">{benefit.title}</h3>
+                    <p className="text-sm font-semibold text-stone-700 dark:text-stone-300 mb-3">{benefit.subtitle}</p>
+                    <p className="text-stone-600 dark:text-stone-400 text-base mb-3 leading-relaxed">{benefit.description}</p>
+                    <div className="inline-block bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 px-3 py-1 rounded-full font-semibold text-sm">
                       {benefit.stat}
                     </div>
                   </div>
@@ -323,9 +323,9 @@ export default function NotreConcept() {
         </div>
 
         <div className="mb-16">
-          <div className="bg-gradient-to-r from-gray-900 via-purple-900 to-pink-900 rounded-3xl p-8 md:p-12 text-white">
+          <div className="bg-stone-900 dark:bg-stone-100 rounded-3xl p-8 md:p-12 text-white dark:text-stone-900">
             <div className="text-center mb-12">
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">Comment ça marche ?</h2>
+              <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">Comment ça marche ?</h2>
               <p className="text-lg opacity-90">4 étapes pour devenir une fashionista connectée</p>
             </div>
 
@@ -335,20 +335,20 @@ export default function NotreConcept() {
                   key={index}
                   className={`text-center p-6 rounded-2xl transition-all duration-500 ${
                     activeDemo === index 
-                      ? 'bg-white/20 shadow-2xl scale-110 transform' 
-                      : 'bg-white/10 hover:bg-white/15'
+                      ? 'bg-white/20 dark:bg-stone-900/20 shadow-2xl scale-110 transform' 
+                      : 'bg-white/10 dark:bg-stone-900/10 hover:bg-white/15 dark:hover:bg-stone-900/15'
                   }`}
                   data-testid={`step-card-${index}`}
                 >
                   <div className="text-5xl mb-4">{step.visual}</div>
                   <h3 className="text-lg font-bold mb-2">{step.title}</h3>
-                  <p className="text-pink-200 font-medium mb-3 text-sm">{step.subtitle}</p>
-                  <p className="text-gray-200 mb-3 text-sm">{step.description}</p>
-                  <div className="bg-purple-500/30 text-purple-200 px-3 py-1 rounded-full text-xs font-medium">
+                  <p className="font-medium mb-3 text-sm opacity-80">{step.subtitle}</p>
+                  <p className="mb-3 text-sm opacity-75">{step.description}</p>
+                  <div className="bg-white/20 dark:bg-stone-900/20 px-3 py-1 rounded-full text-xs font-medium">
                     {step.emotion}
                   </div>
                   {activeDemo === index && (
-                    <p className="mt-4 text-sm text-purple-100 bg-white/10 p-3 rounded-lg animate-fadeIn">
+                    <p className="mt-4 text-sm bg-white/10 dark:bg-stone-900/10 p-3 rounded-lg animate-fadeIn">
                       {step.details}
                     </p>
                   )}
@@ -360,21 +360,21 @@ export default function NotreConcept() {
 
         <div className="mb-16">
           <div className="text-center mb-10">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Fonctionnalités complètes</h2>
-            <p className="text-lg text-gray-600">Tout ce dont vous avez besoin pour gérer votre style</p>
+            <h2 className="font-display text-3xl md:text-4xl text-stone-900 dark:text-stone-50 mb-4">Fonctionnalités complètes</h2>
+            <p className="text-lg text-stone-600 dark:text-stone-400">Tout ce dont vous avez besoin pour gérer votre style</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {features.map((feature, index) => (
-              <Card key={index} className="hover:shadow-xl transition-shadow duration-300" data-testid={`feature-card-${index}`}>
+              <Card key={index} className="hover:shadow-xl transition-shadow duration-300 border-stone-200 dark:border-stone-800" data-testid={`feature-card-${index}`}>
                 <CardHeader>
-                  <div className={`${feature.color} w-12 h-12 rounded-xl flex items-center justify-center mb-4`}>
-                    <feature.icon className="w-6 h-6 text-white" />
+                  <div className="bg-stone-900 dark:bg-stone-100 w-12 h-12 rounded-xl flex items-center justify-center mb-4">
+                    <feature.icon className="w-6 h-6 text-white dark:text-stone-900" />
                   </div>
-                  <CardTitle className="text-lg">{feature.title}</CardTitle>
+                  <CardTitle className="text-lg text-stone-900 dark:text-stone-50">{feature.title}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-gray-600">{feature.description}</p>
+                  <p className="text-stone-600 dark:text-stone-400">{feature.description}</p>
                 </CardContent>
               </Card>
             ))}
@@ -383,23 +383,23 @@ export default function NotreConcept() {
 
         <div className="mb-16">
           <div className="text-center mb-10">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Ils adorent FashionHub</h2>
-            <p className="text-lg text-gray-600">Témoignages de notre communauté</p>
+            <h2 className="font-display text-3xl md:text-4xl text-stone-900 dark:text-stone-50 mb-4">Ils adorent FashionHub</h2>
+            <p className="text-lg text-stone-600 dark:text-stone-400">Témoignages de notre communauté</p>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {testimonials.map((testimonial, index) => (
-              <Card key={index} className="relative overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:scale-105" data-testid={`testimonial-card-${index}`}>
+              <Card key={index} className="relative overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:scale-105 border-stone-200 dark:border-stone-800" data-testid={`testimonial-card-${index}`}>
                 <div className="absolute top-4 right-4 text-2xl">{testimonial.emotion}</div>
                 <CardHeader className="pb-3">
                   <div className="flex items-center space-x-3 mb-3">
-                    <div className="w-12 h-12 bg-gradient-to-r from-pink-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold">
+                    <div className="w-12 h-12 bg-stone-900 dark:bg-stone-100 rounded-full flex items-center justify-center text-white dark:text-stone-900 font-bold">
                       {testimonial.avatar}
                     </div>
                     <div>
-                      <div className="font-bold text-gray-900">{testimonial.name}</div>
-                      <div className="text-sm text-gray-600">{testimonial.role}</div>
-                      <div className="text-xs text-gray-500">{testimonial.company}</div>
+                      <div className="font-bold text-stone-900 dark:text-stone-50">{testimonial.name}</div>
+                      <div className="text-sm text-stone-600 dark:text-stone-400">{testimonial.role}</div>
+                      <div className="text-xs text-stone-500 dark:text-stone-500">{testimonial.company}</div>
                     </div>
                   </div>
                   <div className="flex space-x-1 mb-2">
@@ -409,21 +409,21 @@ export default function NotreConcept() {
                   </div>
                 </CardHeader>
                 <CardContent className="pt-0">
-                  <Quote className="w-5 h-5 text-gray-300 mb-2" />
-                  <p className="text-gray-700 mb-4 italic leading-relaxed">"{testimonial.text}"</p>
+                  <Quote className="w-5 h-5 text-stone-300 dark:text-stone-700 mb-2" />
+                  <p className="text-stone-700 dark:text-stone-300 mb-4 italic leading-relaxed">"{testimonial.text}"</p>
                   
                   <div className="grid grid-cols-1 gap-2">
-                    <div className="flex justify-between items-center p-2 bg-red-50 rounded">
-                      <span className="font-semibold text-red-700 text-sm">Avant :</span>
-                      <span className="text-red-600 text-sm">{testimonial.before}</span>
+                    <div className="flex justify-between items-center p-2 bg-stone-100 dark:bg-stone-800 rounded">
+                      <span className="font-semibold text-stone-700 dark:text-stone-300 text-sm">Avant :</span>
+                      <span className="text-stone-600 dark:text-stone-400 text-sm">{testimonial.before}</span>
                     </div>
-                    <div className="flex justify-between items-center p-2 bg-green-50 rounded">
-                      <span className="font-semibold text-green-700 text-sm">Après :</span>
-                      <span className="text-green-600 text-sm">{testimonial.after}</span>
+                    <div className="flex justify-between items-center p-2 bg-stone-100 dark:bg-stone-800 rounded">
+                      <span className="font-semibold text-stone-700 dark:text-stone-300 text-sm">Après :</span>
+                      <span className="text-stone-600 dark:text-stone-400 text-sm">{testimonial.after}</span>
                     </div>
                   </div>
 
-                  <Badge variant="secondary" className="bg-purple-100 text-purple-800 mt-3">
+                  <Badge variant="secondary" className="bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 mt-3">
                     📁 {testimonial.project}
                   </Badge>
                 </CardContent>
@@ -433,30 +433,30 @@ export default function NotreConcept() {
         </div>
 
         <div className="mb-16">
-          <div className="bg-white rounded-3xl shadow-2xl p-8">
+          <div className="bg-white dark:bg-gray-900 border border-stone-200 dark:border-stone-800 rounded-3xl shadow-2xl p-8">
             <div className="text-center mb-10">
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Questions fréquentes</h2>
-              <p className="text-lg text-gray-600">Tout ce que vous devez savoir</p>
+              <h2 className="font-display text-3xl md:text-4xl text-stone-900 dark:text-stone-50 mb-4">Questions fréquentes</h2>
+              <p className="text-lg text-stone-600 dark:text-stone-400">Tout ce que vous devez savoir</p>
             </div>
 
             <div className="max-w-3xl mx-auto space-y-3">
               {faqData.map((faq, index) => (
-                <div key={index} className="border-2 border-gray-200 rounded-xl overflow-hidden hover:border-purple-300 transition-colors" data-testid={`faq-item-${index}`}>
+                <div key={index} className="border-2 border-stone-200 dark:border-stone-800 rounded-xl overflow-hidden hover:border-stone-400 dark:hover:border-stone-600 transition-colors" data-testid={`faq-item-${index}`}>
                   <button
                     onClick={() => setExpandedFaq(expandedFaq === index ? null : index)}
-                    className="w-full px-6 py-4 text-left flex justify-between items-center hover:bg-gray-50 transition-colors"
+                    className="w-full px-6 py-4 text-left flex justify-between items-center hover:bg-stone-50 dark:hover:bg-stone-800 transition-colors"
                     data-testid={`faq-button-${index}`}
                   >
-                    <span className="font-semibold text-gray-900 pr-4">{faq.question}</span>
+                    <span className="font-semibold text-stone-900 dark:text-stone-50 pr-4">{faq.question}</span>
                     {expandedFaq === index ? (
-                      <ChevronUp className="w-5 h-5 text-purple-500 flex-shrink-0" />
+                      <ChevronUp className="w-5 h-5 text-stone-700 dark:text-stone-300 flex-shrink-0" />
                     ) : (
-                      <ChevronDown className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                      <ChevronDown className="w-5 h-5 text-stone-400 dark:text-stone-600 flex-shrink-0" />
                     )}
                   </button>
                   {expandedFaq === index && (
-                    <div className="px-6 py-4 bg-purple-50 border-t-2 border-purple-100">
-                      <p className="text-gray-700 leading-relaxed">{faq.answer}</p>
+                    <div className="px-6 py-4 bg-stone-50 dark:bg-stone-800 border-t-2 border-stone-200 dark:border-stone-700">
+                      <p className="text-stone-700 dark:text-stone-300 leading-relaxed">{faq.answer}</p>
                     </div>
                   )}
                 </div>
@@ -465,12 +465,12 @@ export default function NotreConcept() {
           </div>
         </div>
 
-        <div className="text-center bg-gradient-to-r from-pink-500 to-purple-600 rounded-3xl p-12 text-white">
-          <h2 className="text-3xl md:text-4xl font-bold mb-6">Prêt à révolutionner votre style ?</h2>
+        <div className="text-center bg-stone-900 dark:bg-stone-100 rounded-3xl p-12 text-white dark:text-stone-900 border-0 shadow-2xl">
+          <h2 className="font-display text-3xl md:text-4xl font-bold mb-6">Prêt à révolutionner votre style ?</h2>
           <p className="text-xl mb-8 opacity-90">Rejoignez des milliers de fashionistas qui transforment leur passion mode en partage créatif</p>
           <Button 
             onClick={() => setLocation('/profile')}
-            className="bg-white text-purple-600 hover:bg-gray-100 font-bold text-lg px-10 py-6 rounded-full shadow-xl transform hover:scale-105 transition-all duration-300"
+            className="bg-white dark:bg-stone-900 text-stone-900 dark:text-white hover:bg-stone-100 dark:hover:bg-stone-800 font-bold text-lg px-10 py-6 rounded-full shadow-xl transform hover:scale-105 transition-all duration-300"
             data-testid="button-cta-bottom"
           >
             <Sparkles className="w-5 h-5 mr-2" />
