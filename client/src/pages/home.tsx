@@ -1,13 +1,79 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Sparkles, Heart, Users, Camera, Shirt, TrendingUp, Star } from 'lucide-react';
+import { Sparkles, Heart, Users, Camera, Shirt, TrendingUp, Star, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
+import useEmblaCarousel from 'embla-carousel-react';
 
 export default function Home() {
   const [, setLocation] = useLocation();
   const { user } = useAuth();
+  
+  // Carousel setup
+  const [emblaRef, emblaApi] = useEmblaCarousel({ 
+    loop: true, 
+    align: 'start',
+    slidesToScroll: 1
+  });
+  const [selectedIndex, setSelectedIndex] = useState(0);
+
+  const scrollPrev = useCallback(() => emblaApi && emblaApi.scrollPrev(), [emblaApi]);
+  const scrollNext = useCallback(() => emblaApi && emblaApi.scrollNext(), [emblaApi]);
+
+  const onSelect = useCallback(() => {
+    if (!emblaApi) return;
+    setSelectedIndex(emblaApi.selectedScrollSnap());
+  }, [emblaApi]);
+
+  useEffect(() => {
+    if (!emblaApi) return;
+    onSelect();
+    emblaApi.on('select', onSelect);
+    return () => {
+      emblaApi.off('select', onSelect);
+    };
+  }, [emblaApi, onSelect]);
+
+  // Features data
+  const features = [
+    {
+      icon: Shirt,
+      title: "Dressing Virtuel",
+      description: "Catalogue tous tes vêtements avec photos. Organise par catégorie, couleur, saison.",
+      testId: "card-feature-wardrobe"
+    },
+    {
+      icon: Camera,
+      title: "Création de Looks",
+      description: "Assemble tes articles pour créer des tenues complètes et partage-les.",
+      testId: "card-feature-looks"
+    },
+    {
+      icon: Heart,
+      title: "Feed Inspirant",
+      description: "Découvre des looks tendance et sauvegarde tes tenues favorites.",
+      testId: "card-feature-feed"
+    },
+    {
+      icon: Users,
+      title: "Communauté Mode",
+      description: "Connecte avec d'autres passionnés et partage ta passion pour le style.",
+      testId: "card-feature-community"
+    },
+    {
+      icon: Star,
+      title: "Collections Thématiques",
+      description: "Crée des boards pour organiser tes looks par occasion ou style.",
+      testId: "card-feature-collections"
+    },
+    {
+      icon: Sparkles,
+      title: "Suggestions IA",
+      description: "Découvre de nouvelles façons de porter ce que tu as déjà.",
+      testId: "card-feature-ai"
+    }
+  ];
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-950">
@@ -86,9 +152,9 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Features Section - Clean Grid */}
+      {/* Features Section - Interactive Carousel */}
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 md:py-24 bg-white dark:bg-gray-950">
-        <div className="text-center mb-16">
+        <div className="text-center mb-12">
           <h2 className="font-display text-3xl sm:text-4xl text-stone-900 dark:text-stone-50 mb-4">
             Pourquoi FashionHub ?
           </h2>
@@ -97,84 +163,70 @@ export default function Home() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 sm:gap-10">
-          {/* Feature 1 */}
-          <div className="group" data-testid="card-feature-wardrobe">
-            <div className="mb-4 p-3 bg-stone-100 dark:bg-stone-800 rounded-lg inline-block">
-              <Shirt className="w-6 h-6 text-stone-700 dark:text-stone-300" />
+        {/* Carousel Container */}
+        <div className="relative">
+          {/* Carousel Viewport */}
+          <div className="overflow-hidden" ref={emblaRef}>
+            <div className="flex touch-pan-y">
+              {features.map((feature, index) => {
+                const Icon = feature.icon;
+                return (
+                  <div 
+                    key={index} 
+                    className="flex-[0_0_100%] min-w-0 sm:flex-[0_0_50%] lg:flex-[0_0_33.333%] px-4"
+                    data-testid={feature.testId}
+                  >
+                    <div className="group h-full p-6 rounded-xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-gray-900 hover:border-stone-300 dark:hover:border-stone-700 transition-all duration-300 hover:shadow-lg">
+                      <div className="mb-4 p-3 bg-stone-100 dark:bg-stone-800 rounded-lg inline-block group-hover:bg-stone-200 dark:group-hover:bg-stone-700 transition-colors">
+                        <Icon className="w-6 h-6 text-stone-700 dark:text-stone-300" />
+                      </div>
+                      <h3 className="text-xl font-semibold text-stone-900 dark:text-stone-50 mb-3">
+                        {feature.title}
+                      </h3>
+                      <p className="text-base text-stone-600 dark:text-stone-400 leading-relaxed">
+                        {feature.description}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
-            <h3 className="text-xl font-semibold text-stone-900 dark:text-stone-50 mb-3">
-              Dressing Virtuel
-            </h3>
-            <p className="text-base text-stone-600 dark:text-stone-400 leading-relaxed">
-              Catalogue tous tes vêtements avec photos. Organise par catégorie, couleur, saison.
-            </p>
           </div>
 
-          {/* Feature 2 */}
-          <div className="group" data-testid="card-feature-looks">
-            <div className="mb-4 p-3 bg-stone-100 dark:bg-stone-800 rounded-lg inline-block">
-              <Camera className="w-6 h-6 text-stone-700 dark:text-stone-300" />
-            </div>
-            <h3 className="text-xl font-semibold text-stone-900 dark:text-stone-50 mb-3">
-              Création de Looks
-            </h3>
-            <p className="text-base text-stone-600 dark:text-stone-400 leading-relaxed">
-              Assemble tes articles pour créer des tenues complètes et partage-les.
-            </p>
-          </div>
+          {/* Navigation Buttons */}
+          <button
+            onClick={scrollPrev}
+            className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 w-10 h-10 rounded-full bg-stone-900 dark:bg-stone-100 text-white dark:text-stone-900 flex items-center justify-center shadow-lg hover:bg-stone-800 dark:hover:bg-stone-200 transition-all duration-200 opacity-0 md:opacity-100 hover:scale-110"
+            aria-label="Précédent"
+            data-testid="button-carousel-prev"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+          <button
+            onClick={scrollNext}
+            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 w-10 h-10 rounded-full bg-stone-900 dark:bg-stone-100 text-white dark:text-stone-900 flex items-center justify-center shadow-lg hover:bg-stone-800 dark:hover:bg-stone-200 transition-all duration-200 opacity-0 md:opacity-100 hover:scale-110"
+            aria-label="Suivant"
+            data-testid="button-carousel-next"
+          >
+            <ChevronRight className="w-5 h-5" />
+          </button>
+        </div>
 
-          {/* Feature 3 */}
-          <div className="group" data-testid="card-feature-feed">
-            <div className="mb-4 p-3 bg-stone-100 dark:bg-stone-800 rounded-lg inline-block">
-              <Heart className="w-6 h-6 text-stone-700 dark:text-stone-300" />
-            </div>
-            <h3 className="text-xl font-semibold text-stone-900 dark:text-stone-50 mb-3">
-              Feed Inspirant
-            </h3>
-            <p className="text-base text-stone-600 dark:text-stone-400 leading-relaxed">
-              Découvre des looks tendance et sauvegarde tes tenues favorites.
-            </p>
-          </div>
-
-          {/* Feature 4 */}
-          <div className="group" data-testid="card-feature-community">
-            <div className="mb-4 p-3 bg-stone-100 dark:bg-stone-800 rounded-lg inline-block">
-              <Users className="w-6 h-6 text-stone-700 dark:text-stone-300" />
-            </div>
-            <h3 className="text-xl font-semibold text-stone-900 dark:text-stone-50 mb-3">
-              Communauté Mode
-            </h3>
-            <p className="text-base text-stone-600 dark:text-stone-400 leading-relaxed">
-              Connecte avec d'autres passionnés et partage ta passion pour le style.
-            </p>
-          </div>
-
-          {/* Feature 5 */}
-          <div className="group" data-testid="card-feature-collections">
-            <div className="mb-4 p-3 bg-stone-100 dark:bg-stone-800 rounded-lg inline-block">
-              <Star className="w-6 h-6 text-stone-700 dark:text-stone-300" />
-            </div>
-            <h3 className="text-xl font-semibold text-stone-900 dark:text-stone-50 mb-3">
-              Collections Thématiques
-            </h3>
-            <p className="text-base text-stone-600 dark:text-stone-400 leading-relaxed">
-              Crée des boards pour organiser tes looks par occasion ou style.
-            </p>
-          </div>
-
-          {/* Feature 6 */}
-          <div className="group" data-testid="card-feature-ai">
-            <div className="mb-4 p-3 bg-stone-100 dark:bg-stone-800 rounded-lg inline-block">
-              <Sparkles className="w-6 h-6 text-stone-700 dark:text-stone-300" />
-            </div>
-            <h3 className="text-xl font-semibold text-stone-900 dark:text-stone-50 mb-3">
-              Suggestions IA
-            </h3>
-            <p className="text-base text-stone-600 dark:text-stone-400 leading-relaxed">
-              Découvre de nouvelles façons de porter ce que tu as déjà.
-            </p>
-          </div>
+        {/* Pagination Dots */}
+        <div className="flex justify-center gap-2 mt-8">
+          {features.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => emblaApi && emblaApi.scrollTo(index)}
+              className={`transition-all duration-300 rounded-full ${
+                index === selectedIndex
+                  ? 'w-8 h-2 bg-stone-900 dark:bg-stone-100'
+                  : 'w-2 h-2 bg-stone-300 dark:bg-stone-700 hover:bg-stone-400 dark:hover:bg-stone-600'
+              }`}
+              aria-label={`Aller à la diapositive ${index + 1}`}
+              data-testid={`dot-carousel-${index}`}
+            />
+          ))}
         </div>
       </div>
 
