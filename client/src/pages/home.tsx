@@ -179,52 +179,52 @@ export default function Home() {
       </div>
 
       {/* How It Works */}
-      <div className="bg-gradient-to-br from-purple-50 to-pink-50 py-12 sm:py-16 md:py-20">
+      <div className="bg-stone-50 dark:bg-gray-900 py-12 sm:py-16 md:py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-10 sm:mb-16">
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-3 sm:mb-4">
+            <h2 className="font-display text-2xl sm:text-3xl md:text-4xl text-stone-900 dark:text-stone-50 mb-3 sm:mb-4">
               Comment ça marche ?
             </h2>
-            <p className="text-base sm:text-lg text-gray-600 max-w-2xl mx-auto px-2">
+            <p className="text-base sm:text-lg text-stone-600 dark:text-stone-400 max-w-2xl mx-auto px-2">
               Trois étapes simples pour révolutionner ta façon de gérer ton style
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 sm:gap-10 md:gap-12">
             <div className="text-center px-2" data-testid="step-catalog">
-              <div className="w-16 h-16 sm:w-18 sm:h-18 md:w-20 md:h-20 bg-gradient-to-br from-pink-500 to-pink-600 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-5 md:mb-6 text-2xl sm:text-2xl md:text-3xl font-bold text-white shadow-xl">
+              <div className="w-16 h-16 sm:w-18 sm:h-18 md:w-20 md:h-20 bg-stone-900 dark:bg-stone-100 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-5 md:mb-6 text-2xl sm:text-2xl md:text-3xl font-bold text-white dark:text-stone-900 shadow-lg">
                 1
               </div>
-              <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2 sm:mb-3">
+              <h3 className="text-lg sm:text-xl font-semibold text-stone-900 dark:text-stone-50 mb-2 sm:mb-3">
                 Catalogue ton dressing
               </h3>
-              <p className="text-sm sm:text-base text-gray-600">
+              <p className="text-sm sm:text-base text-stone-600 dark:text-stone-400">
                 Prends en photo tous tes vêtements et accessoires. 
                 Ajoute-les à ton dressing virtuel avec leurs caractéristiques.
               </p>
             </div>
 
             <div className="text-center px-2" data-testid="step-create">
-              <div className="w-16 h-16 sm:w-18 sm:h-18 md:w-20 md:h-20 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-5 md:mb-6 text-2xl sm:text-2xl md:text-3xl font-bold text-white shadow-xl">
+              <div className="w-16 h-16 sm:w-18 sm:h-18 md:w-20 md:h-20 bg-stone-900 dark:bg-stone-100 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-5 md:mb-6 text-2xl sm:text-2xl md:text-3xl font-bold text-white dark:text-stone-900 shadow-lg">
                 2
               </div>
-              <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2 sm:mb-3">
+              <h3 className="text-lg sm:text-xl font-semibold text-stone-900 dark:text-stone-50 mb-2 sm:mb-3">
                 Crée tes looks
               </h3>
-              <p className="text-sm sm:text-base text-gray-600">
+              <p className="text-sm sm:text-base text-stone-600 dark:text-stone-400">
                 Combine tes articles pour créer des tenues. 
                 Visualise tes looks et partage tes meilleures créations.
               </p>
             </div>
 
             <div className="text-center px-2" data-testid="step-inspire">
-              <div className="w-16 h-16 sm:w-18 sm:h-18 md:w-20 md:h-20 bg-gradient-to-br from-pink-400 to-purple-500 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-5 md:mb-6 text-2xl sm:text-2xl md:text-3xl font-bold text-white shadow-xl">
+              <div className="w-16 h-16 sm:w-18 sm:h-18 md:w-20 md:h-20 bg-stone-900 dark:bg-stone-100 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-5 md:mb-6 text-2xl sm:text-2xl md:text-3xl font-bold text-white dark:text-stone-900 shadow-lg">
                 3
               </div>
-              <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2 sm:mb-3">
+              <h3 className="text-lg sm:text-xl font-semibold text-stone-900 dark:text-stone-50 mb-2 sm:mb-3">
                 Inspire & sois inspiré
               </h3>
-              <p className="text-sm sm:text-base text-gray-600">
+              <p className="text-sm sm:text-base text-stone-600 dark:text-stone-400">
                 Découvre les looks de la communauté. 
                 Échange avec d'autres passionnés et trouve l'inspiration au quotidien.
               </p>
@@ -235,8 +235,8 @@ export default function Home() {
 
       {/* CTA Section */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 md:py-20">
-        <Card className="bg-gradient-to-r from-pink-500 to-purple-500 p-6 sm:p-8 md:p-12 text-center text-white shadow-2xl">
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4">
+        <Card className="bg-stone-900 dark:bg-stone-100 p-6 sm:p-8 md:p-12 text-center text-white dark:text-stone-900 shadow-2xl border-0">
+          <h2 className="font-display text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4">
             Prêt à révolutionner ton style ?
           </h2>
           <p className="text-base sm:text-lg md:text-xl mb-6 sm:mb-8 opacity-90 px-2">
@@ -245,7 +245,7 @@ export default function Home() {
           <Button 
             onClick={() => setLocation(user ? '/dashboard' : '/login')}
             size="lg"
-            className="bg-white text-purple-600 hover:bg-gray-100 text-base sm:text-lg px-8 py-5 sm:px-10 sm:py-6 shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all"
+            className="bg-white dark:bg-stone-900 text-stone-900 dark:text-white hover:bg-stone-100 dark:hover:bg-stone-800 text-base sm:text-lg px-8 py-5 sm:px-10 sm:py-6 shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all"
             data-testid="button-cta-main"
           >
             <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
