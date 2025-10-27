@@ -273,6 +273,17 @@ const translations = {
     'feed.allLooks': 'Tous les looks',
     'feed.trending': 'Tendances',
     'feed.following': 'Abonnements',
+    'feed.noLooks': 'Aucun look pour le moment',
+    'feed.noLooksMessage': 'Sois le premier à partager ton style !',
+    'feed.createFirstLook': 'Créer mon premier look',
+    
+    // Explore page
+    'explore.title': 'Explorer',
+    'explore.subtitle': 'Découvrez les tendances, styles et fashionistas du moment',
+    'explore.searchPlaceholder': 'Rechercher des looks, utilisateurs, marques...',
+    'explore.trends': 'Tendances',
+    'explore.people': 'Personnes',
+    'explore.hashtags': 'Hashtags',
 
     // Legal page
     'legal.title': 'Mentions Légales & Politique de Confidentialité',

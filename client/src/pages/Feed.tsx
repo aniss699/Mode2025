@@ -135,16 +135,16 @@ export default function FeedPage() {
               <Sparkles className="w-12 h-12 text-stone-600 dark:text-stone-400" />
             </div>
             <h3 className="text-2xl font-display font-bold text-stone-900 dark:text-stone-50 mb-2">
-              Aucun look pour le moment
+              {t('feed.noLooks')}
             </h3>
             <p className="text-stone-600 dark:text-stone-400 mb-6">
-              Sois le premier à partager ton style !
+              {t('feed.noLooksMessage')}
             </p>
             <Button 
               onClick={() => setShowAddForm(true)}
               className="bg-stone-900 dark:bg-stone-100 hover:bg-stone-800 dark:hover:bg-stone-200 text-white dark:text-stone-900"
             >
-              + Créer mon premier look
+              + {t('feed.createFirstLook')}
             </Button>
           </div>
         )}

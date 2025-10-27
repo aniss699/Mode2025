@@ -54,10 +54,10 @@ export default function Explore() {
       <div className="mb-8">
         <h1 className="text-3xl font-display font-bold text-stone-900 dark:text-stone-50 mb-2">
           <Sparkles className="inline-block w-8 h-8 mr-2 text-stone-600 dark:text-stone-400" />
-          Explorer
+          {t('explore.title')}
         </h1>
         <p className="text-stone-600 dark:text-stone-400">
-          Découvrez les tendances, styles et fashionistas du moment
+          {t('explore.subtitle')}
         </p>
       </div>
 
@@ -66,7 +66,7 @@ export default function Explore() {
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-stone-400 w-5 h-5" />
           <Input
-            placeholder="Rechercher des looks, utilisateurs, marques..."
+            placeholder={t('explore.searchPlaceholder')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-10 py-6 text-lg bg-white dark:bg-gray-900 border-stone-300 dark:border-stone-700"
@@ -79,15 +79,15 @@ export default function Explore() {
         <TabsList className="grid w-full grid-cols-3 mb-8">
           <TabsTrigger value="trends">
             <TrendingUp className="w-4 h-4 mr-2" />
-            Tendances
+            {t('explore.trends')}
           </TabsTrigger>
           <TabsTrigger value="people">
             <Users className="w-4 h-4 mr-2" />
-            Personnes
+            {t('explore.people')}
           </TabsTrigger>
           <TabsTrigger value="hashtags">
             <Hash className="w-4 h-4 mr-2" />
-            Hashtags
+            {t('explore.hashtags')}
           </TabsTrigger>
         </TabsList>
 
