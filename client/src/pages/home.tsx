@@ -9,6 +9,7 @@ import useEmblaCarousel from 'embla-carousel-react';
 export default function Home() {
   const [, setLocation] = useLocation();
   const { user } = useAuth();
+  const { t } = useLanguage();
   
   // Carousel setup
   const [emblaRef, emblaApi] = useEmblaCarousel({ 
@@ -35,42 +36,42 @@ export default function Home() {
     };
   }, [emblaApi, onSelect]);
 
-  // Features data
+  // Features data - using translation keys
   const features = [
     {
       icon: Shirt,
-      title: "Dressing Virtuel",
-      description: "Catalogue tous tes vêtements avec photos. Organise par catégorie, couleur, saison.",
+      titleKey: "features.wardrobe.title",
+      descriptionKey: "features.wardrobe.description",
       testId: "card-feature-wardrobe"
     },
     {
       icon: Camera,
-      title: "Création de Looks",
-      description: "Assemble tes articles pour créer des tenues complètes et partage-les.",
+      titleKey: "features.looks.title",
+      descriptionKey: "features.looks.description",
       testId: "card-feature-looks"
     },
     {
       icon: Heart,
-      title: "Feed Inspirant",
-      description: "Découvre des looks tendance et sauvegarde tes tenues favorites.",
+      titleKey: "features.feed.title",
+      descriptionKey: "features.feed.description",
       testId: "card-feature-feed"
     },
     {
       icon: Users,
-      title: "Communauté Mode",
-      description: "Connecte avec d'autres passionnés et partage ta passion pour le style.",
+      titleKey: "features.community.title",
+      descriptionKey: "features.community.description",
       testId: "card-feature-community"
     },
     {
       icon: Star,
-      title: "Collections Thématiques",
-      description: "Crée des boards pour organiser tes looks par occasion ou style.",
+      titleKey: "features.collections.title",
+      descriptionKey: "features.collections.description",
       testId: "card-feature-collections"
     },
     {
       icon: Sparkles,
-      title: "Suggestions IA",
-      description: "Découvre de nouvelles façons de porter ce que tu as déjà.",
+      titleKey: "features.ai.title",
+      descriptionKey: "features.ai.description",
       testId: "card-feature-ai"
     }
   ];
@@ -87,23 +88,23 @@ export default function Home() {
             <div className="inline-flex items-center gap-2 bg-stone-100 dark:bg-stone-800 rounded-md px-4 py-2 mb-2">
               <Sparkles className="w-4 h-4 text-stone-600 dark:text-stone-400" />
               <span className="text-xs font-medium text-stone-600 dark:text-stone-400 tracking-wide uppercase">
-                Réseau social de la mode
+                {t('home.fashionhub.badge')}
               </span>
             </div>
             
             {/* Main Heading - Sober Typography */}
             <h1 className="font-display text-5xl sm:text-6xl md:text-7xl text-stone-900 dark:text-stone-50 leading-tight tracking-tight">
-              FashionHub
+              {t('home.fashionhub.title')}
             </h1>
             
             {/* Subtitle - Clear & Concise */}
             <p className="text-xl sm:text-2xl text-stone-700 dark:text-stone-300 max-w-2xl mx-auto font-light leading-relaxed">
-              Crée ton dressing virtuel, partage tes looks, inspire la communauté
+              {t('home.fashionhub.subtitle')}
             </p>
             
             {/* Description */}
             <p className="text-base sm:text-lg text-stone-600 dark:text-stone-400 max-w-xl mx-auto">
-              Organise ta garde-robe, compose des tenues et connecte avec des passionnés de mode.
+              {t('home.fashionhub.description')}
             </p>
             
             {/* CTA Buttons - Minimalist Style */}
@@ -116,7 +117,7 @@ export default function Home() {
                     data-testid="button-start-wardrobe"
                   >
                     <Camera className="w-4 h-4 sm:w-5 sm:h-5 mr-2 inline" />
-                    Commencer mon dressing
+                    {t('home.fashionhub.startDressing')}
                   </button>
                   <button 
                     onClick={() => setLocation('/feed')}
@@ -124,7 +125,7 @@ export default function Home() {
                     data-testid="button-explore-trends"
                   >
                     <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 mr-2 inline" />
-                    Explorer les tendances
+                    {t('home.fashionhub.exploreTrends')}
                   </button>
                 </>
               ) : (
@@ -135,7 +136,7 @@ export default function Home() {
                     data-testid="button-my-wardrobe"
                   >
                     <Shirt className="w-4 h-4 sm:w-5 sm:h-5 mr-2 inline" />
-                    Mon dressing
+                    {t('profile.myWardrobe')}
                   </button>
                   <button 
                     onClick={() => setLocation('/feed')}
@@ -143,7 +144,7 @@ export default function Home() {
                     data-testid="button-view-feed"
                   >
                     <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 mr-2 inline" />
-                    Voir le feed
+                    {t('home.fashionhub.viewFeed')}
                   </button>
                 </>
               )}
@@ -156,10 +157,10 @@ export default function Home() {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 md:py-24 bg-white dark:bg-gray-950">
         <div className="text-center mb-12">
           <h2 className="font-display text-3xl sm:text-4xl text-stone-900 dark:text-stone-50 mb-4">
-            Pourquoi FashionHub ?
+            {t('concept.whyTitle')}
           </h2>
           <p className="text-lg text-stone-600 dark:text-stone-400 max-w-2xl mx-auto">
-            Une plateforme complète pour gérer ton style au quotidien
+            {t('concept.whySubtitle')}
           </p>
         </div>
 
@@ -181,10 +182,10 @@ export default function Home() {
                         <Icon className="w-6 h-6 text-stone-700 dark:text-stone-300" />
                       </div>
                       <h3 className="text-xl font-semibold text-stone-900 dark:text-stone-50 mb-3">
-                        {feature.title}
+                        {t(feature.titleKey)}
                       </h3>
                       <p className="text-base text-stone-600 dark:text-stone-400 leading-relaxed">
-                        {feature.description}
+                        {t(feature.descriptionKey)}
                       </p>
                     </div>
                   </div>
@@ -235,10 +236,10 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-10 sm:mb-16">
             <h2 className="font-display text-2xl sm:text-3xl md:text-4xl text-stone-900 dark:text-stone-50 mb-3 sm:mb-4">
-              Comment ça marche ?
+              {t('howItWorks.title')}
             </h2>
             <p className="text-base sm:text-lg text-stone-600 dark:text-stone-400 max-w-2xl mx-auto px-2">
-              Trois étapes simples pour révolutionner ta façon de gérer ton style
+              {t('howItWorks.subtitle')}
             </p>
           </div>
 
@@ -248,11 +249,10 @@ export default function Home() {
                 1
               </div>
               <h3 className="text-lg sm:text-xl font-semibold text-stone-900 dark:text-stone-50 mb-2 sm:mb-3">
-                Catalogue ton dressing
+                {t('howItWorks.step1.title')}
               </h3>
               <p className="text-sm sm:text-base text-stone-600 dark:text-stone-400">
-                Prends en photo tous tes vêtements et accessoires. 
-                Ajoute-les à ton dressing virtuel avec leurs caractéristiques.
+                {t('howItWorks.step1.description')}
               </p>
             </div>
 
@@ -261,11 +261,10 @@ export default function Home() {
                 2
               </div>
               <h3 className="text-lg sm:text-xl font-semibold text-stone-900 dark:text-stone-50 mb-2 sm:mb-3">
-                Crée tes looks
+                {t('howItWorks.step2.title')}
               </h3>
               <p className="text-sm sm:text-base text-stone-600 dark:text-stone-400">
-                Combine tes articles pour créer des tenues. 
-                Visualise tes looks et partage tes meilleures créations.
+                {t('howItWorks.step2.description')}
               </p>
             </div>
 
@@ -274,11 +273,10 @@ export default function Home() {
                 3
               </div>
               <h3 className="text-lg sm:text-xl font-semibold text-stone-900 dark:text-stone-50 mb-2 sm:mb-3">
-                Inspire & sois inspiré
+                {t('howItWorks.step3.title')}
               </h3>
               <p className="text-sm sm:text-base text-stone-600 dark:text-stone-400">
-                Découvre les looks de la communauté. 
-                Échange avec d'autres passionnés et trouve l'inspiration au quotidien.
+                {t('howItWorks.step3.description')}
               </p>
             </div>
           </div>
@@ -289,10 +287,10 @@ export default function Home() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 md:py-20">
         <Card className="bg-stone-900 dark:bg-stone-100 p-6 sm:p-8 md:p-12 text-center text-white dark:text-stone-900 shadow-2xl border-0">
           <h2 className="font-display text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4">
-            Prêt à révolutionner ton style ?
+            {t('finalCta.title')}
           </h2>
           <p className="text-base sm:text-lg md:text-xl mb-6 sm:mb-8 opacity-90 px-2">
-            Rejoins des milliers de fashionistas qui organisent déjà leur dressing sur FashionHub
+            {t('finalCta.description')}
           </p>
           <Button 
             onClick={() => setLocation(user ? '/dashboard' : '/login')}
@@ -301,7 +299,7 @@ export default function Home() {
             data-testid="button-cta-main"
           >
             <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
-            {user ? 'Accéder à mon dressing' : 'Créer mon compte gratuit'}
+            {user ? t('profile.myWardrobe') : t('finalCta.startButton')}
           </Button>
         </Card>
       </div>
