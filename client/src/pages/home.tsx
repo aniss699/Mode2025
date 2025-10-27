@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Sparkles, Heart, Users, Camera, Shirt, TrendingUp, Star, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
+import { useLanguage } from '@/hooks/use-language';
 import useEmblaCarousel from 'embla-carousel-react';
 
 export default function Home() {
