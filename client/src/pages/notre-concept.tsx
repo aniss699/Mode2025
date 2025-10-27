@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useLocation } from 'wouter';
 import { useLanguage } from '@/hooks/use-language';
-import { 
-  Sparkles, Heart, Users, Camera, Star, Eye, TrendingUp, 
-  Shirt, ShoppingBag, Zap, CheckCircle, ArrowRight, ChevronDown, 
+import {
+  Sparkles, Heart, Users, Camera, Star, Eye, TrendingUp,
+  Shirt, ShoppingBag, Zap, CheckCircle, ArrowRight, ChevronDown,
   ChevronUp, Quote, Palette, Share2, MessageCircle, Bookmark,
-  Crown, Award, Instagram, Shield, Smile
+  Crown, Award, Instagram, Shield, Smile, Brain
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,6 +16,7 @@ export default function NotreConcept() {
   const [activeDemo, setActiveDemo] = useState(0);
   const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
   const [hoveredBenefit, setHoveredBenefit] = useState<number | null>(null);
+  const { t } = useLanguage();
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -202,80 +203,93 @@ export default function NotreConcept() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-stone-50 to-white dark:from-gray-900 dark:to-gray-950">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        
+
         <div className="relative text-center py-12 px-4 overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-r from-stone-100/50 via-stone-200/50 to-stone-100/50 dark:from-stone-800/50 dark:via-stone-700/50 dark:to-stone-800/50 rounded-3xl blur-3xl"></div>
-          
+
           <div className="relative z-10">
             <div className="inline-flex items-center bg-stone-100 dark:bg-stone-800 text-stone-700 dark:text-stone-300 px-6 py-2 rounded-md text-xs font-medium mb-6 tracking-wide uppercase" data-testid="badge-hero">
               <Sparkles className="w-4 h-4 mr-2" />
-              Le réseau social de la mode et du style
+              {t('concept.heroBadge')}
             </div>
-            
+
             <h1 className="text-4xl sm:text-5xl md:text-6xl font-display font-bold text-stone-900 dark:text-stone-50 mb-6 leading-tight">
-              Votre dressing virtuel,
+              {t('concept.title')}
               <br />
               <span className="text-stone-700 dark:text-stone-300">
-                votre communauté mode
+                {t('concept.titlePart2')}
               </span>
             </h1>
-            
+
             <p className="text-lg sm:text-xl text-gray-700 max-w-3xl mx-auto leading-relaxed mb-8">
-              Créez votre garde-robe en ligne, composez des looks stylés, 
+              {t('concept.subtitle')}
               <br className="hidden sm:block" />
-              et partagez votre passion pour la mode avec une communauté inspirante.
+              {t('concept.subtitlePart2')}
             </p>
 
             <div className="bg-white/90 dark:bg-gray-900/90 backdrop-blur rounded-2xl p-6 max-w-2xl mx-auto mb-8 shadow-xl border border-stone-200 dark:border-stone-800">
-              <h2 className="text-lg font-bold text-stone-900 dark:text-stone-50 mb-4">Ce que vous allez adorer :</h2>
+              <h2 className="text-lg font-bold text-stone-900 dark:text-stone-50 mb-4">
+                {t('concept.whatYouWillLove')}
+              </h2>
               <div className="grid grid-cols-2 gap-4">
                 <div className="flex items-start space-x-3 text-left" data-testid="feature-virtual-wardrobe">
-                  <div className="text-2xl">👗</div>
+                  <div className="flex-shrink-0 w-10 h-10 bg-pink-100 dark:bg-pink-900/30 rounded-lg flex items-center justify-center">
+                    <Shirt className="w-5 h-5 text-pink-600 dark:text-pink-400" />
+                  </div>
                   <div>
-                    <div className="font-semibold text-sm text-stone-900 dark:text-stone-50">Dressing virtuel</div>
-                    <div className="text-stone-600 dark:text-stone-400 text-xs">Organisez votre garde-robe</div>
+                    <h3 className="font-semibold text-stone-900 dark:text-stone-50 text-sm">{t('concept.feature.wardrobe')}</h3>
+                    <p className="text-xs text-stone-600 dark:text-stone-400">{t('concept.feature.wardrobeDesc')}</p>
                   </div>
                 </div>
+
                 <div className="flex items-start space-x-3 text-left" data-testid="feature-create-looks">
-                  <div className="text-2xl">✨</div>
+                  <div className="flex-shrink-0 w-10 h-10 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center">
+                    <Sparkles className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                  </div>
                   <div>
-                    <div className="font-semibold text-sm text-stone-900 dark:text-stone-50">Créez des looks</div>
-                    <div className="text-stone-600 dark:text-stone-400 text-xs">Mix & match créatif</div>
+                    <h3 className="font-semibold text-stone-900 dark:text-stone-50 text-sm">{t('concept.feature.createLooks')}</h3>
+                    <p className="text-xs text-stone-600 dark:text-stone-400">{t('concept.feature.createLooksDesc')}</p>
                   </div>
                 </div>
+
                 <div className="flex items-start space-x-3 text-left" data-testid="feature-community">
-                  <div className="text-2xl">💕</div>
+                  <div className="flex-shrink-0 w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
+                    <Users className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                  </div>
                   <div>
-                    <div className="font-semibold text-sm text-stone-900 dark:text-stone-50">Communauté mode</div>
-                    <div className="text-stone-600 dark:text-stone-400 text-xs">Partagez et inspirez</div>
+                    <h3 className="font-semibold text-stone-900 dark:text-stone-50 text-sm">{t('concept.feature.community')}</h3>
+                    <p className="text-xs text-stone-600 dark:text-stone-400">{t('concept.feature.communityDesc')}</p>
                   </div>
                 </div>
+
                 <div className="flex items-start space-x-3 text-left" data-testid="feature-ai-assistant">
-                  <div className="text-2xl">🤖</div>
+                  <div className="flex-shrink-0 w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
+                    <Brain className="w-5 h-5 text-green-600 dark:text-green-400" />
+                  </div>
                   <div>
-                    <div className="font-semibold text-sm text-stone-900 dark:text-stone-50">Assistant IA</div>
-                    <div className="text-stone-600 dark:text-stone-400 text-xs">Suggestions personnalisées</div>
+                    <h3 className="font-semibold text-stone-900 dark:text-stone-50 text-sm">{t('concept.feature.aiAssistant')}</h3>
+                    <p className="text-xs text-stone-600 dark:text-stone-400">{t('concept.feature.aiAssistantDesc')}</p>
                   </div>
                 </div>
               </div>
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-6">
-              <button 
+              <button
                 onClick={() => setLocation('/profile')}
                 className="btn-fashion-primary text-base sm:text-lg"
                 data-testid="button-start"
               >
                 <Camera className="w-5 h-5 mr-2 inline" />
-                Créer mon dressing
+                {t('concept.createWardrobeBtn')}
               </button>
-              <button 
+              <button
                 onClick={() => setLocation('/explore')}
                 className="btn-fashion-secondary text-base sm:text-lg"
                 data-testid="button-explore"
               >
                 <Eye className="w-5 h-5 mr-2 inline" />
-                Explorer les looks
+                {t('concept.exploreLooksBtn')}
               </button>
             </div>
 
@@ -283,7 +297,7 @@ export default function NotreConcept() {
               {[...Array(5)].map((_, i) => (
                 <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
               ))}
-              <span className="text-gray-600 ml-2">Rejoignez des milliers de fashionistas</span>
+              <span className="text-gray-600 ml-2">{t('concept.joinCommunity')}</span>
             </div>
           </div>
         </div>
@@ -294,19 +308,19 @@ export default function NotreConcept() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
               <div className="text-center" data-testid="stat-users">
                 <div className="text-4xl font-display font-bold text-stone-900 dark:text-stone-50 mb-2">10K+</div>
-                <div className="text-sm text-stone-600 dark:text-stone-400">Utilisateurs actifs</div>
+                <div className="text-sm text-stone-600 dark:text-stone-400">{t('concept.stats.users')}</div>
               </div>
               <div className="text-center" data-testid="stat-looks">
                 <div className="text-4xl font-display font-bold text-stone-900 dark:text-stone-50 mb-2">50K+</div>
-                <div className="text-sm text-stone-600 dark:text-stone-400">Looks partagés</div>
+                <div className="text-sm text-stone-600 dark:text-stone-400">{t('concept.stats.looks')}</div>
               </div>
               <div className="text-center" data-testid="stat-items">
                 <div className="text-4xl font-display font-bold text-stone-900 dark:text-stone-50 mb-2">100K+</div>
-                <div className="text-sm text-stone-600 dark:text-stone-400">Articles catalogués</div>
+                <div className="text-sm text-stone-600 dark:text-stone-400">{t('concept.stats.items')}</div>
               </div>
               <div className="text-center" data-testid="stat-collections">
                 <div className="text-4xl font-display font-bold text-stone-900 dark:text-stone-50 mb-2">25K+</div>
-                <div className="text-sm text-stone-600 dark:text-stone-400">Collections créées</div>
+                <div className="text-sm text-stone-600 dark:text-stone-400">{t('concept.stats.collections')}</div>
               </div>
             </div>
           </div>
@@ -314,13 +328,13 @@ export default function NotreConcept() {
 
         <div className="mb-16">
           <div className="text-center mb-10">
-            <h2 className="font-display text-3xl md:text-4xl text-stone-900 dark:text-stone-50 mb-4">Pourquoi FashionHub ?</h2>
-            <p className="text-lg text-stone-600 dark:text-stone-400">Bien plus qu'un simple dressing virtuel</p>
+            <h2 className="font-display text-3xl md:text-4xl text-stone-900 dark:text-stone-50 mb-4">{t('concept.whyFashionHubTitle')}</h2>
+            <p className="text-lg text-stone-600 dark:text-stone-400">{t('concept.whyFashionHubSubtitle')}</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {emotionalBenefits.map((benefit, index) => (
-              <div 
+              <div
                 key={index}
                 className={`bg-white dark:bg-gray-900 border border-stone-200 dark:border-stone-800 rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:scale-105 cursor-pointer ${
                   hoveredBenefit === index ? 'ring-4 ring-stone-300 dark:ring-stone-700' : ''
@@ -350,17 +364,17 @@ export default function NotreConcept() {
         <div className="mb-16">
           <div className="bg-stone-900 dark:bg-stone-100 rounded-3xl p-8 md:p-12 text-white dark:text-stone-900">
             <div className="text-center mb-12">
-              <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">Comment ça marche ?</h2>
-              <p className="text-lg opacity-90">4 étapes pour devenir une fashionista connectée</p>
+              <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">{t('concept.howItWorksTitle')}</h2>
+              <p className="text-lg opacity-90">{t('concept.howItWorksSubtitle')}</p>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
               {demoSteps.map((step, index) => (
-                <div 
+                <div
                   key={index}
                   className={`text-center p-6 rounded-2xl transition-all duration-500 ${
-                    activeDemo === index 
-                      ? 'bg-white/20 dark:bg-stone-900/20 shadow-2xl scale-110 transform' 
+                    activeDemo === index
+                      ? 'bg-white/20 dark:bg-stone-900/20 shadow-2xl scale-110 transform'
                       : 'bg-white/10 dark:bg-stone-900/10 hover:bg-white/15 dark:hover:bg-stone-900/15'
                   }`}
                   data-testid={`step-card-${index}`}
@@ -385,8 +399,8 @@ export default function NotreConcept() {
 
         <div className="mb-16">
           <div className="text-center mb-10">
-            <h2 className="font-display text-3xl md:text-4xl text-stone-900 dark:text-stone-50 mb-4">Fonctionnalités complètes</h2>
-            <p className="text-lg text-stone-600 dark:text-stone-400">Tout ce dont vous avez besoin pour gérer votre style</p>
+            <h2 className="font-display text-3xl md:text-4xl text-stone-900 dark:text-stone-50 mb-4">{t('concept.featuresTitle')}</h2>
+            <p className="text-lg text-stone-600 dark:text-stone-400">{t('concept.featuresSubtitle')}</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -408,8 +422,8 @@ export default function NotreConcept() {
 
         <div className="mb-16">
           <div className="text-center mb-10">
-            <h2 className="font-display text-3xl md:text-4xl text-stone-900 dark:text-stone-50 mb-4">Ils adorent FashionHub</h2>
-            <p className="text-lg text-stone-600 dark:text-stone-400">Témoignages de notre communauté</p>
+            <h2 className="font-display text-3xl md:text-4xl text-stone-900 dark:text-stone-50 mb-4">{t('concept.testimonialsTitle')}</h2>
+            <p className="text-lg text-stone-600 dark:text-stone-400">{t('concept.testimonialsSubtitle')}</p>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -436,14 +450,14 @@ export default function NotreConcept() {
                 <CardContent className="pt-0">
                   <Quote className="w-5 h-5 text-stone-300 dark:text-stone-700 mb-2" />
                   <p className="text-stone-700 dark:text-stone-300 mb-4 italic leading-relaxed">"{testimonial.text}"</p>
-                  
+
                   <div className="grid grid-cols-1 gap-2">
                     <div className="flex justify-between items-center p-2 bg-stone-100 dark:bg-stone-800 rounded">
-                      <span className="font-semibold text-stone-700 dark:text-stone-300 text-sm">Avant :</span>
+                      <span className="font-semibold text-stone-700 dark:text-stone-300 text-sm">{t('concept.testimonial.before')}</span>
                       <span className="text-stone-600 dark:text-stone-400 text-sm">{testimonial.before}</span>
                     </div>
                     <div className="flex justify-between items-center p-2 bg-stone-100 dark:bg-stone-800 rounded">
-                      <span className="font-semibold text-stone-700 dark:text-stone-300 text-sm">Après :</span>
+                      <span className="font-semibold text-stone-700 dark:text-stone-300 text-sm">{t('concept.testimonial.after')}</span>
                       <span className="text-stone-600 dark:text-stone-400 text-sm">{testimonial.after}</span>
                     </div>
                   </div>
@@ -460,8 +474,8 @@ export default function NotreConcept() {
         <div className="mb-16">
           <div className="bg-white dark:bg-gray-900 border border-stone-200 dark:border-stone-800 rounded-3xl shadow-2xl p-8">
             <div className="text-center mb-10">
-              <h2 className="font-display text-3xl md:text-4xl text-stone-900 dark:text-stone-50 mb-4">Questions fréquentes</h2>
-              <p className="text-lg text-stone-600 dark:text-stone-400">Tout ce que vous devez savoir</p>
+              <h2 className="font-display text-3xl md:text-4xl text-stone-900 dark:text-stone-50 mb-4">{t('concept.faqTitle')}</h2>
+              <p className="text-lg text-stone-600 dark:text-stone-400">{t('concept.faqSubtitle')}</p>
             </div>
 
             <div className="max-w-3xl mx-auto space-y-3">
@@ -491,15 +505,15 @@ export default function NotreConcept() {
         </div>
 
         <div className="text-center bg-stone-900 dark:bg-stone-100 rounded-3xl p-12 text-white dark:text-stone-900 border-0 shadow-2xl">
-          <h2 className="font-display text-3xl md:text-4xl font-bold mb-6">Prêt à révolutionner votre style ?</h2>
-          <p className="text-xl mb-8 opacity-90">Rejoignez des milliers de fashionistas qui transforment leur passion mode en partage créatif</p>
-          <Button 
+          <h2 className="font-display text-3xl md:text-4xl font-bold mb-6">{t('concept.ctaTitle')}</h2>
+          <p className="text-xl mb-8 opacity-90">{t('concept.ctaSubtitle')}</p>
+          <Button
             onClick={() => setLocation('/profile')}
             className="bg-white dark:bg-stone-900 text-stone-900 dark:text-white hover:bg-stone-100 dark:hover:bg-stone-800 font-bold text-lg px-10 py-6 rounded-full shadow-xl transform hover:scale-105 transition-all duration-300"
             data-testid="button-cta-bottom"
           >
             <Sparkles className="w-5 h-5 mr-2" />
-            Commencer gratuitement
+            {t('concept.ctaBtn')}
           </Button>
         </div>
 
