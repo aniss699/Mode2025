@@ -1,0 +1,154 @@
+Your virtual wardrobe,
+your fashion community
+
+Create your online wardrobe, compose stylish looks,and share your passion for fashion with an inspiring community.
+
+concept.whatYouWillLove
+
+Virtual wardrobe
+Organize your wardrobe
+Create looks
+Creative mix & match
+Fashion community
+Share and inspire
+AI Assistant
+Personalized suggestions
+concept.createWardrobeBtn
+concept.exploreLooksBtn
+concept.joinCommunity
+10K+
+Active users
+50K+
+Looks shared
+100K+
+Items cataloged
+25K+
+Collections created
+concept.whyFashionHubTitle
+
+concept.whyFashionHubSubtitle
+Explorez votre créativité
+Libérez le styliste en vous
+
+Testez mille et une combinaisons sans sortir de chez vous. Votre dressing devient votre terrain de jeu mode ! Expérimentez avec les couleurs, les textures et les styles pour découvrir des tenues que vous n'auriez jamais imaginées.
+
+Style illimité
+Rejoignez une communauté passionnée
+Partagez votre passion
+
+Connectez-vous avec des milliers de fashionistas qui vibrent mode comme vous. Échangez, inspirez, apprenez ! Participez à des défis mode, suivez vos créateurs préférés et construisez votre propre communauté de passionnés.
+
+Connexions authentiques
+Restez toujours tendance
+Les looks du moment
+
+Découvrez en temps réel ce qui cartonne chez les créateurs mode. Ne ratez plus jamais une tendance ! Notre IA analyse les looks les plus populaires et vous suggère comment adapter les tendances à votre style personnel.
+
+Toujours à la pointe
+Optimisez votre garde-robe
+Moins acheter, mieux porter
+
+Visualisez vos articles, identifiez ceux que vous ne portez jamais, et faites de meilleurs choix shopping. Statistiques détaillées sur l'utilisation de vos pièces pour une mode plus consciente et durable.
+
+Mode durable
+concept.howItWorksTitle
+
+concept.howItWorksSubtitle
+👗
+Créez votre dressing virtuel
+Votre garde-robe en ligne
+
+Ajoutez vos vêtements, accessoires et chaussures préférés
+
+Organisé et stylé
+✨
+Composez des looks incroyables
+Mix & match créatif
+
+Associez vos articles pour créer des tenues qui vous ressemblent
+
+Créatif et inspiré
+📸
+Partagez votre style
+Inspirez la communauté
+
+Publiez vos looks et découvrez ceux des autres fashionistas
+
+Connecté et valorisé
+Votre style mérite d'être vu ! Partagez vos plus belles tenues et recevez des likes et des commentaires enthousiastes.
+💕
+Construisez votre communauté
+Suivez vos inspirations
+
+Connectez-vous avec des passionnés de mode qui partagent vos goûts
+
+Inspiré et engagé
+concept.featuresTitle
+
+concept.featuresSubtitle
+Dressing Virtuel Intelligent
+Organisez tous vos vêtements, accessoires et chaussures avec photos et tags
+Créateur de Looks
+Combinez vos articles pour créer des tenues stylées et partagez-les avec la communauté
+Collections Personnalisées
+Créez des boards thématiques : looks d'été, tenues de soirée, style minimaliste...
+Feed Inspirant
+Scroll infini de looks tendances, recommandés selon vos préférences style
+Réseau Social Mode
+Suivez vos créateurs favoris, likez, commentez, et échangez conseils style
+Assistant IA Style
+Suggestions de combinaisons intelligentes et analyse de tendances personnalisées
+concept.testimonialsTitle
+
+concept.testimonialsSubtitle
+😍
+EL
+Emma Laurent
+Fashionista & Blogueuse
+Style by Emma
+"FashionHub a transformé ma façon de voir ma garde-robe ! Je peux enfin visualiser toutes mes pièces d'un coup d'œil et créer des looks que je n'aurais jamais imaginés. Mes followers adorent !"
+
+concept.testimonial.before
+Garde-robe chaotique
+concept.testimonial.after
+Fashionista organisée
+📁 Dressing de 200+ pièces
+🤩
+LD
+Léa Dubois
+Créatrice de contenu
+Léa's Wardrobe
+"L'inspiration sans fin ! Chaque jour je découvre de nouveaux looks incroyables. C'est comme Pinterest rencontre Instagram mais version mode perso. Addictif !"
+
+concept.testimonial.before
+En panne d'inspiration
+concept.testimonial.after
+Créatrice tendances
+📁 5 collections thématiques
+💚
+SM
+Sofia Martin
+Passionnée de mode
+Minimalist Chic
+"Grâce à FashionHub, j'ai réalisé que j'avais déjà tout ce qu'il me fallait dans mon dressing. Plus besoin d'acheter sans réfléchir, je valorise ce que j'ai déjà !"
+
+concept.testimonial.before
+Shopping compulsif
+concept.testimonial.after
+Consommatrice consciente
+📁 Style minimaliste
+concept.faqTitle
+
+concept.faqSubtitle
+
+C'est quoi exactement FashionHub ?
+
+Est-ce que c'est gratuit ?
+
+Dois-je vraiment photographier tous mes vêtements ?
+
+Qui peut voir mon dressing et mes looks ?
+
+Comment l'IA m'aide-t-elle avec mon style ?
+
+Puis-je acheter des vêtements sur FashionHub ?
