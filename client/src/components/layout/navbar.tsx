@@ -219,7 +219,7 @@ export default function Navbar() {
                         className="flex items-center w-full"
                       >
                         <Settings className="w-4 h-4 mr-2" />
-                        Paramètres
+                        {t('navbar.settings')}
                       </button>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild className="lg:hidden">
@@ -394,7 +394,7 @@ export default function Navbar() {
                   {t('mobile.myFavorites')}
                 </MobileNavLink>
                 <MobileNavLink href="/settings" icon={Settings}>
-                  Paramètres
+                  {t('navbar.settings')}
                 </MobileNavLink>
               </div>
             )}
@@ -412,14 +412,14 @@ export default function Navbar() {
                 className="w-full bg-gradient-to-r from-pink-500 to-fuchsia-500 hover:from-pink-600 hover:to-fuchsia-600"
               >
                 <Plus className="w-4 h-4 mr-2" />
-                Ajouter un vêtement
+                {t('navbar.addClothing')}
               </Button>
             </div>
           )}
 
           {/* Authentication buttons for mobile */}
           {!user && (
-            <div className="px-4 py-4 border-t border-gray-200 mt-6">
+            <div className="px-4 py-4 border-t border-gray-200 dark:border-gray-800 mt-6">
               <div className="space-y-3">
                 <Button
                   onClick={() => {
