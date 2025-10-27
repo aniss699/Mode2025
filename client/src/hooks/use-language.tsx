@@ -152,7 +152,7 @@ const translations = {
 
     // Creators page
     'creators.title': 'Créateurs Mode',
-    'creators.subtitle': 'Découvre les fashionistas qui inspirent la communauté',
+    'creators.subtitle': 'Follow fashion enthusiasts, get inspired by their looks and build your style community',
     'creators.searchPlaceholder': 'Rechercher un créateur...',
     'creators.searchPlaceholderFull': 'Rechercher un créateur ou un style...',
     'creators.filterByStyle': 'Style',

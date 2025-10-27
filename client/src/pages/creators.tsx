@@ -227,7 +227,7 @@ export default function CreatorsPage() {
               Créateurs Mode
             </h1>
             <p className="text-lg text-stone-600 dark:text-stone-400 max-w-2xl mx-auto">
-              Suis les passionnés de mode, inspire-toi de leurs looks et construis ta communauté style
+              {t('creators.subtitle')}
             </p>
           </div>
 
