@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useLocation } from 'wouter';
+import { useLanguage } from '@/hooks/use-language';
 import { 
   Sparkles, Heart, Users, Camera, Star, Eye, TrendingUp, 
   Shirt, ShoppingBag, Zap, CheckCircle, ArrowRight, ChevronDown, 

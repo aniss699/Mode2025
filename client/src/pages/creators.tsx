@@ -27,6 +27,7 @@ import {
   Activity
 } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
+import { useLanguage } from '@/hooks/use-language';
 import { useLocation } from 'wouter';
 import { mvpStore } from '@/lib/mvpStore';
 
