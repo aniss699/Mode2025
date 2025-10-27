@@ -285,6 +285,16 @@ const translations = {
     'explore.people': 'Personnes',
     'explore.hashtags': 'Hashtags',
 
+    // Settings page
+    'settings.title': 'Paramètres',
+    'settings.subtitle': 'Gérez vos préférences et paramètres de compte',
+    'settings.notifications': 'Notifications',
+    'settings.privacy': 'Confidentialité',
+    'settings.appearance': 'Apparence',
+    'settings.save': 'Sauvegarder',
+    'settings.loginRequired': 'Connexion requise',
+    'settings.loginMessage': 'Connectez-vous pour accéder aux paramètres',
+
     // Legal page
     'legal.title': 'Mentions Légales & Politique de Confidentialité',
     'legal.lastUpdate': 'Dernière mise à jour',

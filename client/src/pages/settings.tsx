@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/hooks/use-language';
 import { 
   Bell, 
   Mail, 
@@ -63,6 +64,7 @@ interface AppearanceSettings {
 export default function Settings() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { t } = useLanguage();
   const [isLoading, setIsLoading] = useState(true);
 
   const [notificationSettings, setNotificationSettings] = useState<NotificationSettings>({
